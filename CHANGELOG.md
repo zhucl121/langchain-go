@@ -40,26 +40,60 @@
   - RetryPolicy 重试策略
   - 完整的单元测试和基准测试
 
+### M05-M08 Runnable 系统实现
+- ✅ M05: core/runnable/interface.go - Runnable 接口
+  - Runnable[I, O] 泛型接口
+  - Invoke, Batch, Stream 统一执行接口
+  - StreamEvent 流式事件类型
+  - Option 模式配置
+  - RunnableFunc 函数适配器
+  - AsAny 类型适配器（解决 Go 泛型协变问题）
+  
+- ✅ M06: core/runnable/lambda.go - RunnableLambda
+  - Lambda() 便捷函数
+  - 批量并行执行（可配置并发数）
+  - 流式输出支持
+  - Passthrough() 辅助函数
+  - 回调机制支持
+  
+- ✅ M07: core/runnable/sequence.go - RunnableSequence
+  - 串联执行多个 Runnable
+  - NewSequence() 创建两步序列
+  - Sequence() 创建多步序列
+  - 自动类型转换
+  
+- ✅ M08: core/runnable/parallel.go - RunnableParallel
+  - 并发执行多个 Runnable
+  - Map 结构存储结果
+  - 并发安全保证
+  
+- ✅ 弹性机制 (retry.go)
+  - RetryRunnable: 指数退避重试
+  - FallbackRunnable: 降级方案
+  - 可组合使用
+
+**测试覆盖**: 50+ 测试用例，57.4% 覆盖率，全部通过 ✅
+
 ### 下一步计划
-- [ ] 实现 Phase 1: Runnable 系统 (M05-M08)
-  - [ ] M05: core/runnable/interface.go - Runnable 接口
-  - [ ] M06: core/runnable/lambda.go - RunnableLambda
-  - [ ] M07: core/runnable/sequence.go - RunnableSequence
-  - [ ] M08: core/runnable/parallel.go - RunnableParallel
+- [ ] 实现 Phase 1: 剩余模块 (M09-M18)
+  - [ ] M09: chat/model - ChatModel 接口
+  - [ ] M10: chat/message - 聊天消息处理
+  - [ ] M11: chat/openai - OpenAI 集成
+  - [ ] M12: chat/anthropic - Anthropic 集成
 
 ---
 
 ## 模块实现进度
 
-### Phase 1: 基础核心 (4/18) 🚧
+### Phase 1: 基础核心 (8/18) 🚧
 - [x] M01: types/message ✅
 - [x] M02: types/tool ✅
 - [x] M03: types/schema ✅
 - [x] M04: types/config ✅
-- [ ] M05: runnable/interface
-- [ ] M06: runnable/lambda
-- [ ] M07: runnable/sequence
-- [ ] M08: runnable/parallel
+- [x] M05: runnable/interface ✅
+- [x] M06: runnable/lambda ✅
+- [x] M07: runnable/sequence ✅
+- [x] M08: runnable/parallel ✅
 - [ ] M09: chat/model
 - [ ] M10: chat/message
 - [ ] M11: chat/openai
