@@ -267,11 +267,12 @@ func TestMessage_String(t *testing.T) {
 	})
 
 	t.Run("long content truncated", func(t *testing.T) {
-		longContent := string(make([]byte, 100))
+		// 创建一个超过50字符的内容
+		longContent := "This is a very long message that should be truncated when converted to string for debugging purposes"
 		msg := NewUserMessage(longContent)
 		str := msg.String()
 		assert.Contains(t, str, "...")
-		assert.Less(t, len(str), len(longContent)+50)
+		assert.Less(t, len(str), 150) // String() 结果应该比原内容短
 	})
 
 	t.Run("with tool calls", func(t *testing.T) {
