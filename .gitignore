@@ -1,58 +1,107 @@
-# Ignore compiled binaries
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+bin/
+dist/
+build/
+
+# Test binary, built with `go test -c`
 *.test
+
+# Output of the go coverage tool
 *.out
+coverage.out
+coverage.html
+*.coverprofile
 
-# Ignore Go build files
-/bin/
-/_obj/
-/_test/
+# Dependency directories
+vendor/
 
-# Ignore Go workspace files
+# Go workspace file
 go.work
-go.work.sum
 
-# Ignore IDE files
-.vscode/
+# IDE specific files
 .idea/
 *.swp
 *.swo
 *~
+.vscode/
+*.code-workspace
 .DS_Store
 
-# Ignore environment files
+# Environment variables
 .env
 .env.local
 .env.*.local
 
-# Ignore test coverage
-*.coverage
-coverage.out
-coverage.html
+# API keys and secrets
+secrets/
+*.key
+*.pem
+credentials.json
 
-# Ignore tmp files
-/tmp/
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
 *.tmp
 
-# Ignore vendor directory (we use go modules)
-/vendor/
-
-# Ignore generated files
-*.pb.go
-*_generated.go
-
-# Ignore database files (for local testing)
+# Database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Ignore logs
-*.log
-logs/
-
-# Ignore OS files
+# OS specific
 Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backup files
+*~
+*.bak
+*.backup
+
+# Test artifacts
+testdata/output/
+test-results/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+site/
+
+# Cache directories
+.cache/
+__pycache__/
+*.pyc
+
+# Editor specific
+.project
+.settings/
+.classpath
+*.iml
+
+# Build artifacts
+*.o
+*.a
+*.so
+
+# Profiling data
+*.prof
+cpu.prof
+mem.prof
+trace.out
+
+# Examples output
+examples/output/
+examples/*.db
+
+# Milvus data (if running locally)
+milvus_data/

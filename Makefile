@@ -1,128 +1,153 @@
-.PHONY: help build test lint clean install run-examples
+# Makefile for LangChain-Go
 
-# 默认目标
+.PHONY: help test test-cover test-race lint fmt vet build clean deps check-deps bench
+
+# Variables
+GO := go
+GOFLAGS :=
+LDFLAGS :=
+PACKAGES := $(shell $(GO) list ./...)
+GOFILES := $(shell find . -name '*.go' -not -path './vendor/*')
+
+# Default target
 .DEFAULT_GOAL := help
 
-# 变量定义
-GO := go
-GOFLAGS := -v
-BINARY_NAME := langchain-go
-BUILD_DIR := ./bin
-COVERAGE_FILE := coverage.out
-
-## help: 显示帮助信息
+## help: Display this help message
 help:
-	@echo "LangChain-Go Makefile Commands:"
+	@echo "LangChain-Go Makefile"
 	@echo ""
-	@sed -n 's/^##//p' ${MAKEFILE_LIST} | column -t -s ':' | sed -e 's/^/ /'
+	@echo "Usage:"
+	@echo "  make <target>"
+	@echo ""
+	@echo "Targets:"
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-## build: 编译项目
-build:
-	@echo "Building..."
-	$(GO) build $(GOFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/...
-
-## test: 运行所有测试
+## test: Run all tests
 test:
 	@echo "Running tests..."
-	$(GO) test $(GOFLAGS) ./...
+	$(GO) test -v $(PACKAGES)
 
-## test-coverage: 运行测试并生成覆盖率报告
-test-coverage:
-	@echo "Running tests with coverage..."
-	$(GO) test -cover -coverprofile=$(COVERAGE_FILE) ./...
-	$(GO) tool cover -html=$(COVERAGE_FILE) -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-
-## test-verbose: 运行详细测试
-test-verbose:
-	@echo "Running verbose tests..."
-	$(GO) test -v ./...
-
-## test-short: 运行快速测试（跳过长时间测试）
+## test-short: Run tests excluding integration tests
 test-short:
 	@echo "Running short tests..."
-	$(GO) test -short ./...
+	$(GO) test -short -v $(PACKAGES)
 
-## bench: 运行基准测试
+## test-cover: Run tests with coverage
+test-cover:
+	@echo "Running tests with coverage..."
+	$(GO) test -coverprofile=coverage.out -covermode=atomic $(PACKAGES)
+	$(GO) tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
+
+## test-race: Run tests with race detector
+test-race:
+	@echo "Running tests with race detector..."
+	$(GO) test -race $(PACKAGES)
+
+## bench: Run benchmarks
 bench:
 	@echo "Running benchmarks..."
-	$(GO) test -bench=. -benchmem ./...
+	$(GO) test -bench=. -benchmem $(PACKAGES)
 
-## lint: 运行代码检查
+## lint: Run linter
 lint:
-	@echo "Running linters..."
-	@which golangci-lint > /dev/null || (echo "golangci-lint not installed. Run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin"; exit 1)
-	golangci-lint run ./...
+	@echo "Running linter..."
+	@which golangci-lint > /dev/null 2>&1 || (echo "golangci-lint not found. Install it from https://golangci-lint.run/usage/install/" && exit 1)
+	golangci-lint run --timeout=5m
 
-## fmt: 格式化代码
+## fmt: Format code
 fmt:
 	@echo "Formatting code..."
-	$(GO) fmt ./...
-	goimports -w .
+	$(GO) fmt $(PACKAGES)
 
-## vet: 运行 go vet
+## vet: Run go vet
 vet:
 	@echo "Running go vet..."
-	$(GO) vet ./...
+	$(GO) vet $(PACKAGES)
 
-## tidy: 整理依赖
-tidy:
-	@echo "Tidying dependencies..."
-	$(GO) mod tidy
+## build: Build the project
+build:
+	@echo "Building..."
+	$(GO) build $(GOFLAGS) $(PACKAGES)
 
-## download: 下载依赖
-download:
+## clean: Clean build artifacts
+clean:
+	@echo "Cleaning..."
+	$(GO) clean
+	rm -f coverage.out coverage.html
+
+## deps: Download dependencies
+deps:
 	@echo "Downloading dependencies..."
 	$(GO) mod download
 
-## clean: 清理构建文件
-clean:
-	@echo "Cleaning..."
-	rm -rf $(BUILD_DIR)
-	rm -f $(COVERAGE_FILE) coverage.html
-	$(GO) clean
-
-## install: 安装项目
-install:
-	@echo "Installing..."
-	$(GO) install ./...
-
-## run-examples: 运行示例代码
-run-examples:
-	@echo "Running examples..."
-	$(GO) run ./examples/simple_chat/main.go
-
-## init-db: 初始化数据库（用于测试 checkpointing）
-init-db:
-	@echo "Initializing test database..."
-	# PostgreSQL
-	-psql -U postgres -c "CREATE DATABASE langchain_test;"
-	# SQLite
-	-rm -f test.db
-
-## check: 运行所有检查（fmt, vet, lint, test）
-check: fmt vet lint test
-
-## pre-commit: 提交前检查
-pre-commit: fmt vet lint test-short
-
-## ci: CI 流程
-ci: fmt vet lint test-coverage
-
-## docs: 生成文档
-docs:
-	@echo "Generating documentation..."
-	$(GO) doc -all
-
-## upgrade-deps: 升级依赖到最新版本
-upgrade-deps:
-	@echo "Upgrading dependencies..."
+## deps-update: Update dependencies
+deps-update:
+	@echo "Updating dependencies..."
 	$(GO) get -u ./...
 	$(GO) mod tidy
 
-## version: 显示版本信息
+## deps-verify: Verify dependencies
+deps-verify:
+	@echo "Verifying dependencies..."
+	$(GO) mod verify
+
+## tidy: Tidy go.mod
+tidy:
+	@echo "Tidying go.mod..."
+	$(GO) mod tidy
+
+## check: Run all checks (fmt, vet, lint, test)
+check: fmt vet lint test
+
+## ci: Run CI checks
+ci: check test-race test-cover
+
+## install-tools: Install development tools
+install-tools:
+	@echo "Installing development tools..."
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	$(GO) install golang.org/x/tools/cmd/goimports@latest
+
+## docs: Generate documentation
+docs:
+	@echo "Generating documentation..."
+	@which godoc > /dev/null 2>&1 || $(GO) install golang.org/x/tools/cmd/godoc@latest
+	@echo "Documentation available at http://localhost:6060"
+	godoc -http=:6060
+
+## example: Run example
+example:
+	@echo "Running example..."
+	$(GO) run examples/quickstart/main.go
+
+## milvus-up: Start Milvus Docker container
+milvus-up:
+	@echo "Starting Milvus..."
+	docker run -d --name milvus -p 19530:19530 -p 9091:9091 milvusdb/milvus:v2.6.0
+
+## milvus-down: Stop Milvus Docker container
+milvus-down:
+	@echo "Stopping Milvus..."
+	docker stop milvus
+	docker rm milvus
+
+## docker-test: Run tests in Docker
+docker-test:
+	@echo "Running tests in Docker..."
+	docker run --rm -v $(PWD):/app -w /app golang:1.22 make test
+
+## version: Display Go version
 version:
-	@echo "Go version:"
 	@$(GO) version
+
+## info: Display project information
+info:
+	@echo "LangChain-Go Project Information"
+	@echo "================================"
+	@echo "Go Version:     $$(go version)"
+	@echo "Packages:       $$(echo $(PACKAGES) | wc -w)"
+	@echo "Go Files:       $$(echo $(GOFILES) | wc -w)"
 	@echo ""
-	@echo "Project version: 1.0.0-dev"
+	@echo "Modules:"
+	@$(GO) list -m all | head -20
