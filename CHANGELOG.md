@@ -11,22 +11,51 @@
 - ✅ 创建 `Makefile` - 构建工具
 - ✅ 参考设计文档: `../LangChain-LangGraph-Go重写设计方案.md`
 
+### M01-M04 基础类型模块实现
+- ✅ M01: pkg/types/message.go - 消息类型定义
+  - Message 结构体和角色定义
+  - ToolCall 和 FunctionCall 类型
+  - 消息创建函数（NewUserMessage, NewSystemMessage 等）
+  - 消息验证、克隆、字符串化
+  - 完整的单元测试和基准测试
+  
+- ✅ M02: pkg/types/tool.go - 工具类型定义
+  - Tool 结构体定义
+  - OpenAI/Anthropic 格式转换
+  - ToolResult 和错误处理
+  - 完整的单元测试和基准测试
+  
+- ✅ M03: pkg/types/schema.go - JSON Schema
+  - Schema 结构体定义
+  - 类型验证和转换
+  - 便捷构造函数（NewStringSchema 等）
+  - 链式调用方法（WithEnum, WithMinMax 等）
+  - 完整的单元测试和基准测试
+  
+- ✅ M04: pkg/types/config.go - 配置类型
+  - Config 结构体定义
+  - 链式配置方法
+  - Context 管理和超时处理
+  - 配置合并和克隆
+  - RetryPolicy 重试策略
+  - 完整的单元测试和基准测试
+
 ### 下一步计划
-- [ ] 实现 Phase 1: 基础核心 (M01-M18)
-  - [ ] M01: pkg/types/message.go - 消息类型定义
-  - [ ] M02: pkg/types/tool.go - 工具类型定义
-  - [ ] M03: pkg/types/schema.go - JSON Schema
-  - [ ] M04: pkg/types/config.go - 配置类型
+- [ ] 实现 Phase 1: Runnable 系统 (M05-M08)
+  - [ ] M05: core/runnable/interface.go - Runnable 接口
+  - [ ] M06: core/runnable/lambda.go - RunnableLambda
+  - [ ] M07: core/runnable/sequence.go - RunnableSequence
+  - [ ] M08: core/runnable/parallel.go - RunnableParallel
 
 ---
 
 ## 模块实现进度
 
-### Phase 1: 基础核心 (0/18)
-- [ ] M01: types/message
-- [ ] M02: types/tool
-- [ ] M03: types/schema
-- [ ] M04: types/config
+### Phase 1: 基础核心 (4/18) 🚧
+- [x] M01: types/message ✅
+- [x] M02: types/tool ✅
+- [x] M03: types/schema ✅
+- [x] M04: types/config ✅
 - [ ] M05: runnable/interface
 - [ ] M06: runnable/lambda
 - [ ] M07: runnable/sequence

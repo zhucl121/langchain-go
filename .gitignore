@@ -9,7 +9,6 @@
 
 # Ignore Go build files
 /bin/
-/pkg/
 /_obj/
 /_test/
 
