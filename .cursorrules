@@ -1,0 +1,630 @@
+# LangChain-Go & LangGraph-Go 重写项目 Cursor Rules
+
+## 项目概述
+
+这是一个用 Go 重写 LangChain 1.2+ 和 LangGraph 1.0+ 的项目。
+
+**核心目标：**
+- 实现 LangGraph 1.0+ 全部核心功能（StateGraph、Checkpointing、Human-in-the-Loop）
+- 实现 LangChain 核心抽象（Runnable、ChatModel、Tools）
+- 性能目标：并发性能提升 10x+，内存降低 50%+
+
+**技术栈：**
+- Go 1.22+ (需要泛型支持)
+- PostgreSQL/SQLite (Checkpointing)
+- 标准库优先（减少依赖）
+
+---
+
+## 代码规范
+
+### 1. 文件组织
+
+```
+每个包应包含：
+- interface.go: 接口定义
+- types.go: 类型定义
+- impl.go: 实现代码
+- options.go: 选项模式
+- xxx_test.go: 测试文件
+- doc.go: 包文档
+```
+
+### 2. 命名规范
+
+- **接口**: 使用名词，如 `Runnable`, `ChatModel`, `Saver`
+- **实现**: 使用形容词+名词，如 `PostgresSaver`, `OpenAIChatModel`
+- **函数**: 使用动词开头，如 `NewXxx`, `CreateAgent`, `ExecuteNode`
+- **私有字段**: 小写开头，如 `nodes`, `edges`
+
+### 3. 错误处理
+
+```go
+// 定义包级错误
+var (
+    ErrInvalidInput = errors.New("xxx: invalid input")
+    ErrNotFound     = errors.New("xxx: not found")
+)
+
+// 使用 fmt.Errorf 包装错误
+return fmt.Errorf("failed to execute node %s: %w", name, err)
+
+// 错误检查
+if err != nil {
+    return fmt.Errorf("xxx: %w", err)
+}
+```
+
+### 4. 泛型使用
+
+```go
+// 优先使用泛型提供类型安全
+type Runnable[I, O any] interface {
+    Invoke(ctx context.Context, input I) (O, error)
+}
+
+// 状态图使用泛型
+type StateGraph[S any] struct {
+    // ...
+}
+```
+
+### 5. 接口设计
+
+```go
+// 接口应该小而专注
+type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+// 组合而非继承
+type ReadWriter interface {
+    Reader
+    Writer
+}
+```
+
+### 6. 选项模式
+
+```go
+// 使用函数选项模式
+type Option func(*Options)
+
+func WithTimeout(d time.Duration) Option {
+    return func(o *Options) {
+        o.Timeout = d
+    }
+}
+
+// 使用
+New(WithTimeout(5*time.Second), WithRetries(3))
+```
+
+### 7. Context 使用
+
+```go
+// 所有 I/O 操作必须接受 context
+func (s *Saver) Put(ctx context.Context, cp Checkpoint) error {
+    // 检查取消
+    select {
+    case <-ctx.Done():
+        return ctx.Err()
+    default:
+    }
+    
+    // 传递给下游
+    return s.db.ExecContext(ctx, query, args...)
+}
+```
+
+### 8. 并发安全
+
+```go
+// 使用 sync.Mutex 保护共享状态
+type SafeMap struct {
+    mu   sync.RWMutex
+    data map[string]any
+}
+
+func (m *SafeMap) Get(key string) (any, bool) {
+    m.mu.RLock()
+    defer m.mu.RUnlock()
+    val, ok := m.data[key]
+    return val, ok
+}
+```
+
+### 9. Channel 使用
+
+```go
+// 流式输出使用 channel
+func (r *Runnable) Stream(ctx context.Context, input I) (<-chan Event[O], error) {
+    out := make(chan Event[O], 100) // 带缓冲
+    
+    go func() {
+        defer close(out) // 必须关闭
+        
+        // 检查取消
+        select {
+        case <-ctx.Done():
+            return
+        case out <- event:
+        }
+    }()
+    
+    return out, nil
+}
+```
+
+---
+
+## 核心设计模式
+
+### 1. Runnable 接口
+
+```go
+// 所有可执行组件都实现此接口
+type Runnable[I, O any] interface {
+    Invoke(ctx context.Context, input I, opts ...Option) (O, error)
+    Batch(ctx context.Context, inputs []I, opts ...Option) ([]O, error)
+    Stream(ctx context.Context, input I, opts ...Option) (<-chan StreamEvent[O], error)
+}
+
+// 组合方式：Pipe
+func Pipe[A, B, C any](first Runnable[A, B], second Runnable[B, C]) Runnable[A, C] {
+    return &sequence[A, B, C]{first, second}
+}
+```
+
+### 2. StateGraph 模式
+
+```go
+// 声明式 API
+graph := state.NewStateGraph[MyState]("my-graph")
+
+graph.AddNode("agent", agentNode).
+    AddNode("tools", toolsNode).
+    SetEntryPoint("agent").
+    AddConditionalEdges("agent", routeFn, map[string]string{
+        "continue": "tools",
+        "end":      state.END,
+    }).
+    AddEdge("tools", "agent")
+
+compiled := graph.Compile()
+```
+
+### 3. Checkpointing 模式
+
+```go
+// 接口定义
+type Saver interface {
+    Put(ctx context.Context, config Config, cp Checkpoint) error
+    Get(ctx context.Context, config Config) (*Checkpoint, error)
+    List(ctx context.Context, config Config, opts ListOptions) ([]Checkpoint, error)
+}
+
+// 使用
+graph.WithCheckpointer(postgresaver).
+    WithDurability(durability.ModeSync)
+```
+
+### 4. Human-in-the-Loop 模式
+
+```go
+// 节点中触发中断
+func approvalNode(ctx context.Context, state State) (State, error) {
+    if state.RequiresApproval {
+        hitl.TriggerInterrupt(hitl.Interrupt{
+            Type:    hitl.InterruptApproval,
+            Message: "请审批此操作",
+        })
+    }
+    return state, nil
+}
+
+// 恢复执行
+result, err := executor.Resume(ctx, threadID, hitl.ResumeData{
+    Action: hitl.ActionApprove,
+})
+```
+
+### 5. Middleware 模式
+
+```go
+// 中间件接口
+type Middleware interface {
+    BeforeModel(ctx context.Context, state *State) (*State, error)
+    AfterModel(ctx context.Context, state *State, resp *Message) (*State, error)
+}
+
+// 中间件链
+agent := agents.CreateAgent(agents.Config{
+    Model: model,
+    Middleware: []Middleware{
+        logging.New(),
+        hitl.New(hitl.Config{...}),
+    },
+})
+```
+
+---
+
+## 测试规范
+
+### 1. 测试文件命名
+
+```
+file.go       -> file_test.go
+interface.go  -> interface_test.go
+```
+
+### 2. 测试函数命名
+
+```go
+// 基础测试
+func TestFunctionName(t *testing.T) {}
+
+// 表格驱动测试
+func TestFunctionName_Cases(t *testing.T) {
+    tests := []struct {
+        name    string
+        input   Input
+        want    Output
+        wantErr bool
+    }{
+        {"normal case", input1, output1, false},
+        {"error case", input2, nil, true},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // ...
+        })
+    }
+}
+```
+
+### 3. Mock 使用
+
+```go
+// 使用接口进行 mock
+type MockSaver struct {
+    PutFunc func(ctx context.Context, config Config, cp Checkpoint) error
+}
+
+func (m *MockSaver) Put(ctx context.Context, config Config, cp Checkpoint) error {
+    if m.PutFunc != nil {
+        return m.PutFunc(ctx, config, cp)
+    }
+    return nil
+}
+```
+
+### 4. 必须测试的场景
+
+- ✅ 正常路径
+- ✅ 错误处理
+- ✅ 边界条件
+- ✅ 并发安全
+- ✅ Context 取消
+- ✅ 资源清理
+
+---
+
+## 文档规范
+
+### 1. 包文档 (doc.go)
+
+```go
+// Package graph 提供 LangGraph 状态图实现。
+//
+// StateGraph 是核心类型，用于定义有向图工作流：
+//
+//   g := graph.NewStateGraph[MyState]("example")
+//   g.AddNode("start", startNode)
+//   g.AddEdge("start", "end")
+//   compiled := g.Compile()
+//
+// 支持的功能：
+//   - 条件边和循环
+//   - 检查点持久化
+//   - Human-in-the-Loop
+//   - 流式输出
+//
+package graph
+```
+
+### 2. 类型文档
+
+```go
+// StateGraph 表示一个状态图工作流。
+//
+// StateGraph 使用泛型参数 S 表示状态类型，状态在节点间流转。
+//
+// 示例：
+//
+//   type MyState struct {
+//       Counter int
+//   }
+//
+//   g := NewStateGraph[MyState]("counter")
+//
+type StateGraph[S any] struct {
+    // ...
+}
+```
+
+### 3. 函数文档
+
+```go
+// AddNode 向图中添加一个节点。
+//
+// 参数：
+//   - name: 节点名称，必须唯一
+//   - fn: 节点函数，接收状态并返回新状态
+//
+// 返回：
+//   - *StateGraph[S]: 返回自身支持链式调用
+//
+// 如果节点名称已存在，会覆盖原有节点。
+//
+func (g *StateGraph[S]) AddNode(name string, fn NodeFunc[S]) *StateGraph[S] {
+    // ...
+}
+```
+
+---
+
+## 性能优化指南
+
+### 1. 避免不必要的分配
+
+```go
+// Bad: 每次调用都分配
+func process(items []string) []Result {
+    results := []Result{} // 初始容量为 0
+    for _, item := range items {
+        results = append(results, Result{})
+    }
+    return results
+}
+
+// Good: 预分配容量
+func process(items []string) []Result {
+    results := make([]Result, 0, len(items))
+    for _, item := range items {
+        results = append(results, Result{})
+    }
+    return results
+}
+```
+
+### 2. 使用 sync.Pool
+
+```go
+// 复用对象
+var bufferPool = sync.Pool{
+    New: func() any {
+        return new(bytes.Buffer)
+    },
+}
+
+func processData(data []byte) {
+    buf := bufferPool.Get().(*bytes.Buffer)
+    defer func() {
+        buf.Reset()
+        bufferPool.Put(buf)
+    }()
+    // 使用 buf
+}
+```
+
+### 3. 并发执行
+
+```go
+// Batch 方法并行执行
+func (r *Runnable[I, O]) Batch(ctx context.Context, inputs []I) ([]O, error) {
+    results := make([]O, len(inputs))
+    var wg sync.WaitGroup
+    var mu sync.Mutex
+    var firstErr error
+    
+    for i, input := range inputs {
+        wg.Add(1)
+        go func(idx int, in I) {
+            defer wg.Done()
+            result, err := r.Invoke(ctx, in)
+            mu.Lock()
+            defer mu.Unlock()
+            if err != nil && firstErr == nil {
+                firstErr = err
+            }
+            results[idx] = result
+        }(i, input)
+    }
+    
+    wg.Wait()
+    return results, firstErr
+}
+```
+
+---
+
+## 安全规范
+
+### 1. 输入验证
+
+```go
+// 总是验证输入
+func NewConfig(apiKey string) (*Config, error) {
+    if apiKey == "" {
+        return nil, ErrAPIKeyRequired
+    }
+    if len(apiKey) < 32 {
+        return nil, ErrInvalidAPIKey
+    }
+    return &Config{apiKey: apiKey}, nil
+}
+```
+
+### 2. 敏感信息处理
+
+```go
+// 不要在日志中输出敏感信息
+type Config struct {
+    apiKey string // 小写，不导出
+}
+
+// String 隐藏敏感信息
+func (c Config) String() string {
+    return fmt.Sprintf("Config{apiKey: ***%s}", c.apiKey[len(c.apiKey)-4:])
+}
+```
+
+### 3. 资源清理
+
+```go
+// 使用 defer 确保资源释放
+func process(filename string) error {
+    f, err := os.Open(filename)
+    if err != nil {
+        return err
+    }
+    defer f.Close() // 确保关闭
+    
+    // 处理文件
+    return nil
+}
+```
+
+---
+
+## 依赖管理
+
+### 1. 最小依赖原则
+
+```
+优先使用标准库，仅在必要时引入外部依赖：
+
+必需依赖：
+- github.com/jackc/pgx/v5  (PostgreSQL)
+- github.com/mattn/go-sqlite3 (SQLite)
+
+可选依赖：
+- github.com/stretchr/testify (测试)
+- github.com/google/uuid (UUID)
+```
+
+### 2. 版本固定
+
+```go
+// go.mod
+require (
+    github.com/jackc/pgx/v5 v5.5.0
+)
+```
+
+---
+
+## 提交规范
+
+### 1. Commit Message 格式
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**类型 (type):**
+- `feat`: 新功能
+- `fix`: 修复 bug
+- `refactor`: 重构
+- `test`: 测试
+- `docs`: 文档
+- `chore`: 构建/工具
+
+**示例:**
+```
+feat(graph): implement StateGraph with conditional edges
+
+- Add StateGraph core structure
+- Support conditional edges
+- Add basic validation
+
+Refs: #M24
+```
+
+### 2. 分支策略
+
+```
+main          - 稳定版本
+develop       - 开发分支
+feature/M24   - 功能分支（按模块编号）
+fix/issue-123 - 修复分支
+```
+
+---
+
+## AI 辅助开发提示
+
+### 1. 请求代码生成时
+
+```markdown
+实现模块 M{ID}: {模块名称}
+
+设计文档：{从设计方案复制}
+
+依赖模块：{已实现的接口定义}
+
+要求：
+1. 遵循项目 .cursorrules 规范
+2. 包含完整错误处理
+3. 包含单元测试
+4. 添加详细注释
+```
+
+### 2. 代码审查检查项
+
+- [ ] 是否遵循命名规范
+- [ ] 是否有完整的错误处理
+- [ ] 是否有 Context 支持
+- [ ] 是否有并发安全保护
+- [ ] 是否有资源清理（defer）
+- [ ] 是否有输入验证
+- [ ] 是否有单元测试
+- [ ] 是否有文档注释
+
+### 3. 性能检查项
+
+- [ ] 是否预分配容量
+- [ ] 是否避免不必要的分配
+- [ ] 是否使用并发提升性能
+- [ ] 是否有内存泄漏风险
+- [ ] 是否有 goroutine 泄漏风险
+
+---
+
+## 参考资源
+
+- 设计文档: `../LangChain-LangGraph-Go重写设计方案.md`
+- Python LangChain: https://github.com/langchain-ai/langchain
+- Python LangGraph: https://github.com/langchain-ai/langgraph
+- Go Code Review: https://github.com/golang/go/wiki/CodeReviewComments
+- Effective Go: https://go.dev/doc/effective_go
+
+---
+
+## 当前进度跟踪
+
+```
+[ ] Phase 1: 基础核心 (M01-M18)
+[ ] Phase 2: LangGraph 核心 (M24-M52)
+[ ] Phase 3: LangChain 扩展 (M53-M58)
+[ ] Phase 4: 高级特性 (M59-M60)
+```
+
+更新此文件底部的进度，标记已完成的模块。

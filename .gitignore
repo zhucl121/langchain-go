@@ -1,0 +1,59 @@
+# Ignore compiled binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Ignore Go build files
+/bin/
+/pkg/
+/_obj/
+/_test/
+
+# Ignore Go workspace files
+go.work
+go.work.sum
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignore environment files
+.env
+.env.local
+.env.*.local
+
+# Ignore test coverage
+*.coverage
+coverage.out
+coverage.html
+
+# Ignore tmp files
+/tmp/
+*.tmp
+
+# Ignore vendor directory (we use go modules)
+/vendor/
+
+# Ignore generated files
+*.pb.go
+*_generated.go
+
+# Ignore database files (for local testing)
+*.db
+*.sqlite
+*.sqlite3
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore OS files
+Thumbs.db
