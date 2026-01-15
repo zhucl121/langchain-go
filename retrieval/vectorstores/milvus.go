@@ -481,16 +481,17 @@ func (store *MilvusVectorStore) keywordSearch(
 
 	// 解析结果
 	results := make([]DocumentWithScore, 0, k)
-	for i := 0; i < queryResult.ResultCount && i < k; i++ {
+	resultCount := queryResult.GetColumn(store.idField).Len() // 使用 Len() 方法获取结果数量
+	for i := 0; i < resultCount && i < k; i++ {
 		// 获取内容
-		contentField := queryResult.Fields.GetColumn(store.contentField)
+		contentField := queryResult.GetColumn(store.contentField)
 		content := ""
 		if contentCol, ok := contentField.(*entity.ColumnVarChar); ok {
 			content, _ = contentCol.ValueByIdx(i)
 		}
 
 		// 获取元数据
-		metadataField := queryResult.Fields.GetColumn(store.metadataField)
+		metadataField := queryResult.GetColumn(store.metadataField)
 		var metadata map[string]any
 		if metadataCol, ok := metadataField.(*entity.ColumnJSONBytes); ok {
 			metadataBytes, _ := metadataCol.ValueByIdx(i)
@@ -682,7 +683,15 @@ func (store *MilvusVectorStore) GetDocumentCount(ctx context.Context) (int64, er
 		return 0, err
 	}
 
-	return stats[entity.CollectionRowCount], nil
+	// 从统计信息中获取行数
+	// stats 的类型是 map[string]string
+	if rowCountStr, ok := stats["row_count"]; ok {
+		var rowCount int64
+		fmt.Sscanf(rowCountStr, "%d", &rowCount)
+		return rowCount, nil
+	}
+
+	return 0, fmt.Errorf("failed to get row count from statistics")
 }
 
 // DropCollection 删除集合。
