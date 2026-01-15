@@ -56,9 +56,10 @@ func NewPostgresCheckpointSaver[S any](connStr string) (*PostgresCheckpointSaver
 	return saver, nil
 }
 
-// initSchema 初始化数据库表结构。
+// initSchema 初始化数据库表结构(三表架构)。
 func (p *PostgresCheckpointSaver[S]) initSchema() error {
-	schema := `
+	// 主 checkpoint 表
+	checkpointsTable := `
 	CREATE TABLE IF NOT EXISTS checkpoints (
 		id TEXT NOT NULL,
 		thread_id TEXT NOT NULL,
@@ -73,14 +74,64 @@ func (p *PostgresCheckpointSaver[S]) initSchema() error {
 		PRIMARY KEY (thread_id, checkpoint_ns, id)
 	);
 
-	CREATE INDEX IF NOT EXISTS idx_thread_ns ON checkpoints(thread_id, checkpoint_ns);
-	CREATE INDEX IF NOT EXISTS idx_timestamp ON checkpoints(timestamp);
-	CREATE INDEX IF NOT EXISTS idx_created_at ON checkpoints(created_at DESC);
-	CREATE INDEX IF NOT EXISTS idx_metadata_gin ON checkpoints USING GIN (metadata);
+	CREATE INDEX IF NOT EXISTS idx_checkpoints_thread_ns ON checkpoints(thread_id, checkpoint_ns);
+	CREATE INDEX IF NOT EXISTS idx_checkpoints_timestamp ON checkpoints(timestamp);
+	CREATE INDEX IF NOT EXISTS idx_checkpoints_created_at ON checkpoints(created_at DESC);
+	CREATE INDEX IF NOT EXISTS idx_checkpoints_metadata_gin ON checkpoints USING GIN (metadata);
 	`
 
-	_, err := p.db.Exec(schema)
-	return err
+	// Blob 存储表(用于大数据分离)
+	blobsTable := `
+	CREATE TABLE IF NOT EXISTS checkpoint_blobs (
+		thread_id TEXT NOT NULL,
+		checkpoint_ns TEXT NOT NULL DEFAULT '',
+		channel TEXT NOT NULL,
+		version TEXT NOT NULL,
+		type TEXT,
+		data BYTEA NOT NULL,
+		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (thread_id, checkpoint_ns, channel, version)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_checkpoint_blobs_thread_ns ON checkpoint_blobs(thread_id, checkpoint_ns);
+	CREATE INDEX IF NOT EXISTS idx_checkpoint_blobs_created_at ON checkpoint_blobs(created_at DESC);
+	`
+
+	// 写入追踪表(用于细粒度状态管理)
+	writesTable := `
+	CREATE TABLE IF NOT EXISTS checkpoint_writes (
+		thread_id TEXT NOT NULL,
+		checkpoint_ns TEXT NOT NULL DEFAULT '',
+		checkpoint_id TEXT NOT NULL,
+		task_id TEXT NOT NULL,
+		idx INTEGER NOT NULL,
+		channel TEXT NOT NULL,
+		type TEXT,
+		value JSONB NOT NULL,
+		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (thread_id, checkpoint_ns, checkpoint_id, task_id, idx)
+	);
+
+	CREATE INDEX IF NOT EXISTS idx_checkpoint_writes_thread_ns ON checkpoint_writes(thread_id, checkpoint_ns);
+	CREATE INDEX IF NOT EXISTS idx_checkpoint_writes_checkpoint ON checkpoint_writes(checkpoint_id);
+	CREATE INDEX IF NOT EXISTS idx_checkpoint_writes_task ON checkpoint_writes(task_id);
+	CREATE INDEX IF NOT EXISTS idx_checkpoint_writes_idx ON checkpoint_writes(idx);
+	`
+
+	// 按顺序创建表
+	if _, err := p.db.Exec(checkpointsTable); err != nil {
+		return fmt.Errorf("failed to create checkpoints table: %w", err)
+	}
+
+	if _, err := p.db.Exec(blobsTable); err != nil {
+		return fmt.Errorf("failed to create checkpoint_blobs table: %w", err)
+	}
+
+	if _, err := p.db.Exec(writesTable); err != nil {
+		return fmt.Errorf("failed to create checkpoint_writes table: %w", err)
+	}
+
+	return nil
 }
 
 // Save 实现 CheckpointSaver 接口。
@@ -302,6 +353,250 @@ func (p *PostgresCheckpointSaver[S]) Close() error {
 	if p.db != nil {
 		return p.db.Close()
 	}
+	return nil
+}
+
+// SaveWrite 保存写入记录
+//
+// 用于追踪细粒度的写入操作,支持调试和状态追踪
+//
+// 参数:
+//   - ctx: 上下文
+//   - write: 写入记录
+//
+// 返回:
+//   - error: 保存错误
+//
+func (p *PostgresCheckpointSaver[S]) SaveWrite(ctx context.Context, write *CheckpointWrite) error {
+	if write == nil {
+		return fmt.Errorf("write cannot be nil")
+	}
+
+	valueData, err := json.Marshal(write.Value)
+	if err != nil {
+		return fmt.Errorf("failed to marshal write value: %w", err)
+	}
+
+	query := `
+	INSERT INTO checkpoint_writes
+	(thread_id, checkpoint_ns, checkpoint_id, task_id, idx, channel, type, value, created_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	ON CONFLICT (thread_id, checkpoint_ns, checkpoint_id, task_id, idx) DO UPDATE SET
+		value = EXCLUDED.value,
+		type = EXCLUDED.type
+	`
+
+	_, err = p.db.ExecContext(ctx, query,
+		write.ThreadID,
+		write.CheckpointNS,
+		write.CheckpointID,
+		write.TaskID,
+		write.Idx,
+		write.Channel,
+		write.Type,
+		valueData,
+		time.Now(),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to save write: %w", err)
+	}
+
+	return nil
+}
+
+// ListWrites 列出写入记录
+//
+// 获取指定 checkpoint 的所有写入记录,按索引排序
+//
+// 参数:
+//   - ctx: 上下文
+//   - threadID: 线程 ID
+//   - checkpointNS: 命名空间
+//   - checkpointID: Checkpoint ID
+//
+// 返回:
+//   - []*CheckpointWrite: 写入记录列表
+//   - error: 列出错误
+//
+func (p *PostgresCheckpointSaver[S]) ListWrites(ctx context.Context, threadID, checkpointNS, checkpointID string) ([]*CheckpointWrite, error) {
+	query := `
+	SELECT thread_id, checkpoint_ns, checkpoint_id, task_id, idx, channel, type, value, created_at
+	FROM checkpoint_writes
+	WHERE thread_id = $1 AND checkpoint_ns = $2 AND checkpoint_id = $3
+	ORDER BY idx ASC
+	`
+
+	rows, err := p.db.QueryContext(ctx, query, threadID, checkpointNS, checkpointID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query writes: %w", err)
+	}
+	defer rows.Close()
+
+	var writes []*CheckpointWrite
+	for rows.Next() {
+		var write CheckpointWrite
+		var valueData []byte
+
+		err := rows.Scan(
+			&write.ThreadID,
+			&write.CheckpointNS,
+			&write.CheckpointID,
+			&write.TaskID,
+			&write.Idx,
+			&write.Channel,
+			&write.Type,
+			&valueData,
+			&write.CreatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan write: %w", err)
+		}
+
+		if err := json.Unmarshal(valueData, &write.Value); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal write value: %w", err)
+		}
+
+		writes = append(writes, &write)
+	}
+
+	return writes, rows.Err()
+}
+
+// DeleteWrites 删除写入记录
+//
+// 删除指定 checkpoint 的所有写入记录
+//
+// 参数:
+//   - ctx: 上下文
+//   - threadID: 线程 ID
+//   - checkpointNS: 命名空间
+//   - checkpointID: Checkpoint ID
+//
+// 返回:
+//   - error: 删除错误
+//
+func (p *PostgresCheckpointSaver[S]) DeleteWrites(ctx context.Context, threadID, checkpointNS, checkpointID string) error {
+	query := `
+	DELETE FROM checkpoint_writes
+	WHERE thread_id = $1 AND checkpoint_ns = $2 AND checkpoint_id = $3
+	`
+
+	_, err := p.db.ExecContext(ctx, query, threadID, checkpointNS, checkpointID)
+	if err != nil {
+		return fmt.Errorf("failed to delete writes: %w", err)
+	}
+
+	return nil
+}
+
+// SaveBlob 保存 Blob 数据
+//
+// 用于存储大数据块,实现与主表的分离
+//
+// 参数:
+//   - ctx: 上下文
+//   - blob: Blob 数据
+//
+// 返回:
+//   - error: 保存错误
+//
+func (p *PostgresCheckpointSaver[S]) SaveBlob(ctx context.Context, blob *CheckpointBlob) error {
+	if blob == nil {
+		return fmt.Errorf("blob cannot be nil")
+	}
+
+	query := `
+	INSERT INTO checkpoint_blobs
+	(thread_id, checkpoint_ns, channel, version, type, data, created_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7)
+	ON CONFLICT (thread_id, checkpoint_ns, channel, version) DO UPDATE SET
+		data = EXCLUDED.data,
+		type = EXCLUDED.type
+	`
+
+	_, err := p.db.ExecContext(ctx, query,
+		blob.ThreadID,
+		blob.CheckpointNS,
+		blob.Channel,
+		blob.Version,
+		blob.Type,
+		blob.Data,
+		time.Now(),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to save blob: %w", err)
+	}
+
+	return nil
+}
+
+// LoadBlob 加载 Blob 数据
+//
+// 参数:
+//   - ctx: 上下文
+//   - threadID: 线程 ID
+//   - checkpointNS: 命名空间
+//   - channel: Channel 名称
+//   - version: 版本
+//
+// 返回:
+//   - *CheckpointBlob: Blob 数据
+//   - error: 加载错误
+//
+func (p *PostgresCheckpointSaver[S]) LoadBlob(ctx context.Context, threadID, checkpointNS, channel, version string) (*CheckpointBlob, error) {
+	query := `
+	SELECT thread_id, checkpoint_ns, channel, version, type, data, created_at
+	FROM checkpoint_blobs
+	WHERE thread_id = $1 AND checkpoint_ns = $2 AND channel = $3 AND version = $4
+	`
+
+	var blob CheckpointBlob
+	err := p.db.QueryRowContext(ctx, query, threadID, checkpointNS, channel, version).Scan(
+		&blob.ThreadID,
+		&blob.CheckpointNS,
+		&blob.Channel,
+		&blob.Version,
+		&blob.Type,
+		&blob.Data,
+		&blob.CreatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("blob not found")
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to load blob: %w", err)
+	}
+
+	return &blob, nil
+}
+
+// DeleteBlob 删除 Blob 数据
+//
+// 参数:
+//   - ctx: 上下文
+//   - threadID: 线程 ID
+//   - checkpointNS: 命名空间
+//   - channel: Channel 名称
+//   - version: 版本
+//
+// 返回:
+//   - error: 删除错误
+//
+func (p *PostgresCheckpointSaver[S]) DeleteBlob(ctx context.Context, threadID, checkpointNS, channel, version string) error {
+	query := `
+	DELETE FROM checkpoint_blobs
+	WHERE thread_id = $1 AND checkpoint_ns = $2 AND channel = $3 AND version = $4
+	`
+
+	_, err := p.db.ExecContext(ctx, query, threadID, checkpointNS, channel, version)
+	if err != nil {
+		return fmt.Errorf("failed to delete blob: %w", err)
+	}
+
 	return nil
 }
 
