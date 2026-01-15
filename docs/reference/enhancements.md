@@ -1,14 +1,27 @@
 # LangChain-Go 课后扩展增强功能清单
 
-**文档版本**: v1.3  
+**文档版本**: v1.4  
 **创建日期**: 2026-01-14  
 **最后更新**: 2026-01-15  
-**适用版本**: LangChain-Go v1.4.0+  
-**状态**: 第三阶段完成 ✅
+**适用版本**: LangChain-Go v1.5.0+  
+**状态**: 第四阶段完成 ✅
 
 ---
 
 ## 🎉 最新进展
+
+### ✅ 第四阶段完成！(2026-01-15) 🎉
+
+**第四阶段 - 向量存储和文档加载器扩展**已全部完成！共实现5个核心功能：
+- ✅ Chroma 向量存储集成 (P0)
+- ✅ Pinecone 向量存储集成 (P0)
+- ✅ Word/DOCX 文档加载器 (P1)
+- ✅ HTML/Web 文档加载器 (P1)
+- ✅ Excel/CSV 文档加载器 (P1)
+
+总计新增：**~2,318行核心代码** + **~1,682行测试代码**
+
+为LangChain-Go提供了更丰富的向量存储后端选择和全面的文档处理能力！
 
 ### ✅ 第三阶段完成！(2026-01-15) 🎉
 
@@ -122,7 +135,7 @@
 
 #### 第三阶段 - 可观测性 (100% 完成 ✅ 🎉)
 
-10. **OpenTelemetry 集成 (分布式追踪)** ⭐⭐⭐⭐⭐ ✨ NEW
+10. **OpenTelemetry 集成 (分布式追踪)** ⭐⭐⭐⭐⭐ ✨
    - 位置: `pkg/observability/tracer.go`, `middleware.go`
    - 功能: 完整的分布式追踪和可观测性能力
    - 特性:
@@ -143,7 +156,7 @@
    - 状态: 完整实现，含完整测试
    - 代码量: 660 行核心代码 + 437 行测试
 
-11. **Prometheus 指标导出 (监控指标系统)** ⭐⭐⭐⭐⭐ ✨ NEW
+11. **Prometheus 指标导出 (监控指标系统)** ⭐⭐⭐⭐⭐ ✨
    - 位置: `pkg/observability/metrics.go`
    - 功能: 完整的 Prometheus 监控指标收集和暴露
    - 特性:
@@ -163,7 +176,7 @@
    - 状态: 完整实现，含完整测试
    - 代码量: 440 行核心代码 + 403 行测试
 
-12. **图可视化功能 (Graph Visualization)** ⭐⭐⭐⭐ ✨ NEW
+12. **图可视化功能 (Graph Visualization)** ⭐⭐⭐⭐ ✨
    - 位置: `graph/visualization/visualizer.go`, `builder.go`
    - 功能: 为 LangGraph 提供多种格式的可视化导出能力
    - 特性:
@@ -183,6 +196,97 @@
      - 教学演示
    - 状态: 完整实现，含12个测试函数、24个子测试
    - 代码量: 679 行核心代码 + 381 行测试
+
+#### 第四阶段 - 向量存储和文档加载器扩展 (100% 完成 ✅ 🎉)
+
+13. **Chroma 向量存储集成** ⭐⭐⭐⭐⭐ ✨ NEW
+   - 位置: `retrieval/vectorstores/chroma.go`
+   - 功能: 完整的 Chroma 向量数据库集成
+   - 特性:
+     - ✅ 完整的 CRUD 操作
+     - ✅ 相似度搜索（带评分阈值）
+     - ✅ 多种距离度量（L2, IP, Cosine）
+     - ✅ 自动集合创建
+     - ✅ 元数据过滤
+     - ✅ 批量操作支持
+   - 使用场景:
+     - 开源向量存储需求
+     - 本地开发和测试
+     - 轻量级生产环境
+   - 状态: 完整实现，含17个测试函数
+   - 代码量: 358 行核心代码 + 403 行测试
+
+14. **Pinecone 向量存储集成** ⭐⭐⭐⭐⭐ ✨ NEW
+   - 位置: `retrieval/vectorstores/pinecone.go`
+   - 功能: 完整的 Pinecone 云向量数据库集成
+   - 特性:
+     - ✅ 完整的 CRUD 操作
+     - ✅ 相似度搜索（带评分阈值）
+     - ✅ 多种距离度量（Cosine, Euclidean, Dotproduct）
+     - ✅ Namespace 支持
+     - ✅ 自动索引创建
+     - ✅ 元数据管理
+   - 使用场景:
+     - 云端托管向量存储
+     - 大规模生产环境
+     - 企业级应用
+   - 状态: 完整实现，含18个测试函数
+   - 代码量: 355 行核心代码 + 398 行测试
+
+15. **Word/DOCX 文档加载器** ⭐⭐⭐⭐ ✨ NEW
+   - 位置: `retrieval/loaders/docx.go`
+   - 功能: 完整的 Microsoft Word 文档解析
+   - 特性:
+     - ✅ DOCX 文件解析（ZIP + XML）
+     - ✅ 文本内容提取
+     - ✅ 表格数据提取
+     - ✅ 文档属性提取（标题、作者等）
+     - ✅ DOC 文件基础支持
+     - ✅ 样式信息提取（可选）
+   - 使用场景:
+     - 商业文档处理
+     - 合同和报告分析
+     - 知识库构建
+   - 状态: 完整实现，含14个测试函数
+   - 代码量: 476 行核心代码 + 337 行测试
+
+16. **HTML/Web 文档加载器** ⭐⭐⭐⭐ ✨ NEW
+   - 位置: `retrieval/loaders/html.go`
+   - 功能: 完整的 HTML 和网页内容抓取
+   - 特性:
+     - ✅ 本地 HTML 文件加载
+     - ✅ 网页 URL 抓取
+     - ✅ CSS 选择器支持
+     - ✅ 脚本和样式过滤
+     - ✅ 链接提取
+     - ✅ Meta 标签提取
+     - ✅ Web 爬虫支持（递归抓取）
+   - 使用场景:
+     - 网页内容索引
+     - 在线文档处理
+     - 知识库构建
+     - 竞品分析
+   - 状态: 完整实现，含18个测试函数
+   - 代码量: 573 行核心代码 + 330 行测试
+
+17. **Excel/CSV 文档加载器** ⭐⭐⭐⭐ ✨ NEW
+   - 位置: `retrieval/loaders/excel.go`
+   - 功能: 完整的 Excel 和 CSV 文件解析
+   - 特性:
+     - ✅ Excel (.xlsx) 文件解析
+     - ✅ CSV 文件支持
+     - ✅ 多工作表支持
+     - ✅ 表头提取
+     - ✅ 行列过滤
+     - ✅ 文档元数据提取
+     - ✅ 结构化表格提取
+   - 使用场景:
+     - 数据分析
+     - 报表处理
+     - 数据导入
+     - 业务数据处理
+   - 状态: 完整实现，含13个测试函数
+   - 代码量: 556 行核心代码 + 314 行测试
 
 ---
 
@@ -210,7 +314,7 @@
 #### P0 - 高优先级
 
 ##### 1. 更多向量存储后端
-**当前状态**: ✅ 支持 `InMemoryVectorStore` + **✅ Milvus 2.6+**（已实现）
+**当前状态**: ✅ 支持 `InMemoryVectorStore` + ✅ **Milvus 2.6+** + ✅ **Chroma** + ✅ **Pinecone**（已实现）
 
 **已实现**:
 - **✅ Milvus 2.6+ 集成** - 已完成
@@ -226,27 +330,81 @@
   - 实际工作量: ~755 行代码（含测试 ~555 行）
   - 价值: 生产级向量存储 + 高级检索功能
 
-**待实现**:
-- **⏸️ Chroma 集成**
+- **✅ Chroma 集成** - 已完成 ✨
   - 位置: `retrieval/vectorstores/chroma.go`
   - 功能: 支持 Chroma 向量数据库
-  - 价值: 生产级持久化向量存储
+  - 特性:
+    - ✅ 完整的 CRUD 操作
+    - ✅ 相似度搜索（带评分阈值）
+    - ✅ 多种距离度量（L2, IP, Cosine）
+    - ✅ 自动集合创建
   - 依赖: `github.com/amikos-tech/chroma-go`
-  - 预估工作量: 200-300 行代码
+  - 实际工作量: ~358 行核心代码 + ~403 行测试
+  - 价值: 开源向量存储，适合本地开发和轻量级生产环境
 
-- **⏸️ Pinecone 集成**
+- **✅ Pinecone 集成** - 已完成 ✨
   - 位置: `retrieval/vectorstores/pinecone.go`
   - 功能: 支持 Pinecone 云向量数据库
-  - 价值: 托管式向量存储服务
-  - 依赖: Pinecone Go SDK
-  - 预估工作量: 200-300 行代码
+  - 特性:
+    - ✅ 完整的 CRUD 操作
+    - ✅ 相似度搜索（带评分阈值）
+    - ✅ 多种距离度量（Cosine, Euclidean, Dotproduct）
+    - ✅ Namespace 支持
+  - 依赖: `github.com/pinecone-io/go-pinecone`
+  - 实际工作量: ~355 行核心代码 + ~398 行测试
+  - 价值: 托管式向量存储服务，适合大规模生产环境
 
+**待实现**:
 - **⏸️ Weaviate 集成**
   - 位置: `retrieval/vectorstores/weaviate.go`
   - 功能: 支持 Weaviate 向量数据库
   - 价值: 开源企业级向量存储
   - 依赖: `github.com/weaviate/weaviate-go-client`
   - 预估工作量: 250-350 行代码
+
+**✅ 已实现示例（Chroma）**:
+```go
+// Chroma 向量存储创建
+config := ChromaConfig{
+    URL:                  "http://localhost:8000",
+    CollectionName:       "my_collection",
+    DistanceFunction:     "cosine",
+    AutoCreateCollection: true,
+}
+store, _ := NewChromaVectorStore(config, openaiEmbeddings)
+
+// 添加文档
+docs := []*loaders.Document{
+    loaders.NewDocument("AI is transforming technology", nil),
+    loaders.NewDocument("Machine learning powers AI", nil),
+}
+ids, _ := store.AddDocuments(ctx, docs)
+
+// 相似度搜索
+results, _ := store.SimilaritySearch(ctx, "artificial intelligence", 5)
+```
+
+**✅ 已实现示例（Pinecone）**:
+```go
+// Pinecone 向量存储创建
+config := PineconeConfig{
+    APIKey:          "your-api-key",
+    IndexName:       "my-index",
+    Dimension:       1536,
+    Metric:          "cosine",
+    AutoCreateIndex: true,
+}
+store, _ := NewPineconeVectorStore(config, openaiEmbeddings)
+
+// 添加文档
+docs := []*loaders.Document{
+    loaders.NewDocument("AI is transforming technology", nil),
+}
+ids, _ := store.AddDocuments(ctx, docs)
+
+// 相似度搜索（带评分阈值）
+results, _ := store.SimilaritySearchWithScore(ctx, "AI", 5, 0.7)
+```
 
 **✅ 已实现示例（Milvus 2.6+）**:
 ```go
@@ -270,25 +428,25 @@ ids, _ := store.AddDocuments(ctx, docs)
 results, _ := store.SimilaritySearch(ctx, "artificial intelligence", 5)
 ```
 
-**⏸️ 待实现示例（Chroma）**:
+**⏸️ 待实现示例（Weaviate）**:
 ```go
-// Chroma 集成示例（待实现）
-type ChromaVectorStore struct {
-    client     *chroma.Client
-    collection *chroma.Collection
+// Weaviate 集成示例（待实现）
+type WeaviateVectorStore struct {
+    client     *weaviate.Client
+    className  string
     embeddings embeddings.Embeddings
 }
 
-func NewChromaVectorStore(
+func NewWeaviateVectorStore(
     host string,
-    collectionName string,
+    className string,
     emb embeddings.Embeddings,
-) (*ChromaVectorStore, error) {
-    client, _ := chroma.NewClient(host)
-    collection, _ := client.GetOrCreateCollection(collectionName)
-    return &ChromaVectorStore{
+) (*WeaviateVectorStore, error) {
+    config := weaviate.Config{Host: host}
+    client := weaviate.New(config)
+    return &WeaviateVectorStore{
         client:     client,
-        collection: collection,
+        className:  className,
         embeddings: emb,
     }, nil
 }
@@ -371,38 +529,118 @@ rerankedResults, _ := reranker.Rerank(ctx, query, results)
 #### P1 - 中优先级
 
 ##### 3. 更多文档加载器
-**当前状态**: 支持 Text、Markdown、JSON、CSV
+**当前状态**: ✅ 支持 Text、Markdown、JSON、CSV + ✅ **PDF** + ✅ **DOCX/DOC** + ✅ **HTML/Web** + ✅ **Excel/CSV**（已实现）
 
-**扩展功能**:
-- **PDF 加载器**
+**已实现**:
+- **✅ PDF 加载器** - 已完成
   - 位置: `retrieval/loaders/pdf.go`
   - 功能: 解析 PDF 文档
-  - 依赖: `github.com/unidoc/unipdf` 或 `github.com/ledongthuc/pdf`
+  - 依赖: `github.com/ledongthuc/pdf`
+  - 实际工作量: ~316 行核心代码 + ~332 行测试
   - 价值: 支持学术论文、报告等
-  - 预估工作量: 300-400 行代码
+  - 文档: `docs/PDF-LOADER-GUIDE.md`
 
-- **Word/DOCX 加载器**
+- **✅ Word/DOCX 加载器** - 已完成 ✨
   - 位置: `retrieval/loaders/docx.go`
   - 功能: 解析 Word 文档
-  - 依赖: `github.com/nguyenthenguyen/docx`
+  - 特性:
+    - ✅ DOCX 文件解析（ZIP + XML）
+    - ✅ 文本内容提取
+    - ✅ 表格数据提取
+    - ✅ 文档属性提取（标题、作者等）
+    - ✅ DOC 文件基础支持
+  - 实际工作量: ~476 行核心代码 + ~337 行测试
   - 价值: 支持商业文档
-  - 预估工作量: 200-300 行代码
 
-- **HTML/Web 加载器**
+- **✅ HTML/Web 加载器** - 已完成 ✨
   - 位置: `retrieval/loaders/html.go`
   - 功能: 抓取并解析网页
   - 依赖: `github.com/PuerkitoBio/goquery`
+  - 特性:
+    - ✅ 本地 HTML 文件加载
+    - ✅ 网页 URL 抓取
+    - ✅ CSS 选择器支持
+    - ✅ 脚本和样式过滤
+    - ✅ 链接提取
+    - ✅ Meta 标签提取
+    - ✅ Web 爬虫支持（递归抓取）
+  - 实际工作量: ~573 行核心代码 + ~330 行测试
   - 价值: 支持在线文档、Wiki
-  - 预估工作量: 250-350 行代码
 
-- **Excel 加载器**
+- **✅ Excel/CSV 加载器** - 已完成 ✨
   - 位置: `retrieval/loaders/excel.go`
-  - 功能: 解析 Excel 文件
+  - 功能: 解析 Excel 和 CSV 文件
   - 依赖: `github.com/xuri/excelize`
+  - 特性:
+    - ✅ Excel (.xlsx) 文件解析
+    - ✅ CSV 文件支持
+    - ✅ 多工作表支持
+    - ✅ 表头提取
+    - ✅ 行列过滤
+    - ✅ 文档元数据提取
+    - ✅ 结构化表格提取
+  - 实际工作量: ~556 行核心代码 + ~314 行测试
   - 价值: 支持数据分析场景
-  - 预估工作量: 200-250 行代码
 
-**实现示例**:
+**✅ 已实现示例（DOCX）**:
+```go
+// DOCX 加载器示例
+loader := NewDOCXLoader(DOCXLoaderOptions{
+    Path:          "document.docx",
+    IncludeHeaders: true,
+    ExtractTables:  true,
+})
+
+docs, _ := loader.Load(ctx)
+// 文档包含文本、表格和元数据（标题、作者等）
+```
+
+**✅ 已实现示例（HTML）**:
+```go
+// HTML 加载器示例（从 URL）
+loader, _ := NewHTMLLoader(HTMLLoaderOptions{
+    URL:             "https://example.com",
+    RemoveScripts:   true,
+    RemoveStyles:    true,
+    ExtractLinks:    true,
+    ExtractMetaTags: true,
+    Selector:        "article.content", // 可选：仅提取特定部分
+})
+
+docs, _ := loader.Load(ctx)
+// 文档包含网页文本、链接和 Meta 标签
+
+// Web 爬虫示例
+crawler, _ := NewWebCrawler(WebCrawlerOptions{
+    StartURL:   "https://example.com",
+    MaxDepth:   2,
+    MaxPages:   10,
+    SameDomain: true,
+})
+
+allDocs, _ := crawler.Crawl(ctx)
+// 递归抓取多个页面
+```
+
+**✅ 已实现示例（Excel）**:
+```go
+// Excel 加载器示例
+loader := NewExcelLoader(ExcelLoaderOptions{
+    Path:             "data.xlsx",
+    SheetName:        "Sheet1", // 可选：指定工作表
+    IncludeHeaders:   true,
+    IncludeSheetName: true,
+})
+
+docs, _ := loader.Load(ctx)
+
+// 提取结构化表格数据
+extractor := NewExcelTableExtractor(loader)
+table, _ := extractor.ExtractTable(ctx, "Sheet1")
+// table 是 []map[string]any，可直接使用
+```
+
+**实现示例（PDF - 已有）**:
 ```go
 // PDF 加载器示例
 type PDFLoader struct {
@@ -888,24 +1126,27 @@ func (executor *Executor[S]) ExecuteWithTracing(
 
 | 功能 | 优先级 | 价值 | 工作量 | 推荐指数 | 实现状态 |
 |------|--------|------|--------|----------|----------|
-| 向量存储后端 | P0 | ⭐⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐⭐ | ⏸️ 待实现 |
+| 向量存储后端 | P0 | ⭐⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐⭐ | ✅ 已完成 |
 | **Hybrid Search** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
-| PDF/Word 加载器 | P1 | ⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐ | ⏸️ 待实现 |
-| Plan-Execute Agent | P0 | ⭐⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐⭐ | ⏸️ 待实现 |
-| 搜索工具 | P1 | ⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐ | ⏸️ 待实现 |
+| **Chroma 向量存储** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
+| **Pinecone 向量存储** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
+| **PDF/Word 加载器** | **P1** | **⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐** | **✅ 已完成** |
+| **HTML/Excel 加载器** | **P1** | **⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐** | **✅ 已完成** |
+| **Plan-Execute Agent** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
+| **搜索工具** | **P1** | **⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐** | **✅ 已完成** |
 | Multi-Agent | P1 | ⭐⭐⭐⭐ | 高 | ⭐⭐⭐ | ⏸️ 待实现 |
-| OpenTelemetry | P0 | ⭐⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐⭐ | ⏸️ 待实现 |
-| 图可视化 | P1 | ⭐⭐⭐ | 中 | ⭐⭐⭐ | ⏸️ 待实现 |
+| **OpenTelemetry** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
+| **图可视化** | **P1** | **⭐⭐⭐** | **中** | **⭐⭐⭐** | **✅ 已完成** |
 | 语义分割器 | P1 | ⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐ | ⏸️ 待实现 |
 | **Re-ranking (算法)** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
-| Re-ranking (LLM) | P0 | ⭐⭐⭐⭐⭐ | 中 | ⭐⭐⭐⭐⭐ | ⏸️ 待实现 |
-| MMR 搜索 | P1 | ⭐⭐⭐⭐ | 低 | ⭐⭐⭐⭐ | ⏸️ 待实现 |
+| **Re-ranking (LLM)** | **P0** | **⭐⭐⭐⭐⭐** | **中** | **⭐⭐⭐⭐⭐** | **✅ 已完成** |
+| **MMR 搜索** | **P1** | **⭐⭐⭐⭐** | **低** | **⭐⭐⭐⭐** | **✅ 已完成** |
 
 ---
 
 ## 🎯 推荐实施路线
 
-### 第一阶段：生产级 RAG 增强 (75% 完成 ✨)
+### 第一阶段：生产级 RAG 增强 (100% 完成 ✅ 🎉)
 1. ✅ **MMR 最大边际相关性搜索 (P1)** - **已完成** ✨
    - 代码量: 218行核心 + 350行测试
    - 文档: `docs/MMR-GUIDE.md`
@@ -915,9 +1156,19 @@ func (executor *Executor[S]) ExecuteWithTracing(
 3. ✅ **PDF Document Loader (P1)** - **已完成** ✨
    - 代码量: 316行核心 + 332行测试
    - 文档: `docs/PDF-LOADER-GUIDE.md`
-4. ⏸️ Chroma/Pinecone/Weaviate 向量存储 (P0) - 待实现
+4. ✅ **Chroma 向量存储 (P0)** - **已完成** ✨
+   - 代码量: 358行核心 + 403行测试
+5. ✅ **Pinecone 向量存储 (P0)** - **已完成** ✨
+   - 代码量: 355行核心 + 398行测试
+6. ✅ **Word/DOCX 文档加载器 (P1)** - **已完成** ✨
+   - 代码量: 476行核心 + 337行测试
+7. ✅ **HTML/Web 文档加载器 (P1)** - **已完成** ✨
+   - 代码量: 573行核心 + 330行测试
+8. ✅ **Excel/CSV 文档加载器 (P1)** - **已完成** ✨
+   - 代码量: 556行核心 + 314行测试
 
-**第一阶段价值**: 显著提升了 RAG 系统的检索能力和文档处理能力
+**第一阶段价值**: 完整的 RAG 系统生态，支持多种向量存储和文档格式
+**总代码量**: ~3,524行核心代码 + ~2,876行测试代码
 
 ### 第二阶段：Agent 系统和工具生态 (100% 完成 ✅ 🎉)
 1. ✅ **Plan-and-Execute Agent (P0)** - **已完成** ✨
@@ -967,13 +1218,13 @@ func (executor *Executor[S]) ExecuteWithTracing(
 **实施时间**: 2026-01-15
 **完成度**: 100% 🎉
 
-### 第四阶段：生态增强 (2-3 周)
-1. ⏸️ 更多文档加载器 (P1) - 待实现
-2. ⏸️ 语义分割器 (P1) - 待实现
-3. ⏸️ Multi-Agent (P1) - 待实现
-4. ⏸️ API 工具集成 (P1) - 待实现
+### 第四阶段：高级功能扩展 (待实施)
+1. ⏸️ 语义分割器 (Semantic Splitter) (P1) - 待实现
+2. ⏸️ Weaviate 向量存储 (P0) - 待实现
+3. ⏸️ HuggingFace Embeddings (P1) - 待实现
+4. ⏸️ Self-Ask Agent (P1) - 待实现
 
-**价值**: 丰富的生态系统
+**价值**: 进一步丰富生态系统
 
 ---
 
@@ -1042,28 +1293,30 @@ langchain-go/
 本文档列出了 **19 大类扩展功能**，包含 **60+ 个具体功能点**，预估总工作量 **15,000-20,000 行代码**。
 
 ### 实现进度 📊
-- ✅ **已完成**: 12 项核心功能
-  - RAG增强: Hybrid Search、MMR、LLM Reranking、PDF Loader
+- ✅ **已完成**: 17 项核心功能
+  - RAG增强: Hybrid Search、MMR、LLM Reranking、PDF Loader、DOCX Loader、HTML Loader、Excel Loader
   - Agent生态: Plan-Execute、搜索工具、文件/数据库工具、EntityMemory
   - 可观测性: OpenTelemetry、Prometheus、图可视化
-- ⏸️ **待实现**: 50+ 项扩展功能
-- **当前完成度**: ~20% (基于代码行数估算，实际核心功能完成度更高)
+  - 向量存储: Milvus、Chroma、Pinecone
+- ⏸️ **待实现**: 45+ 项扩展功能
+- **当前完成度**: ~30% (基于代码行数估算，实际核心功能完成度更高)
 
 ### 关键要点
 1. ✅ 核心功能已 100% 完成，可稳定使用
 2. ✅ **Milvus 2.6+ Hybrid Search 已就绪** - 可用于生产环境
-3. ✅ **MMR 搜索已完成** - 提供多样化检索结果
-4. ✅ **LLM-based Reranking 已完成** - 显著提升检索精度
-5. ✅ **第二阶段全部完成** - Agent 和工具生态完整
-6. ✅ **第三阶段全部完成** - 可观测性能力完备
-7. 🚀 扩展功能按优先级分类，可按需实施
-8. 📈 推荐优先实现剩余 P0 功能：
-   - ⏸️ 更多向量存储后端（Chroma, Pinecone）
-9. 🎯 按阶段实施，每阶段都有明确价值
-10. 💡 保持核心简洁，扩展功能模块化
+3. ✅ **Chroma 和 Pinecone 已集成** - 提供更多向量存储选择
+4. ✅ **完整文档加载器生态** - 支持 PDF、DOCX、HTML、Excel
+5. ✅ **MMR 搜索已完成** - 提供多样化检索结果
+6. ✅ **LLM-based Reranking 已完成** - 显著提升检索精度
+7. ✅ **第二阶段全部完成** - Agent 和工具生态完整
+8. ✅ **第三阶段全部完成** - 可观测性能力完备
+9. ✅ **第四阶段全部完成** - 向量存储和文档加载器扩展完备
+10. 🚀 扩展功能按优先级分类，可按需实施
+11. 🎯 按阶段实施，每阶段都有明确价值
+12. 💡 保持核心简洁，扩展功能模块化
 
 ### 下一步建议 🎯
-**短期目标（已完成）**:
+**已完成目标**:
 1. ✅ 实现 MMR 搜索（218 行代码）
 2. ✅ 实现 LLM-based Reranking（312 行代码）
 3. ✅ 完善 RAG 系统测试覆盖率
@@ -1075,16 +1328,21 @@ langchain-go/
 9. ✅ 实现 OpenTelemetry 集成（660 行代码）
 10. ✅ 实现 Prometheus 指标导出（440 行代码）
 11. ✅ 实现图可视化功能（679 行代码）
+12. ✅ 实现 Chroma 向量存储（358 行代码）
+13. ✅ 实现 Pinecone 向量存储（355 行代码）
+14. ✅ 实现 Word/DOCX 文档加载器（476 行代码）
+15. ✅ 实现 HTML/Web 文档加载器（573 行代码）
+16. ✅ 实现 Excel/CSV 文档加载器（556 行代码）
 
-**接下来的目标（1-2 周）**:
-1. 添加 Chroma 向量存储（200-300 行代码）
-2. 添加 Pinecone 向量存储（200-300 行代码）
-3. 实现更多文档加载器（Word/HTML/Excel）
+**下一步目标（1-2 周）**:
+1. 实现语义分割器 (Semantic Splitter)
+2. 实现 Weaviate 向量存储（250-350 行代码）
+3. 实现更多 Embedding 模型支持（HuggingFace、本地 ONNX）
 
 **中期目标（1-2 月）**:
-1. 实现语义分割器
-2. 实现 Multi-Agent 系统
-3. 实现 API 工具集成（OpenAPI/Swagger）
+1. 实现 Multi-Agent 系统
+2. 实现 API 工具集成（OpenAPI/Swagger）
+3. 实现更多 Agent 类型（Self-Ask、Structured Chat）
 
 ### 最终目标
 将 LangChain-Go 打造成 **生产级、功能完整、生态丰富** 的 Go 版 LangChain & LangGraph 实现！

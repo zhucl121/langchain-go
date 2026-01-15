@@ -199,10 +199,10 @@ langchain-go/
 │   └── toolnode.go          # ToolNode
 │
 ├── retrieval/                # RAG 系统
-│   ├── loaders/             # 文档加载器 (含 PDF) ✨
+│   ├── loaders/             # 文档加载器 (含 PDF/DOCX/HTML/Excel) ✨
 │   ├── splitters/           # 文本分割器
 │   ├── embeddings/          # 嵌入模型
-│   └── vectorstores/        # 向量存储 (含 MMR、Reranking) ✨
+│   └── vectorstores/        # 向量存储 (含 Milvus/Chroma/Pinecone/MMR/Reranking) ✨
 │
 └── pkg/                      # 公共包
     ├── types/               # 基础类型（Message, Tool, Schema）
@@ -334,6 +334,9 @@ result, _ := agent.Invoke(ctx, "帮我搜索...")
 **文档加载器**:
 - Text, Markdown, JSON, CSV
 - **PDF** ✨ - 完整 PDF 文本提取
+- **Word/DOCX** ✨ - Word 文档解析
+- **HTML/Web** ✨ - 网页抓取和爬虫
+- **Excel** ✨ - Excel 表格数据处理
 - Directory (递归)
 
 **文本分割器**:
@@ -345,6 +348,8 @@ result, _ := agent.Invoke(ctx, "帮我搜索...")
 **向量存储**:
 - InMemory - 内存存储
 - **Milvus 2.6+** - 支持 Hybrid Search & Reranking
+- **Chroma** ✨ - 开源向量数据库
+- **Pinecone** ✨ - 云端托管向量存储
 - **MMR 搜索** ✨ - 最大边际相关性
 - **LLM Reranking** ✨ - 智能重排序
 
@@ -456,52 +461,63 @@ mermaid := gv.ToMermaid()
 
 ## 📚 文档
 
+### 📖 [完整文档](docs/)
+访问 [docs/](docs/) 查看完整的文档中心。
+
+### 🧭 [文档导航指南](DOCUMENTATION-GUIDE.md)
+快速找到你需要的文档！按场景、功能分类导航。
+
 ### 快速开始指南
 
-- [快速开始](QUICKSTART.md) - 5 分钟入门
-- [ChatModel 快速开始](QUICKSTART-CHAT.md)
-- [Prompts 快速开始](QUICKSTART-PROMPTS.md)
-- [StateGraph 快速开始](QUICKSTART-STATEGRAPH.md)
-- [Tools 快速开始](QUICKSTART-TOOLS.md)
+- [安装指南](docs/getting-started/installation.md) - 环境准备和安装
+- [快速开始](docs/getting-started/quickstart.md) - 5 分钟入门
+- [ChatModel 快速开始](docs/getting-started/quickstart-chat.md)
+- [Prompts 快速开始](docs/getting-started/quickstart-prompts.md)
+- [StateGraph 快速开始](docs/getting-started/quickstart-stategraph.md)
+- [Tools 快速开始](docs/getting-started/quickstart-tools.md)
 
 ### 核心概念
 
-- [Runnable 系统](docs/Phase1-Runnable-Summary.md)
-- [ChatModel 集成](docs/M09-M12-ChatModel-Summary.md)
-- [StateGraph 工作流](docs/M24-M26-StateGraph-Summary.md)
-- [Checkpoint 持久化](docs/M38-M42-Checkpoint-Summary.md)
-- [Agent 系统](docs/Phase3-Agent-System-Summary.md)
+- [Runnable 系统](docs/guides/core/runnable.md) - LCEL 链式组合
+- [ChatModel 集成](docs/guides/core/chat-models.md) - OpenAI、Anthropic
+- [Prompts 模板](docs/guides/core/prompts.md) - 提示词工程
+- [OutputParser 解析](docs/guides/core/output-parsers.md) - 结构化输出
+- [Tools 工具](docs/guides/core/tools.md) - 工具系统
+
+### LangGraph
+
+- [StateGraph 工作流](docs/guides/langgraph/stategraph.md) - 状态图编排
+- [Checkpoint 持久化](docs/guides/langgraph/checkpoint.md) - 状态保存
+- [Durability 模式](docs/guides/langgraph/durability.md) - 故障恢复
 
 ### RAG 系统
 
-- [Milvus 使用指南](docs/MILVUS-GUIDE.md)
-- [Milvus Hybrid Search](docs/MILVUS-HYBRID-SEARCH.md)
-- [MMR 搜索指南](docs/MMR-GUIDE.md) ✨
-- [LLM Reranking 指南](docs/LLM-RERANKING-GUIDE.md) ✨
-- [PDF 加载器指南](docs/PDF-LOADER-GUIDE.md) ✨
-- [RAG 系统完整指南](docs/PHASE4-RAG-COMPLETE.md)
+- [RAG 概述](docs/guides/rag/overview.md) - RAG 系统完整指南
+- [Milvus 使用指南](docs/guides/rag/milvus.md) - Milvus 向量数据库
+- [Milvus Hybrid Search](docs/guides/rag/milvus-hybrid.md) - 混合搜索
+- [MMR 搜索指南](docs/guides/rag/mmr.md) ✨ - 多样性搜索
+- [LLM Reranking 指南](docs/guides/rag/reranking.md) ✨ - 智能重排序
+- [PDF 加载器指南](docs/guides/rag/pdf-loader.md) ✨ - PDF 文档处理
 
-### Agent 和工具
+### Agent 系统
 
-- [Plan-and-Execute Agent 指南](docs/PLAN-EXECUTE-AGENT-GUIDE.md) ✨
-- [搜索工具指南](docs/SEARCH-TOOLS-GUIDE.md) ✨
+- [Agent 概述](docs/guides/agents/overview.md) - Agent 系统介绍
+- [Plan-and-Execute Agent](docs/guides/agents/plan-execute.md) ✨ - 计划执行
 
-### 可观测性 ✨ NEW
+### 高级主题
 
-- [OpenTelemetry 集成指南](docs/OPENTELEMETRY-GUIDE.md)
-- [Prometheus 监控指南](docs/PROMETHEUS-GUIDE.md)
-- [图可视化指南](docs/GRAPH-VISUALIZATION-GUIDE.md)
+- [搜索工具指南](docs/advanced/search-tools.md) ✨ - Google/Bing/DuckDuckGo
+- [性能优化](docs/advanced/performance.md) - 性能调优
 
-### 进阶主题
+### 开发和参考
 
-- [Durability 模式](docs/M43-M45-Durability-Summary.md)
-- [Human-in-the-Loop](docs/M46-M49-HITL-Summary.md)
-- [性能优化](docs/Enhancements-Summary.md)
-- [扩展增强功能清单](docs/课后扩展增强功能清单.md)
+- [项目进度](docs/development/project-progress.md) - 开发进度跟踪
+- [扩展功能清单](docs/reference/enhancements.md) - 功能规划
+- [简化实现说明](docs/reference/simplified-implementations.md) - 功能清单
 
 ### API 文档
 
-- [GoDoc](https://pkg.go.dev/langchain-go)
+- [GoDoc](https://pkg.go.dev/langchain-go) - 完整 API 参考
 
 ---
 
@@ -543,13 +559,14 @@ mermaid := gv.ToMermaid()
 - [x] MMR 搜索 ✨
 - [x] LLM Reranking ✨
 
-### ✅ Phase 5: 扩展增强 (进行中)
+### ✅ Phase 5: 扩展增强 (已完成 4个阶段)
 
-**第一阶段 - RAG 增强** (75% 完成):
+**第一阶段 - RAG 增强** (100% 完成 ✅):
 - [x] MMR 最大边际相关性搜索
 - [x] LLM-based Reranking
 - [x] PDF 文档加载器
-- [ ] 更多向量存储 (Chroma, Pinecone, Weaviate)
+- [x] Chroma 向量存储 ✨
+- [x] Pinecone 向量存储 ✨
 
 **第二阶段 - Agent 和工具生态** (100% 完成 ✅):
 - [x] Plan-and-Execute Agent ✨
@@ -562,22 +579,24 @@ mermaid := gv.ToMermaid()
 - [x] Prometheus 指标导出 ✨
 - [x] 图可视化功能 ✨
 
-**第四阶段 - 生态增强** (待开始):
-- [ ] 更多文档加载器（Word/HTML/Excel）
-- [ ] 语义分割器
-- [ ] Multi-Agent 系统
-- [ ] API 工具集成（OpenAPI/Swagger）
+**第四阶段 - 向量存储和文档加载器扩展** (100% 完成 ✅):
+- [x] Chroma 向量存储集成 ✨
+- [x] Pinecone 向量存储集成 ✨
+- [x] Word/DOCX 文档加载器 ✨
+- [x] HTML/Web 文档加载器 ✨
+- [x] Excel/CSV 文档加载器 ✨
 
 ### 🔜 未来计划
 
-查看 [扩展增强功能清单](docs/课后扩展增强功能清单.md) 了解详细规划。
+查看 [扩展增强功能清单](docs/reference/enhancements.md) 了解详细规划。
 
 **当前进度**:
 - ✅ 核心功能: 100% 完成
-- ✅ RAG 增强: 75% 完成
+- ✅ RAG 增强: 100% 完成
 - ✅ Agent 生态: 100% 完成
 - ✅ 可观测性: 100% 完成
-- ⏸️ 生态增强: 待开始
+- ✅ 向量存储和文档加载器: 100% 完成
+- ⏸️ 下一步: 语义分割器、Multi-Agent、API工具
 
 ---
 
@@ -631,24 +650,25 @@ go test -bench=. ./...
 
 查看 [CHANGELOG.md](CHANGELOG.md) 了解每个版本的详细变更。
 
-### 最新版本: v1.4.0 (2026-01-15)
+### 最新版本: v1.5.0 (2026-01-15)
 
-**重大更新**: 第三阶段完成！完整的可观测性能力 🎉
+**重大更新**: 第四阶段完成！向量存储和文档加载器生态全面扩展 🎉
 
 **新增**:
-- ✅ OpenTelemetry 集成（分布式追踪）
-- ✅ Prometheus 指标导出（监控系统）
-- ✅ 图可视化功能（4种格式）
-- ✅ 完整的追踪中间件
-- ✅ 6大组件监控指标
+- ✅ Chroma 向量存储集成（开源向量数据库）
+- ✅ Pinecone 向量存储集成（云端托管）
+- ✅ Word/DOCX 文档加载器（完整文档解析）
+- ✅ HTML/Web 文档加载器（网页抓取+爬虫）
+- ✅ Excel/CSV 文档加载器（表格数据处理）
 
 **完整统计**:
-- 第一阶段 (RAG增强): 75% 完成
+- 第一阶段 (RAG增强): 100% 完成 ✅
 - 第二阶段 (Agent生态): 100% 完成 ✅
 - 第三阶段 (可观测性): 100% 完成 ✅
-- 代码: ~33,000 行
-- 测试: ~8,300 行
-- 文档: ~18,000 行
+- 第四阶段 (向量存储和文档加载器): 100% 完成 ✅
+- 代码: ~35,000+ 行
+- 测试: ~10,000+ 行
+- 文档: ~26,000+ 行
 - 测试覆盖率: 75%+
 
 ---

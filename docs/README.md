@@ -1,0 +1,205 @@
+# LangChain-Go 文档
+
+<div align="center">
+
+[![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://pkg.go.dev/langchain-go)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](../LICENSE)
+
+**完整的 LangChain & LangGraph Go 实现文档**
+
+[快速开始](#-快速开始) • [使用指南](#-使用指南) • [示例](#-示例) • [API 文档](#-api-文档)
+
+</div>
+
+---
+
+## 📚 文档导航
+
+### 🚀 快速开始
+新手入门，5分钟上手 LangChain-Go
+
+- [安装指南](./getting-started/installation.md) - 环境准备和安装
+- [快速开始](./getting-started/quickstart.md) - 5分钟入门教程
+- [ChatModel 快速开始](./getting-started/quickstart-chat.md) - 对话模型使用
+- [Prompts 快速开始](./getting-started/quickstart-prompts.md) - 提示词模板
+- [OutputParser 快速开始](./getting-started/quickstart-output.md) - 输出解析
+- [Tools 快速开始](./getting-started/quickstart-tools.md) - 工具系统
+- [Memory 快速开始](./getting-started/quickstart-memory.md) - 记忆系统
+- [StateGraph 快速开始](./getting-started/quickstart-stategraph.md) - 状态图工作流
+
+### 📖 使用指南
+详细的功能使用文档和最佳实践
+
+#### 核心功能
+- [Runnable 系统](./guides/core/runnable.md) - LCEL 链式组合
+- [ChatModel 集成](./guides/core/chat-models.md) - OpenAI、Anthropic
+- [Prompts 模板](./guides/core/prompts.md) - 提示词工程
+- [OutputParser 解析](./guides/core/output-parsers.md) - 结构化输出
+- [Tools 工具](./guides/core/tools.md) - 工具定义和使用
+- [Memory 记忆](./guides/core/memory.md) - 对话历史管理
+
+#### LangGraph
+- [StateGraph 状态图](./guides/langgraph/stategraph.md) - 工作流编排
+- [Checkpoint 检查点](./guides/langgraph/checkpoint.md) - 状态持久化
+- [Durability 持久性](./guides/langgraph/durability.md) - 故障恢复
+- [HITL 人机协作](./guides/langgraph/hitl.md) - Human-in-the-Loop
+
+#### Agent 系统
+- [Agent 概述](./guides/agents/overview.md) - Agent 系统介绍
+- [ReAct Agent](./guides/agents/react-agent.md) - 推理和行动
+- [Plan-Execute Agent](./guides/agents/plan-execute.md) - 计划执行
+- [自定义 Agent](./guides/agents/custom-agent.md) - 创建自定义 Agent
+
+#### RAG 系统
+- [RAG 概述](./guides/rag/overview.md) - RAG 系统介绍
+- [文档加载器](./guides/rag/document-loaders.md) - 多格式文档加载
+- [文本分割器](./guides/rag/text-splitters.md) - 智能文本分割
+- [嵌入模型](./guides/rag/embeddings.md) - Embedding 集成
+- [向量存储](./guides/rag/vector-stores.md) - 向量数据库
+- [Milvus](./guides/rag/milvus.md) - Milvus 使用和 Hybrid Search
+- [Chroma](./guides/rag/chroma.md) - Chroma 向量数据库
+- [Pinecone](./guides/rag/pinecone.md) - Pinecone 云服务
+- [MMR 搜索](./guides/rag/mmr.md) - 最大边际相关性
+- [LLM Reranking](./guides/rag/reranking.md) - 智能重排序
+- [PDF 加载器](./guides/rag/pdf-loader.md) - PDF 文档处理
+
+### 🔬 高级主题
+生产级功能和最佳实践
+
+- [可观测性概述](./advanced/observability.md) - 监控和追踪
+- [OpenTelemetry 集成](./advanced/opentelemetry.md) - 分布式追踪
+- [Prometheus 监控](./advanced/prometheus.md) - 指标收集
+- [图可视化](./advanced/visualization.md) - 工作流可视化
+- [搜索工具](./advanced/search-tools.md) - Google、Bing、DuckDuckGo
+- [文件和数据库工具](./advanced/file-database-tools.md) - 文件系统和 SQL
+- [EntityMemory](./advanced/entity-memory.md) - 实体识别和管理
+- [性能优化](./advanced/performance.md) - 性能调优指南
+
+### 💡 示例
+实用代码示例和最佳实践
+
+- [示例索引](./examples/) - 所有示例列表
+- [ChatModel 示例](./examples/chat-examples.md) - 对话模型示例
+- [Prompts 示例](./examples/prompts-examples.md) - 提示词示例
+- [OutputParser 示例](./examples/output-examples.md) - 输出解析示例
+- [Tools 示例](./examples/tools-examples.md) - 工具使用示例
+
+### 📚 API 文档
+完整的 API 参考文档
+
+- [GoDoc](https://pkg.go.dev/langchain-go) - 完整的 API 文档
+- [核心类型](./api/#core-types) - Message、Tool、Schema
+- [Runnable 接口](./api/#runnable) - LCEL 接口
+- [ChatModel 接口](./api/#chatmodel) - 对话模型接口
+
+### 🛠️ 开发文档
+为贡献者准备的开发指南
+
+- [架构设计](./development/architecture.md) - 系统架构
+- [项目结构](./development/project-structure.md) - 代码组织
+- [贡献指南](./development/contributing.md) - 如何贡献
+- [测试指南](./development/testing.md) - 测试规范
+- [发布流程](./development/release-process.md) - 版本发布
+- [项目进度](./development/project-progress.md) - 开发进度
+
+### 📋 参考资料
+路线图、FAQ 和其他参考信息
+
+- [项目路线图](./reference/roadmap.md) - 功能规划
+- [扩展功能清单](./reference/enhancements.md) - 增强功能
+- [迁移指南](./reference/migration-guide.md) - 版本迁移
+- [常见问题](./reference/faq.md) - FAQ
+- [简化实现说明](./reference/simplified-implementations.md) - 简化功能列表
+
+---
+
+## 🎯 推荐学习路径
+
+### 初学者路径
+1. [安装指南](./getting-started/installation.md)
+2. [5分钟快速开始](./getting-started/quickstart.md)
+3. [ChatModel 快速开始](./getting-started/quickstart-chat.md)
+4. [Prompts 快速开始](./getting-started/quickstart-prompts.md)
+
+### 进阶路径
+1. [Runnable 系统详解](./guides/core/runnable.md)
+2. [StateGraph 工作流](./guides/langgraph/stategraph.md)
+3. [Agent 系统](./guides/agents/overview.md)
+4. [RAG 系统](./guides/rag/overview.md)
+
+### 生产部署路径
+1. [Checkpoint 持久化](./guides/langgraph/checkpoint.md)
+2. [Durability 故障恢复](./guides/langgraph/durability.md)
+3. [OpenTelemetry 追踪](./advanced/opentelemetry.md)
+4. [Prometheus 监控](./advanced/prometheus.md)
+5. [性能优化](./advanced/performance.md)
+
+---
+
+## 🔍 快速查找
+
+### 我想...
+
+- **开始使用 LangChain-Go** → [快速开始](./getting-started/quickstart.md)
+- **调用 LLM** → [ChatModel 指南](./guides/core/chat-models.md)
+- **创建工作流** → [StateGraph 指南](./guides/langgraph/stategraph.md)
+- **构建 Agent** → [Agent 指南](./guides/agents/overview.md)
+- **实现 RAG** → [RAG 指南](./guides/rag/overview.md)
+- **添加监控** → [可观测性指南](./advanced/observability.md)
+- **贡献代码** → [贡献指南](./development/contributing.md)
+- **查看 API** → [GoDoc](https://pkg.go.dev/langchain-go)
+
+---
+
+## 📝 文档约定
+
+### 代码示例
+
+所有代码示例都经过测试验证。示例格式：
+
+```go
+// 简单示例
+model := openai.New(openai.Config{APIKey: "sk-..."})
+response, _ := model.Invoke(ctx, []types.Message{
+    types.NewUserMessage("Hello!"),
+})
+```
+
+### 符号说明
+
+- 🚀 快速开始
+- 📖 使用指南
+- 🔬 高级主题
+- 💡 示例代码
+- ⚠️ 注意事项
+- 💡 提示
+- 📝 最佳实践
+
+---
+
+## 🆘 获取帮助
+
+- **文档问题**: [提交 Issue](https://github.com/yourusername/langchain-go/issues)
+- **功能请求**: [Feature Request](https://github.com/yourusername/langchain-go/issues/new?template=feature_request.md)
+- **Bug 报告**: [Bug Report](https://github.com/yourusername/langchain-go/issues/new?template=bug_report.md)
+- **讨论交流**: [Discussions](https://github.com/yourusername/langchain-go/discussions)
+
+---
+
+## 📖 相关资源
+
+- [主项目 README](../README.md)
+- [变更日志](../CHANGELOG.md)
+- [贡献指南](../CONTRIBUTING.md)
+- [安全政策](../SECURITY.md)
+
+---
+
+<div align="center">
+
+**[⬆ 回到顶部](#langchain-go-文档)**
+
+Made with ❤️ by the LangChain-Go Team
+
+</div>

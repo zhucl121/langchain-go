@@ -8,16 +8,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
-- Chroma vector store integration
-- Pinecone vector store integration
-- PDF document loader
-- Word document loader
-- Plan-and-Execute Agent
-- OpenTelemetry integration
+- Weaviate vector store integration
+- Semantic text splitter
+- Multi-Agent system
+- API tool integration (OpenAPI/Swagger)
 
-## [1.3.0] - 2026-01-14
+## [1.5.0] - 2026-01-15
 
-### Added - RAG System Complete 🎉
+### Added - Phase 5 Stage 4 Complete: Vector Store & Document Loader Ecosystem 🎉
+
+#### New Vector Stores
+- **Chroma Vector Store** - Open-source vector database integration
+  - Complete CRUD operations
+  - Similarity search with score threshold
+  - Multiple distance metrics (L2, IP, Cosine)
+  - Automatic collection creation
+  - Metadata filtering support
+  - Batch operations
+  - ~358 lines of code, 17 tests
+  - SDK: `github.com/amikos-tech/chroma-go`
+
+- **Pinecone Vector Store** - Cloud-hosted vector database
+  - Complete CRUD operations
+  - Similarity search with score threshold
+  - Multiple distance metrics (Cosine, Euclidean, Dotproduct)
+  - Namespace support
+  - Automatic index creation
+  - Metadata management
+  - ~355 lines of code, 18 tests
+  - SDK: `github.com/pinecone-io/go-pinecone`
+
+#### New Document Loaders
+- **Word/DOCX Loader** - Microsoft Word document parsing
+  - DOCX file parsing (ZIP + XML)
+  - Text content extraction
+  - Table data extraction
+  - Document properties (title, author, dates)
+  - DOC file basic support
+  - Style information extraction (optional)
+  - ~476 lines of code, 14 tests
+
+- **HTML/Web Loader** - Web page scraping and crawling
+  - Local HTML file loading
+  - Web URL fetching
+  - CSS selector support
+  - Script and style filtering
+  - Link extraction
+  - Meta tag extraction
+  - Web crawler support (recursive crawling)
+  - ~573 lines of code, 18 tests
+  - Library: `github.com/PuerkitoBio/goquery`
+
+- **Excel/CSV Loader** - Spreadsheet data processing
+  - Excel (.xlsx) file parsing
+  - CSV file support
+  - Multiple worksheet support
+  - Header extraction
+  - Row/column filtering
+  - Document metadata extraction
+  - Structured table extraction
+  - ~556 lines of code, 13 tests
+  - Library: `github.com/xuri/excelize`
+
+### Features Completed
+- **Complete Vector Store Ecosystem**: Milvus, Chroma, Pinecone (3 major options)
+- **Comprehensive Document Support**: PDF, Word, HTML, Excel (all major formats)
+- **Flexible Deployment Options**: Local, lightweight, cloud-hosted scenarios
+- **Full RAG Workflow**: Document loading → Vector storage complete pipeline
+
+### Statistics
+- Stage 4 code: ~2,318 lines (+2,318 lines)
+- Stage 4 tests: ~1,782 lines (+1,782 lines)
+- Total code: ~35,300 lines (+2,300 lines from v1.4.0)
+- Total tests: ~10,050 lines (+1,750 lines from v1.4.0)
+- Documentation: ~26,000 lines (+8,000 lines)
+- Test coverage: 75%+
+- New test functions: 80
+
+### Documentation
+- PHASE4-COMPLETION-REPORT.md - Complete stage 4 report
+- Updated README.md with new features
+- Updated PROJECT-PROGRESS.md with v1.5.0 info
+- Updated 课后扩展增强功能清单.md with completion status
+
+## [1.4.0] - 2026-01-15
+
+### Added - Phase 5 Stage 3 Complete: Observability 🎉
 - **M61: Document Loaders** - Complete document loading system
   - Text loader for plain text files
   - Markdown loader with metadata extraction
@@ -299,7 +375,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Links
 
-[Unreleased]: https://github.com/yourusername/langchain-go/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/yourusername/langchain-go/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/yourusername/langchain-go/compare/v1.4.0...v1.5.0
+[1.4.0]: https://github.com/yourusername/langchain-go/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/yourusername/langchain-go/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/yourusername/langchain-go/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/yourusername/langchain-go/compare/v1.0.0...v1.1.0
