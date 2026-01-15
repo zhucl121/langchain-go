@@ -21,6 +21,9 @@ const (
 
 	// AgentTypeConversational 对话式 Agent
 	AgentTypeConversational AgentType = "conversational"
+
+	// AgentTypePlanAndExecute Plan-and-Execute Agent
+	AgentTypePlanAndExecute AgentType = "plan_and_execute"
 )
 
 // Agent 是 Agent 接口。
