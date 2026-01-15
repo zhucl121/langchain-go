@@ -23,6 +23,10 @@ type CheckpointConfig struct {
 	// ThreadID 线程标识（必需）
 	ThreadID string
 
+	// CheckpointNS 检查点命名空间（用于支持子图，默认为空字符串）
+	// 命名空间格式: "subgraph.level1.level2"
+	CheckpointNS string
+
 	// CheckpointID 检查点标识（可选，用于加载特定检查点）
 	CheckpointID string
 
@@ -51,6 +55,15 @@ func (c *CheckpointConfig) WithCheckpointID(id string) *CheckpointConfig {
 	return c
 }
 
+// WithNamespace 设置检查点命名空间。
+//
+// 命名空间用于支持嵌套子图,格式: "subgraph.level1.level2"
+//
+func (c *CheckpointConfig) WithNamespace(ns string) *CheckpointConfig {
+	c.CheckpointNS = ns
+	return c
+}
+
 // WithMetadata 设置元数据。
 func (c *CheckpointConfig) WithMetadata(key string, value any) *CheckpointConfig {
 	c.Metadata[key] = value
@@ -76,8 +89,14 @@ type Checkpoint[S any] struct {
 	// ThreadID 所属线程
 	ThreadID string
 
+	// CheckpointNS 检查点命名空间（用于支持子图）
+	CheckpointNS string
+
 	// ParentID 父检查点 ID（用于构建执行树）
 	ParentID string
+
+	// Type 检查点类型（用于反序列化识别）
+	Type string
 
 	// State 状态快照
 	State S
@@ -104,12 +123,13 @@ type Checkpoint[S any] struct {
 //
 func NewCheckpoint[S any](id string, state S, config *CheckpointConfig) *Checkpoint[S] {
 	cp := &Checkpoint[S]{
-		ID:        id,
-		ThreadID:  config.ThreadID,
-		State:     state,
-		Timestamp: time.Now(),
-		Metadata:  make(map[string]any),
-		Version:   1,
+		ID:           id,
+		ThreadID:     config.ThreadID,
+		CheckpointNS: config.CheckpointNS,
+		State:        state,
+		Timestamp:    time.Now(),
+		Metadata:     make(map[string]any),
+		Version:      1,
 	}
 
 	// 复制元数据
@@ -140,16 +160,33 @@ func (c *Checkpoint[S]) GetTimestamp() time.Time {
 	return c.Timestamp
 }
 
+// GetCheckpointNS 获取命名空间。
+func (c *Checkpoint[S]) GetCheckpointNS() string {
+	return c.CheckpointNS
+}
+
+// GetType 获取类型。
+func (c *Checkpoint[S]) GetType() string {
+	return c.Type
+}
+
+// SetType 设置类型。
+func (c *Checkpoint[S]) SetType(t string) {
+	c.Type = t
+}
+
 // Clone 克隆检查点。
 func (c *Checkpoint[S]) Clone() *Checkpoint[S] {
 	clone := &Checkpoint[S]{
-		ID:        c.ID,
-		ThreadID:  c.ThreadID,
-		ParentID:  c.ParentID,
-		State:     c.State,
-		Timestamp: c.Timestamp,
-		Metadata:  make(map[string]any),
-		Version:   c.Version,
+		ID:           c.ID,
+		ThreadID:     c.ThreadID,
+		CheckpointNS: c.CheckpointNS,
+		ParentID:     c.ParentID,
+		Type:         c.Type,
+		State:        c.State,
+		Timestamp:    c.Timestamp,
+		Metadata:     make(map[string]any),
+		Version:      c.Version,
 	}
 
 	for k, v := range c.Metadata {
@@ -209,13 +246,15 @@ type CheckpointSaver[S any] interface {
 
 // SerializableCheckpoint 是可序列化的检查点（用于存储）。
 type SerializableCheckpoint struct {
-	ID        string         `json:"id"`
-	ThreadID  string         `json:"thread_id"`
-	ParentID  string         `json:"parent_id"`
-	State     json.RawMessage `json:"state"`
-	Timestamp time.Time      `json:"timestamp"`
-	Metadata  map[string]any `json:"metadata"`
-	Version   int            `json:"version"`
+	ID           string          `json:"id"`
+	ThreadID     string          `json:"thread_id"`
+	CheckpointNS string          `json:"checkpoint_ns"`
+	ParentID     string          `json:"parent_id"`
+	Type         string          `json:"type"`
+	State        json.RawMessage `json:"state"`
+	Timestamp    time.Time       `json:"timestamp"`
+	Metadata     map[string]any  `json:"metadata"`
+	Version      int             `json:"version"`
 }
 
 // ToSerializable 转换为可序列化格式。
@@ -226,13 +265,15 @@ func ToSerializable[S any](cp *Checkpoint[S]) (*SerializableCheckpoint, error) {
 	}
 
 	return &SerializableCheckpoint{
-		ID:        cp.ID,
-		ThreadID:  cp.ThreadID,
-		ParentID:  cp.ParentID,
-		State:     stateData,
-		Timestamp: cp.Timestamp,
-		Metadata:  cp.Metadata,
-		Version:   cp.Version,
+		ID:           cp.ID,
+		ThreadID:     cp.ThreadID,
+		CheckpointNS: cp.CheckpointNS,
+		ParentID:     cp.ParentID,
+		Type:         cp.Type,
+		State:        stateData,
+		Timestamp:    cp.Timestamp,
+		Metadata:     cp.Metadata,
+		Version:      cp.Version,
 	}, nil
 }
 
@@ -244,13 +285,15 @@ func FromSerializable[S any](scp *SerializableCheckpoint) (*Checkpoint[S], error
 	}
 
 	return &Checkpoint[S]{
-		ID:        scp.ID,
-		ThreadID:  scp.ThreadID,
-		ParentID:  scp.ParentID,
-		State:     state,
-		Timestamp: scp.Timestamp,
-		Metadata:  scp.Metadata,
-		Version:   scp.Version,
+		ID:           scp.ID,
+		ThreadID:     scp.ThreadID,
+		CheckpointNS: scp.CheckpointNS,
+		ParentID:     scp.ParentID,
+		Type:         scp.Type,
+		State:        state,
+		Timestamp:    scp.Timestamp,
+		Metadata:     scp.Metadata,
+		Version:      scp.Version,
 	}, nil
 }
 

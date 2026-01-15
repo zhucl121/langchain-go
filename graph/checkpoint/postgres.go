@@ -60,19 +60,23 @@ func NewPostgresCheckpointSaver[S any](connStr string) (*PostgresCheckpointSaver
 func (p *PostgresCheckpointSaver[S]) initSchema() error {
 	schema := `
 	CREATE TABLE IF NOT EXISTS checkpoints (
-		id TEXT PRIMARY KEY,
+		id TEXT NOT NULL,
 		thread_id TEXT NOT NULL,
+		checkpoint_ns TEXT NOT NULL DEFAULT '',
 		parent_id TEXT,
+		type TEXT,
 		state JSONB NOT NULL,
 		timestamp BIGINT NOT NULL,
 		metadata JSONB,
 		version INTEGER NOT NULL,
-		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+		created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		PRIMARY KEY (thread_id, checkpoint_ns, id)
 	);
 
-	CREATE INDEX IF NOT EXISTS idx_thread_id ON checkpoints(thread_id);
+	CREATE INDEX IF NOT EXISTS idx_thread_ns ON checkpoints(thread_id, checkpoint_ns);
 	CREATE INDEX IF NOT EXISTS idx_timestamp ON checkpoints(timestamp);
-	CREATE INDEX IF NOT EXISTS idx_created_at ON checkpoints(created_at);
+	CREATE INDEX IF NOT EXISTS idx_created_at ON checkpoints(created_at DESC);
+	CREATE INDEX IF NOT EXISTS idx_metadata_gin ON checkpoints USING GIN (metadata);
 	`
 
 	_, err := p.db.Exec(schema)
@@ -100,10 +104,11 @@ func (p *PostgresCheckpointSaver[S]) Save(ctx context.Context, checkpoint *Check
 	// 使用 UPSERT (ON CONFLICT)
 	query := `
 	INSERT INTO checkpoints 
-	(id, thread_id, parent_id, state, timestamp, metadata, version, created_at)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-	ON CONFLICT (id) DO UPDATE SET
+	(id, thread_id, checkpoint_ns, parent_id, type, state, timestamp, metadata, version, created_at)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+	ON CONFLICT (thread_id, checkpoint_ns, id) DO UPDATE SET
 		state = EXCLUDED.state,
+		type = EXCLUDED.type,
 		timestamp = EXCLUDED.timestamp,
 		metadata = EXCLUDED.metadata,
 		version = EXCLUDED.version
@@ -112,7 +117,9 @@ func (p *PostgresCheckpointSaver[S]) Save(ctx context.Context, checkpoint *Check
 	_, err = p.db.ExecContext(ctx, query,
 		checkpoint.ID,
 		checkpoint.ThreadID,
+		checkpoint.CheckpointNS,
 		checkpoint.ParentID,
+		checkpoint.Type,
 		stateData,
 		checkpoint.Timestamp.Unix(),
 		metadataData,
@@ -138,29 +145,29 @@ func (p *PostgresCheckpointSaver[S]) Load(ctx context.Context, config *Checkpoin
 
 	if config.CheckpointID != "" {
 		query = `
-		SELECT id, thread_id, parent_id, state, timestamp, metadata, version
+		SELECT id, thread_id, checkpoint_ns, parent_id, type, state, timestamp, metadata, version
 		FROM checkpoints
-		WHERE id = $1 AND thread_id = $2
+		WHERE id = $1 AND thread_id = $2 AND checkpoint_ns = $3
 		`
-		args = []any{config.CheckpointID, config.ThreadID}
+		args = []any{config.CheckpointID, config.ThreadID, config.CheckpointNS}
 	} else {
 		query = `
-		SELECT id, thread_id, parent_id, state, timestamp, metadata, version
+		SELECT id, thread_id, checkpoint_ns, parent_id, type, state, timestamp, metadata, version
 		FROM checkpoints
-		WHERE thread_id = $1
+		WHERE thread_id = $1 AND checkpoint_ns = $2
 		ORDER BY timestamp DESC
 		LIMIT 1
 		`
-		args = []any{config.ThreadID}
+		args = []any{config.ThreadID, config.CheckpointNS}
 	}
 
-	var id, threadID, parentID string
+	var id, threadID, checkpointNS, parentID, cpType string
 	var stateData, metadataData []byte
 	var timestamp int64
 	var version int
 
 	err := p.db.QueryRowContext(ctx, query, args...).Scan(
-		&id, &threadID, &parentID, &stateData, &timestamp, &metadataData, &version,
+		&id, &threadID, &checkpointNS, &parentID, &cpType, &stateData, &timestamp, &metadataData, &version,
 	)
 
 	if err == sql.ErrNoRows {
@@ -184,13 +191,15 @@ func (p *PostgresCheckpointSaver[S]) Load(ctx context.Context, config *Checkpoin
 	}
 
 	checkpoint := &Checkpoint[S]{
-		ID:        id,
-		ThreadID:  threadID,
-		ParentID:  parentID,
-		State:     state,
-		Timestamp: time.Unix(timestamp, 0),
-		Metadata:  metadata,
-		Version:   version,
+		ID:           id,
+		ThreadID:     threadID,
+		CheckpointNS: checkpointNS,
+		ParentID:     parentID,
+		Type:         cpType,
+		State:        state,
+		Timestamp:    time.Unix(timestamp, 0),
+		Metadata:     metadata,
+		Version:      version,
 	}
 
 	return checkpoint, nil
@@ -203,7 +212,7 @@ func (p *PostgresCheckpointSaver[S]) List(ctx context.Context, threadID string) 
 	}
 
 	query := `
-	SELECT id, thread_id, parent_id, state, timestamp, metadata, version
+	SELECT id, thread_id, checkpoint_ns, parent_id, type, state, timestamp, metadata, version
 	FROM checkpoints
 	WHERE thread_id = $1
 	ORDER BY timestamp ASC
@@ -218,12 +227,12 @@ func (p *PostgresCheckpointSaver[S]) List(ctx context.Context, threadID string) 
 	result := make([]*Checkpoint[S], 0)
 
 	for rows.Next() {
-		var id, threadID, parentID string
+		var id, threadID, checkpointNS, parentID, cpType string
 		var stateData, metadataData []byte
 		var timestamp int64
 		var version int
 
-		err := rows.Scan(&id, &threadID, &parentID, &stateData, &timestamp, &metadataData, &version)
+		err := rows.Scan(&id, &threadID, &checkpointNS, &parentID, &cpType, &stateData, &timestamp, &metadataData, &version)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan checkpoint: %w", err)
 		}
@@ -239,13 +248,15 @@ func (p *PostgresCheckpointSaver[S]) List(ctx context.Context, threadID string) 
 		}
 
 		checkpoint := &Checkpoint[S]{
-			ID:        id,
-			ThreadID:  threadID,
-			ParentID:  parentID,
-			State:     state,
-			Timestamp: time.Unix(timestamp, 0),
-			Metadata:  metadata,
-			Version:   version,
+			ID:           id,
+			ThreadID:     threadID,
+			CheckpointNS: checkpointNS,
+			ParentID:     parentID,
+			Type:         cpType,
+			State:        state,
+			Timestamp:    time.Unix(timestamp, 0),
+			Metadata:     metadata,
+			Version:      version,
 		}
 
 		result = append(result, checkpoint)
@@ -266,10 +277,10 @@ func (p *PostgresCheckpointSaver[S]) Delete(ctx context.Context, config *Checkpo
 
 	query := `
 	DELETE FROM checkpoints
-	WHERE id = $1 AND thread_id = $2
+	WHERE id = $1 AND thread_id = $2 AND checkpoint_ns = $3
 	`
 
-	result, err := p.db.ExecContext(ctx, query, config.CheckpointID, config.ThreadID)
+	result, err := p.db.ExecContext(ctx, query, config.CheckpointID, config.ThreadID, config.CheckpointNS)
 	if err != nil {
 		return fmt.Errorf("failed to delete checkpoint: %w", err)
 	}
