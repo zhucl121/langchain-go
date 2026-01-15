@@ -29,7 +29,11 @@ LangChain-Go 是一个用 Go 编写的高性能 LLM 应用开发框架，完整�
 - 🎯 **类型安全**: 充分利用 Go 泛型和类型系统
 - 📦 **生产就绪**: 完整测试覆盖 (75%+)，详细文档
 - 🌐 **RAG 支持**: 文档加载、文本分割、嵌入、向量存储（支持 Milvus 2.6+ Hybrid Search）
-- 🤖 **Agent 系统**: ReAct、ToolCalling、Conversational Agent
+- 🤖 **Agent 系统**: ReAct、ToolCalling、Conversational、Plan-and-Execute Agent
+- 🔍 **搜索工具**: Google、Bing、DuckDuckGo 集成
+- 📁 **文件/数据库工具**: 完整的文件系统和数据库操作能力
+- 🧠 **EntityMemory**: 智能实体识别和管理
+- 📊 **可观测性**: OpenTelemetry 追踪 + Prometheus 监控 + 图可视化
 
 ### 📊 性能对比
 
@@ -175,8 +179,11 @@ langchain-go/
 │   ├── prompts/             # 提示词模板
 │   ├── output/              # 输出解析器
 │   ├── tools/               # 工具系统
-│   ├── memory/              # 记忆系统
-│   ├── agents/              # Agent 系统
+│   │   ├── search/          # 搜索工具 (Google/Bing/DuckDuckGo) ✨
+│   │   ├── filesystem/      # 文件系统工具 ✨
+│   │   └── database/        # 数据库工具 ✨
+│   ├── memory/              # 记忆系统 (含 EntityMemory) ✨
+│   ├── agents/              # Agent 系统 (含 Plan-and-Execute) ✨
 │   └── middleware/          # 中间件系统
 │
 ├── graph/                    # LangGraph 核心
@@ -188,13 +195,18 @@ langchain-go/
 │   ├── checkpoint/          # 检查点持久化 ⭐
 │   ├── durability/          # 持久化模式 ⭐
 │   ├── hitl/                # Human-in-the-Loop ⭐
+│   ├── visualization/       # 图可视化 ✨ NEW
 │   └── toolnode.go          # ToolNode
 │
-└── retrieval/                # RAG 系统
-    ├── loaders/             # 文档加载器
-    ├── splitters/           # 文本分割器
-    ├── embeddings/          # 嵌入模型
-    └── vectorstores/        # 向量存储（支持 Milvus）
+├── retrieval/                # RAG 系统
+│   ├── loaders/             # 文档加载器 (含 PDF) ✨
+│   ├── splitters/           # 文本分割器
+│   ├── embeddings/          # 嵌入模型
+│   └── vectorstores/        # 向量存储 (含 MMR、Reranking) ✨
+│
+└── pkg/                      # 公共包
+    ├── types/               # 基础类型（Message, Tool, Schema）
+    └── observability/       # 可观测性 (OpenTelemetry + Prometheus) ✨ NEW
 ```
 
 ---
@@ -288,9 +300,20 @@ app.Resume(ctx, "thread-id", hitl.ResumeData{
 - ✅ ReAct Agent - 推理和行动
 - ✅ ToolCalling Agent - 工具调用
 - ✅ Conversational Agent - 对话型
+- ✅ **Plan-and-Execute Agent** - 任务规划和执行 ✨
 - ✅ Middleware System - 中间件支持
 
 ```go
+// Plan-and-Execute Agent
+agent, _ := planexecute.NewPlanExecuteAgent(planexecute.Config{
+    Planner:  llm,
+    Tools:    []tools.Tool{searchTool, calculatorTool},
+    Executor: executor,
+})
+
+result, _ := agent.Invoke(ctx, "帮我分析...")
+
+// 传统 Agent
 agent, _ := agents.CreateAgent(agents.Config{
     Model:        model,
     Tools:        []tools.Tool{searchTool, calculatorTool},
@@ -310,6 +333,7 @@ result, _ := agent.Invoke(ctx, "帮我搜索...")
 
 **文档加载器**:
 - Text, Markdown, JSON, CSV
+- **PDF** ✨ - 完整 PDF 文本提取
 - Directory (递归)
 
 **文本分割器**:
@@ -321,6 +345,8 @@ result, _ := agent.Invoke(ctx, "帮我搜索...")
 **向量存储**:
 - InMemory - 内存存储
 - **Milvus 2.6+** - 支持 Hybrid Search & Reranking
+- **MMR 搜索** ✨ - 最大边际相关性
+- **LLM Reranking** ✨ - 智能重排序
 
 ```go
 // Milvus Hybrid Search
@@ -329,6 +355,101 @@ results, _ := store.HybridSearch(ctx, query, 5, &HybridSearchOptions{
     KeywordWeight:  0.3,   // BM25 关键词权重
     RerankStrategy: "rrf", // RRF 或 weighted
 })
+
+// MMR 搜索
+results, _ := store.MMRSearch(ctx, query, 10, mmr.Config{
+    Lambda: 0.5,  // 平衡相关性和多样性
+    FetchK: 20,   // 候选文档数
+})
+
+// LLM 重排序
+reranker := reranker.NewLLMReranker(llm, reranker.DefaultPromptTemplate)
+results, _ := reranker.Rerank(ctx, query, candidates, 5)
+```
+
+### 7. 工具生态 ✨
+
+丰富的工具集成
+
+**搜索工具**:
+- Google Custom Search
+- Bing Search API v7
+- DuckDuckGo (免费，无需 API Key)
+
+**文件系统工具**:
+- 8种操作：read, write, append, delete, list, exists, copy, move
+- 路径访问控制、权限管理、大小限制
+
+**数据库工具**:
+- SQLite, PostgreSQL, MySQL
+- 查询、执行、元数据查询
+- 只读模式、表访问控制
+
+```go
+// 搜索工具
+searchTool := search.NewDuckDuckGoSearchTool(search.DuckDuckGoConfig{
+    MaxResults: 5,
+})
+
+// 文件系统工具
+fileTool := filesystem.NewFileSystemTool(filesystem.Config{
+    AllowedPaths: []string{"/data"},
+    AllowWrite:   true,
+    MaxFileSize:  10 * 1024 * 1024, // 10MB
+})
+
+// 数据库工具
+dbTool := database.NewDatabaseTool(database.Config{
+    Driver:        "sqlite",
+    ConnectionStr: "data.db",
+    ReadOnly:      true,
+    AllowedTables: []string{"users", "products"},
+})
+```
+
+### 8. 可观测性 ✨ NEW
+
+生产级监控和追踪
+
+**OpenTelemetry 集成**:
+- 分布式追踪
+- LLM/Agent/Tool/RAG 自动追踪
+- 多种导出器（OTLP, Jaeger, Zipkin）
+
+**Prometheus 监控**:
+- 6大组件指标（LLM、Agent、Tool、RAG、Chain、Memory）
+- 20+监控维度
+- HTTP /metrics 端点
+
+**图可视化**:
+- 4种格式：Mermaid, DOT/Graphviz, ASCII, JSON
+- 执行路径追踪
+- 路径高亮显示
+
+```go
+// OpenTelemetry 追踪
+tracer := tracerProvider.Tracer("langchain-go")
+err := observability.TraceLLMCall(ctx, tracer, "openai", "gpt-4", 
+    func(ctx context.Context, span *observability.SpanHelper) error {
+        // LLM 调用
+        return nil
+    })
+
+// Prometheus 监控
+metrics := observability.NewMetricsCollector(observability.MetricsConfig{
+    Port: 9090,
+})
+metrics.RecordLLMCall("openai", "gpt-4", duration, nil)
+metrics.StartServer()
+
+// 图可视化
+gv := visualization.NewSimpleGraphBuilder("My Workflow").
+    AddNode("start", "Start", visualization.NodeTypeStart).
+    AddNode("process", "Process", visualization.NodeTypeRegular).
+    AddEdge("start", "process").
+    Build()
+    
+mermaid := gv.ToMermaid()
 ```
 
 ---
@@ -341,6 +462,7 @@ results, _ := store.HybridSearch(ctx, query, 5, &HybridSearchOptions{
 - [ChatModel 快速开始](QUICKSTART-CHAT.md)
 - [Prompts 快速开始](QUICKSTART-PROMPTS.md)
 - [StateGraph 快速开始](QUICKSTART-STATEGRAPH.md)
+- [Tools 快速开始](QUICKSTART-TOOLS.md)
 
 ### 核心概念
 
@@ -354,7 +476,21 @@ results, _ := store.HybridSearch(ctx, query, 5, &HybridSearchOptions{
 
 - [Milvus 使用指南](docs/MILVUS-GUIDE.md)
 - [Milvus Hybrid Search](docs/MILVUS-HYBRID-SEARCH.md)
+- [MMR 搜索指南](docs/MMR-GUIDE.md) ✨
+- [LLM Reranking 指南](docs/LLM-RERANKING-GUIDE.md) ✨
+- [PDF 加载器指南](docs/PDF-LOADER-GUIDE.md) ✨
 - [RAG 系统完整指南](docs/PHASE4-RAG-COMPLETE.md)
+
+### Agent 和工具
+
+- [Plan-and-Execute Agent 指南](docs/PLAN-EXECUTE-AGENT-GUIDE.md) ✨
+- [搜索工具指南](docs/SEARCH-TOOLS-GUIDE.md) ✨
+
+### 可观测性 ✨ NEW
+
+- [OpenTelemetry 集成指南](docs/OPENTELEMETRY-GUIDE.md)
+- [Prometheus 监控指南](docs/PROMETHEUS-GUIDE.md)
+- [图可视化指南](docs/GRAPH-VISUALIZATION-GUIDE.md)
 
 ### 进阶主题
 
@@ -399,26 +535,49 @@ results, _ := store.HybridSearch(ctx, query, 5, &HybridSearchOptions{
 
 ### ✅ Phase 4: RAG 系统 (已完成)
 
-- [x] Document Loaders
+- [x] Document Loaders (含 PDF ✨)
 - [x] Text Splitters
 - [x] Embeddings (OpenAI, Fake, Cached)
 - [x] Vector Stores (InMemory, Milvus 2.6+)
 - [x] Hybrid Search & Reranking
+- [x] MMR 搜索 ✨
+- [x] LLM Reranking ✨
+
+### ✅ Phase 5: 扩展增强 (进行中)
+
+**第一阶段 - RAG 增强** (75% 完成):
+- [x] MMR 最大边际相关性搜索
+- [x] LLM-based Reranking
+- [x] PDF 文档加载器
+- [ ] 更多向量存储 (Chroma, Pinecone, Weaviate)
+
+**第二阶段 - Agent 和工具生态** (100% 完成 ✅):
+- [x] Plan-and-Execute Agent ✨
+- [x] 搜索工具集成 (Google/Bing/DuckDuckGo) ✨
+- [x] 文件和数据库工具 ✨
+- [x] EntityMemory 增强 ✨
+
+**第三阶段 - 可观测性** (100% 完成 ✅):
+- [x] OpenTelemetry 集成 ✨
+- [x] Prometheus 指标导出 ✨
+- [x] 图可视化功能 ✨
+
+**第四阶段 - 生态增强** (待开始):
+- [ ] 更多文档加载器（Word/HTML/Excel）
+- [ ] 语义分割器
+- [ ] Multi-Agent 系统
+- [ ] API 工具集成（OpenAPI/Swagger）
 
 ### 🔜 未来计划
 
-查看 [扩展增强功能清单](docs/课后扩展增强功能清单.md) 了解详细规划：
+查看 [扩展增强功能清单](docs/课后扩展增强功能清单.md) 了解详细规划。
 
-**优先级 P0**:
-- [ ] 更多向量存储 (Chroma, Pinecone, Weaviate)
-- [ ] Plan-and-Execute Agent
-- [ ] OpenTelemetry 集成
-
-**优先级 P1**:
-- [ ] 更多文档加载器 (PDF, Word, HTML)
-- [ ] 语义文本分割器
-- [ ] Multi-Agent 系统
-- [ ] 图可视化
+**当前进度**:
+- ✅ 核心功能: 100% 完成
+- ✅ RAG 增强: 75% 完成
+- ✅ Agent 生态: 100% 完成
+- ✅ 可观测性: 100% 完成
+- ⏸️ 生态增强: 待开始
 
 ---
 
@@ -472,17 +631,46 @@ go test -bench=. ./...
 
 查看 [CHANGELOG.md](CHANGELOG.md) 了解每个版本的详细变更。
 
-### 最新版本: v1.3.0 (2026-01-14)
+### 最新版本: v1.4.0 (2026-01-15)
+
+**重大更新**: 第三阶段完成！完整的可观测性能力 🎉
 
 **新增**:
-- ✅ 完整的 RAG 系统 (Loaders, Splitters, Embeddings, Vector Stores)
-- ✅ Milvus 2.6+ 集成（Hybrid Search & Reranking）
-- ✅ 62 个核心模块全部完成
+- ✅ OpenTelemetry 集成（分布式追踪）
+- ✅ Prometheus 指标导出（监控系统）
+- ✅ 图可视化功能（4种格式）
+- ✅ 完整的追踪中间件
+- ✅ 6大组件监控指标
+
+**完整统计**:
+- 第一阶段 (RAG增强): 75% 完成
+- 第二阶段 (Agent生态): 100% 完成 ✅
+- 第三阶段 (可观测性): 100% 完成 ✅
+- 代码: ~33,000 行
+- 测试: ~8,300 行
+- 文档: ~18,000 行
+- 测试覆盖率: 75%+
+
+---
+
+### v1.3.0 (2026-01-15)
+
+**重大更新**: 第二阶段完成！Agent 和工具生态全面构建 🎉
+
+**新增**:
+- ✅ Plan-and-Execute Agent（任务规划执行）
+- ✅ 搜索工具集成（Google、Bing、DuckDuckGo）
+- ✅ 文件系统工具（8种操作）
+- ✅ 数据库工具（SQLite/PostgreSQL/MySQL）
+- ✅ EntityMemory 增强（智能实体管理）
+- ✅ PDF 文档加载器
+- ✅ MMR 搜索算法
+- ✅ LLM-based Reranking
 
 **完整项目统计**:
-- 代码: ~28,000 行
-- 测试: ~5,000 行
-- 文档: ~15,000 行
+- 代码: ~31,000 行
+- 测试: ~7,100 行
+- 文档: ~17,000 行
 - 测试覆盖率: 75%+
 
 ---
