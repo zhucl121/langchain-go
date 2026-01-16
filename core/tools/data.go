@@ -2,500 +2,530 @@ package tools
 
 import (
 	"context"
-	"encoding/json"
+	"encoding/csv"
 	"fmt"
+	"os"
 	"strings"
-
+	
 	"langchain-go/pkg/types"
+	
+	"gopkg.in/yaml.v3"
 )
 
-// JSONParseTool JSON 解析工具。
+// CSVReaderTool 是 CSV 文件读取工具。
 //
-// 功能：解析 JSON 字符串为对象
-type JSONParseTool struct {
-	name        string
-	description string
+// 功能：
+//   - 读取 CSV 文件
+//   - 解析为结构化数据
+//   - 支持自定义分隔符
+//
+type CSVReaderTool struct {
+	config CSVConfig
 }
 
-// NewJSONParseTool 创建 JSON 解析工具。
+// CSVConfig 是 CSV 配置。
+type CSVConfig struct {
+	// Delimiter 分隔符（默认为逗号）
+	Delimiter rune
+	
+	// HasHeader 是否有标题行
+	HasHeader bool
+	
+	// MaxRows 最大读取行数（0 表示无限制）
+	MaxRows int
+}
+
+// DefaultCSVConfig 返回默认配置。
+func DefaultCSVConfig() CSVConfig {
+	return CSVConfig{
+		Delimiter: ',',
+		HasHeader: true,
+		MaxRows:   1000,
+	}
+}
+
+// NewCSVReaderTool 创建 CSV 读取工具。
+//
+// 参数：
+//   - config: 配置（可选，使用默认配置传 nil）
 //
 // 返回：
-//   - *JSONParseTool: JSON 解析工具实例
+//   - *CSVReaderTool: 工具实例
 //
-// 示例：
-//
-//	tool := tools.NewJSONParseTool()
-//	result, _ := tool.Execute(ctx, map[string]any{
-//	    "json_string": `{"name": "John", "age": 30}`,
-//	})
-//
-func NewJSONParseTool() *JSONParseTool {
-	return &JSONParseTool{
-		name:        "json_parse",
-		description: "Parse a JSON string into an object. Returns the parsed object or an error if the JSON is invalid.",
+func NewCSVReaderTool(config *CSVConfig) *CSVReaderTool {
+	var cfg CSVConfig
+	if config != nil {
+		cfg = *config
+	} else {
+		cfg = DefaultCSVConfig()
+	}
+	
+	return &CSVReaderTool{
+		config: cfg,
 	}
 }
 
-// GetName 实现 Tool 接口。
-func (t *JSONParseTool) GetName() string {
-	return t.name
+// GetName 返回工具名称。
+func (c *CSVReaderTool) GetName() string {
+	return "csv_reader"
 }
 
-// GetDescription 实现 Tool 接口。
-func (t *JSONParseTool) GetDescription() string {
-	return t.description
+// GetDescription 返回工具描述。
+func (c *CSVReaderTool) GetDescription() string {
+	return "Read and parse CSV files. Returns the data as a formatted table."
 }
 
-// GetParameters 实现 Tool 接口。
-func (t *JSONParseTool) GetParameters() types.Schema {
-	return types.Schema{
-		Type: "object",
-		Properties: map[string]types.Schema{
-			"json_string": {
-				Type:        "string",
-				Description: "The JSON string to parse",
-			},
+// GetParameters 返回工具参数。
+func (c *CSVReaderTool) GetParameters() []ToolParameter {
+	return []ToolParameter{
+		{
+			Name:        "path",
+			Type:        "string",
+			Description: "Path to the CSV file",
+			Required:    true,
 		},
-		Required: []string{"json_string"},
 	}
 }
 
-// Execute 实现 Tool 接口。
-func (t *JSONParseTool) Execute(ctx context.Context, args map[string]any) (any, error) {
-	jsonStr, ok := args["json_string"].(string)
+// Execute 执行 CSV 读取。
+func (c *CSVReaderTool) Execute(ctx context.Context, input map[string]any) (any, error) {
+	// 获取路径
+	path, ok := input["path"].(string)
 	if !ok {
-		return nil, fmt.Errorf("%w: 'json_string' must be a string", ErrInvalidArguments)
+		return nil, fmt.Errorf("csv reader: 'path' parameter is required and must be a string")
 	}
-
-	var result any
-	err := json.Unmarshal([]byte(jsonStr), &result)
+	
+	// 打开文件
+	file, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("%w: failed to parse JSON: %v", ErrExecutionFailed, err)
+		return nil, fmt.Errorf("csv reader: failed to open file: %w", err)
 	}
+	defer file.Close()
+	
+	// 创建 CSV reader
+	reader := csv.NewReader(file)
+	reader.Comma = c.config.Delimiter
+	
+	// 读取所有记录
+	records, err := reader.ReadAll()
+	if err != nil {
+		return nil, fmt.Errorf("csv reader: failed to read CSV: %w", err)
+	}
+	
+	if len(records) == 0 {
+		return "Empty CSV file", nil
+	}
+	
+	// 限制行数
+	if c.config.MaxRows > 0 && len(records) > c.config.MaxRows {
+		records = records[:c.config.MaxRows]
+	}
+	
+	// 格式化输出
+	return c.formatCSV(records), nil
+}
 
+// formatCSV 格式化 CSV 数据。
+func (c *CSVReaderTool) formatCSV(records [][]string) string {
+	var builder strings.Builder
+	
+	// 写入标题
+	if c.config.HasHeader && len(records) > 0 {
+		builder.WriteString("CSV Data:\n")
+		builder.WriteString("Headers: ")
+		builder.WriteString(strings.Join(records[0], " | "))
+		builder.WriteString("\n\n")
+		
+		// 写入数据行
+		for i, row := range records[1:] {
+			builder.WriteString(fmt.Sprintf("Row %d: %s\n", i+1, strings.Join(row, " | ")))
+		}
+		
+		builder.WriteString(fmt.Sprintf("\nTotal: %d rows\n", len(records)-1))
+	} else {
+		// 无标题
+		for i, row := range records {
+			builder.WriteString(fmt.Sprintf("Row %d: %s\n", i+1, strings.Join(row, " | ")))
+		}
+		
+		builder.WriteString(fmt.Sprintf("\nTotal: %d rows\n", len(records)))
+	}
+	
+	return builder.String()
+}
+
+// ToTypesTool 转换为 types.Tool。
+func (c *CSVReaderTool) ToTypesTool() types.Tool {
+	return types.Tool{
+		Name:        c.GetName(),
+		Description: c.GetDescription(),
+		Parameters:  convertToolParametersToTypes(c.GetParameters()),
+	}
+}
+
+// ========================
+// CSV 写入工具
+// ========================
+
+// CSVWriterTool 是 CSV 文件写入工具。
+type CSVWriterTool struct {
+	config CSVConfig
+}
+
+// NewCSVWriterTool 创建 CSV 写入工具。
+func NewCSVWriterTool(config *CSVConfig) *CSVWriterTool {
+	var cfg CSVConfig
+	if config != nil {
+		cfg = *config
+	} else {
+		cfg = DefaultCSVConfig()
+	}
+	
+	return &CSVWriterTool{
+		config: cfg,
+	}
+}
+
+// GetName 返回工具名称。
+func (c *CSVWriterTool) GetName() string {
+	return "csv_writer"
+}
+
+// GetDescription 返回工具描述。
+func (c *CSVWriterTool) GetDescription() string {
+	return "Write data to a CSV file. Input should be a 2D array of strings."
+}
+
+// GetParameters 返回工具参数。
+func (c *CSVWriterTool) GetParameters() []ToolParameter {
+	return []ToolParameter{
+		{
+			Name:        "path",
+			Type:        "string",
+			Description: "Path to the CSV file",
+			Required:    true,
+		},
+		{
+			Name:        "data",
+			Type:        "array",
+			Description: "2D array of data to write",
+			Required:    true,
+		},
+	}
+}
+
+// Execute 执行 CSV 写入。
+func (c *CSVWriterTool) Execute(ctx context.Context, input map[string]any) (any, error) {
+	path, ok := input["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("csv writer: 'path' parameter is required")
+	}
+	
+	data, ok := input["data"].([][]string)
+	if !ok {
+		return nil, fmt.Errorf("csv writer: 'data' parameter must be a 2D string array")
+	}
+	
+	// 创建文件
+	file, err := os.Create(path)
+	if err != nil {
+		return nil, fmt.Errorf("csv writer: failed to create file: %w", err)
+	}
+	defer file.Close()
+	
+	// 写入 CSV
+	writer := csv.NewWriter(file)
+	writer.Comma = c.config.Delimiter
+	
+	if err := writer.WriteAll(data); err != nil {
+		return nil, fmt.Errorf("csv writer: failed to write CSV: %w", err)
+	}
+	
+	writer.Flush()
+	
+	if err := writer.Error(); err != nil {
+		return nil, fmt.Errorf("csv writer: flush error: %w", err)
+	}
+	
+	return fmt.Sprintf("Successfully wrote %d rows to %s", len(data), path), nil
+}
+
+// ToTypesTool 转换为 types.Tool。
+func (c *CSVWriterTool) ToTypesTool() types.Tool {
+	return types.Tool{
+		Name:        c.GetName(),
+		Description: c.GetDescription(),
+		Parameters:  convertToolParametersToTypes(c.GetParameters()),
+	}
+}
+
+// ========================
+// YAML 读取工具
+// ========================
+
+// YAMLReaderTool 是 YAML 文件读取工具。
+//
+// 功能：
+//   - 读取 YAML 文件
+//   - 解析为结构化数据
+//   - 支持复杂嵌套结构
+//
+type YAMLReaderTool struct{}
+
+// NewYAMLReaderTool 创建 YAML 读取工具。
+func NewYAMLReaderTool() *YAMLReaderTool {
+	return &YAMLReaderTool{}
+}
+
+// GetName 返回工具名称。
+func (y *YAMLReaderTool) GetName() string {
+	return "yaml_reader"
+}
+
+// GetDescription 返回工具描述。
+func (y *YAMLReaderTool) GetDescription() string {
+	return "Read and parse YAML files. Returns the data as a formatted string."
+}
+
+// GetParameters 返回工具参数。
+func (y *YAMLReaderTool) GetParameters() []ToolParameter {
+	return []ToolParameter{
+		{
+			Name:        "path",
+			Type:        "string",
+			Description: "Path to the YAML file",
+			Required:    true,
+		},
+	}
+}
+
+// Execute 执行 YAML 读取。
+func (y *YAMLReaderTool) Execute(ctx context.Context, input map[string]any) (any, error) {
+	// 获取路径
+	path, ok := input["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("yaml reader: 'path' parameter is required and must be a string")
+	}
+	
+	// 读取文件
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("yaml reader: failed to read file: %w", err)
+	}
+	
+	// 解析 YAML
+	var result map[string]any
+	if err := yaml.Unmarshal(data, &result); err != nil {
+		return nil, fmt.Errorf("yaml reader: failed to parse YAML: %w", err)
+	}
+	
+	// 格式化输出
+	return y.formatYAML(result, 0), nil
+}
+
+// formatYAML 格式化 YAML 数据。
+func (y *YAMLReaderTool) formatYAML(data any, indent int) string {
+	var builder strings.Builder
+	indentStr := strings.Repeat("  ", indent)
+	
+	switch v := data.(type) {
+	case map[string]any:
+		for key, value := range v {
+			builder.WriteString(fmt.Sprintf("%s%s:\n", indentStr, key))
+			builder.WriteString(y.formatYAML(value, indent+1))
+		}
+	case []any:
+		for i, item := range v {
+			builder.WriteString(fmt.Sprintf("%s- [%d]:\n", indentStr, i))
+			builder.WriteString(y.formatYAML(item, indent+1))
+		}
+	default:
+		builder.WriteString(fmt.Sprintf("%s%v\n", indentStr, v))
+	}
+	
+	return builder.String()
+}
+
+// ToTypesTool 转换为 types.Tool。
+func (y *YAMLReaderTool) ToTypesTool() types.Tool {
+	return types.Tool{
+		Name:        y.GetName(),
+		Description: y.GetDescription(),
+		Parameters:  convertToolParametersToTypes(y.GetParameters()),
+	}
+}
+
+// ========================
+// YAML 写入工具
+// ========================
+
+// YAMLWriterTool 是 YAML 文件写入工具。
+type YAMLWriterTool struct{}
+
+// NewYAMLWriterTool 创建 YAML 写入工具。
+func NewYAMLWriterTool() *YAMLWriterTool {
+	return &YAMLWriterTool{}
+}
+
+// GetName 返回工具名称。
+func (y *YAMLWriterTool) GetName() string {
+	return "yaml_writer"
+}
+
+// GetDescription 返回工具描述。
+func (y *YAMLWriterTool) GetDescription() string {
+	return "Write data to a YAML file. Input should be a map or struct."
+}
+
+// GetParameters 返回工具参数。
+func (y *YAMLWriterTool) GetParameters() []ToolParameter {
+	return []ToolParameter{
+		{
+			Name:        "path",
+			Type:        "string",
+			Description: "Path to the YAML file",
+			Required:    true,
+		},
+		{
+			Name:        "data",
+			Type:        "object",
+			Description: "Data to write (map or struct)",
+			Required:    true,
+		},
+	}
+}
+
+// Execute 执行 YAML 写入。
+func (y *YAMLWriterTool) Execute(ctx context.Context, input map[string]any) (any, error) {
+	path, ok := input["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("yaml writer: 'path' parameter is required")
+	}
+	
+	data, ok := input["data"]
+	if !ok {
+		return nil, fmt.Errorf("yaml writer: 'data' parameter is required")
+	}
+	
+	// 序列化为 YAML
+	yamlData, err := yaml.Marshal(data)
+	if err != nil {
+		return nil, fmt.Errorf("yaml writer: failed to marshal data: %w", err)
+	}
+	
+	// 写入文件
+	if err := os.WriteFile(path, yamlData, 0644); err != nil {
+		return nil, fmt.Errorf("yaml writer: failed to write file: %w", err)
+	}
+	
+	return fmt.Sprintf("Successfully wrote data to %s", path), nil
+}
+
+// ToTypesTool 转换为 types.Tool。
+func (y *YAMLWriterTool) ToTypesTool() types.Tool {
+	return types.Tool{
+		Name:        y.GetName(),
+		Description: y.GetDescription(),
+		Parameters:  convertToolParametersToTypes(y.GetParameters()),
+	}
+}
+
+// ========================
+// JSON 查询工具
+// ========================
+
+// JSONQueryTool 是 JSON 数据查询工具。
+//
+// 功能：
+//   - 使用 JSONPath 查询 JSON 数据
+//   - 支持复杂查询
+//
+type JSONQueryTool struct{}
+
+// NewJSONQueryTool 创建 JSON 查询工具。
+func NewJSONQueryTool() *JSONQueryTool {
+	return &JSONQueryTool{}
+}
+
+// GetName 返回工具名称。
+func (j *JSONQueryTool) GetName() string {
+	return "json_query"
+}
+
+// GetDescription 返回工具描述。
+func (j *JSONQueryTool) GetDescription() string {
+	return "Query JSON data using dot notation (e.g., 'users.0.name'). Returns the matched value."
+}
+
+// GetParameters 返回工具参数。
+func (j *JSONQueryTool) GetParameters() []ToolParameter {
+	return []ToolParameter{
+		{
+			Name:        "data",
+			Type:        "object",
+			Description: "JSON data to query",
+			Required:    true,
+		},
+		{
+			Name:        "path",
+			Type:        "string",
+			Description: "Dot-notation path (e.g., 'user.name')",
+			Required:    true,
+		},
+	}
+}
+
+// Execute 执行 JSON 查询。
+func (j *JSONQueryTool) Execute(ctx context.Context, input map[string]any) (any, error) {
+	data, ok := input["data"]
+	if !ok {
+		return nil, fmt.Errorf("json query: 'data' parameter is required")
+	}
+	
+	path, ok := input["path"].(string)
+	if !ok {
+		return nil, fmt.Errorf("json query: 'path' parameter is required")
+	}
+	
+	// 简单的点号路径查询
+	result, err := queryJSONPath(data, path)
+	if err != nil {
+		return nil, fmt.Errorf("json query: %w", err)
+	}
+	
 	return result, nil
 }
 
-// ToTypesTool 实现 Tool 接口。
-func (t *JSONParseTool) ToTypesTool() types.Tool {
-	return types.Tool{
-		Name:        t.name,
-		Description: t.description,
-		Parameters:  t.GetParameters(),
+// queryJSONPath 查询 JSON 路径。
+func queryJSONPath(data any, path string) (any, error) {
+	if path == "" {
+		return data, nil
 	}
-}
-
-// JSONStringifyTool JSON 序列化工具。
-//
-// 功能：将对象序列化为 JSON 字符串
-type JSONStringifyTool struct {
-	name        string
-	description string
-}
-
-// NewJSONStringifyTool 创建 JSON 序列化工具。
-//
-// 返回：
-//   - *JSONStringifyTool: JSON 序列化工具实例
-//
-// 示例：
-//
-//	tool := tools.NewJSONStringifyTool()
-//	result, _ := tool.Execute(ctx, map[string]any{
-//	    "object": map[string]any{"name": "John", "age": 30},
-//	    "pretty": true,
-//	})
-//
-func NewJSONStringifyTool() *JSONStringifyTool {
-	return &JSONStringifyTool{
-		name:        "json_stringify",
-		description: "Convert an object to a JSON string. Supports pretty printing.",
-	}
-}
-
-// GetName 实现 Tool 接口。
-func (t *JSONStringifyTool) GetName() string {
-	return t.name
-}
-
-// GetDescription 实现 Tool 接口。
-func (t *JSONStringifyTool) GetDescription() string {
-	return t.description
-}
-
-// GetParameters 实现 Tool 接口。
-func (t *JSONStringifyTool) GetParameters() types.Schema {
-	return types.Schema{
-		Type: "object",
-		Properties: map[string]types.Schema{
-			"object": {
-				Type:        "object",
-				Description: "The object to stringify",
-			},
-			"pretty": {
-				Type:        "boolean",
-				Description: "Whether to format the JSON with indentation (default: false)",
-			},
-		},
-		Required: []string{"object"},
-	}
-}
-
-// Execute 实现 Tool 接口。
-func (t *JSONStringifyTool) Execute(ctx context.Context, args map[string]any) (any, error) {
-	obj, ok := args["object"]
-	if !ok {
-		return nil, fmt.Errorf("%w: 'object' is required", ErrInvalidArguments)
-	}
-
-	pretty := false
-	if p, ok := args["pretty"].(bool); ok {
-		pretty = p
-	}
-
-	var jsonBytes []byte
-	var err error
-
-	if pretty {
-		jsonBytes, err = json.MarshalIndent(obj, "", "  ")
-	} else {
-		jsonBytes, err = json.Marshal(obj)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("%w: failed to stringify object: %v", ErrExecutionFailed, err)
-	}
-
-	return string(jsonBytes), nil
-}
-
-// ToTypesTool 实现 Tool 接口。
-func (t *JSONStringifyTool) ToTypesTool() types.Tool {
-	return types.Tool{
-		Name:        t.name,
-		Description: t.description,
-		Parameters:  t.GetParameters(),
-	}
-}
-
-// JSONExtractTool JSON 提取工具。
-//
-// 功能：从 JSON 对象中提取指定路径的值
-type JSONExtractTool struct {
-	name        string
-	description string
-}
-
-// NewJSONExtractTool 创建 JSON 提取工具。
-//
-// 返回：
-//   - *JSONExtractTool: JSON 提取工具实例
-//
-// 示例：
-//
-//	tool := tools.NewJSONExtractTool()
-//	result, _ := tool.Execute(ctx, map[string]any{
-//	    "json_string": `{"user": {"name": "John", "age": 30}}`,
-//	    "path": "user.name",
-//	})
-//	// result: "John"
-//
-func NewJSONExtractTool() *JSONExtractTool {
-	return &JSONExtractTool{
-		name:        "json_extract",
-		description: "Extract a value from a JSON object using a dot-separated path (e.g., 'user.name').",
-	}
-}
-
-// GetName 实现 Tool 接口。
-func (t *JSONExtractTool) GetName() string {
-	return t.name
-}
-
-// GetDescription 实现 Tool 接口。
-func (t *JSONExtractTool) GetDescription() string {
-	return t.description
-}
-
-// GetParameters 实现 Tool 接口。
-func (t *JSONExtractTool) GetParameters() types.Schema {
-	return types.Schema{
-		Type: "object",
-		Properties: map[string]types.Schema{
-			"json_string": {
-				Type:        "string",
-				Description: "The JSON string to extract from",
-			},
-			"path": {
-				Type:        "string",
-				Description: "The dot-separated path to extract (e.g., 'user.name')",
-			},
-		},
-		Required: []string{"json_string", "path"},
-	}
-}
-
-// Execute 实现 Tool 接口。
-func (t *JSONExtractTool) Execute(ctx context.Context, args map[string]any) (any, error) {
-	jsonStr, ok := args["json_string"].(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'json_string' must be a string", ErrInvalidArguments)
-	}
-
-	path, ok := args["path"].(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'path' must be a string", ErrInvalidArguments)
-	}
-
-	// 解析 JSON
-	var data any
-	err := json.Unmarshal([]byte(jsonStr), &data)
-	if err != nil {
-		return nil, fmt.Errorf("%w: failed to parse JSON: %v", ErrExecutionFailed, err)
-	}
-
-	// 提取路径
+	
 	parts := strings.Split(path, ".")
 	current := data
-
+	
 	for _, part := range parts {
 		switch v := current.(type) {
 		case map[string]any:
-			var exists bool
-			current, exists = v[part]
-			if !exists {
-				return nil, fmt.Errorf("%w: path not found: %s", ErrExecutionFailed, path)
+			val, ok := v[part]
+			if !ok {
+				return nil, fmt.Errorf("key not found: %s", part)
 			}
+			current = val
 		default:
-			return nil, fmt.Errorf("%w: cannot traverse non-object at path: %s", ErrExecutionFailed, part)
+			return nil, fmt.Errorf("cannot access key %s on non-object", part)
 		}
 	}
-
+	
 	return current, nil
 }
 
-// ToTypesTool 实现 Tool 接口。
-func (t *JSONExtractTool) ToTypesTool() types.Tool {
+// ToTypesTool 转换为 types.Tool。
+func (j *JSONQueryTool) ToTypesTool() types.Tool {
 	return types.Tool{
-		Name:        t.name,
-		Description: t.description,
-		Parameters:  t.GetParameters(),
-	}
-}
-
-// StringLengthTool 字符串长度工具。
-//
-// 功能：获取字符串的长度
-type StringLengthTool struct {
-	name        string
-	description string
-}
-
-// NewStringLengthTool 创建字符串长度工具。
-//
-// 返回：
-//   - *StringLengthTool: 字符串长度工具实例
-//
-func NewStringLengthTool() *StringLengthTool {
-	return &StringLengthTool{
-		name:        "string_length",
-		description: "Get the length of a string.",
-	}
-}
-
-// GetName 实现 Tool 接口。
-func (t *StringLengthTool) GetName() string {
-	return t.name
-}
-
-// GetDescription 实现 Tool 接口。
-func (t *StringLengthTool) GetDescription() string {
-	return t.description
-}
-
-// GetParameters 实现 Tool 接口。
-func (t *StringLengthTool) GetParameters() types.Schema {
-	return types.Schema{
-		Type: "object",
-		Properties: map[string]types.Schema{
-			"text": {
-				Type:        "string",
-				Description: "The string to get length of",
-			},
-		},
-		Required: []string{"text"},
-	}
-}
-
-// Execute 实现 Tool 接口。
-func (t *StringLengthTool) Execute(ctx context.Context, args map[string]any) (any, error) {
-	text, ok := args["text"].(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'text' must be a string", ErrInvalidArguments)
-	}
-
-	return len(text), nil
-}
-
-// ToTypesTool 实现 Tool 接口。
-func (t *StringLengthTool) ToTypesTool() types.Tool {
-	return types.Tool{
-		Name:        t.name,
-		Description: t.description,
-		Parameters:  t.GetParameters(),
-	}
-}
-
-// StringSplitTool 字符串分割工具。
-//
-// 功能：按分隔符分割字符串
-type StringSplitTool struct {
-	name        string
-	description string
-}
-
-// NewStringSplitTool 创建字符串分割工具。
-//
-// 返回：
-//   - *StringSplitTool: 字符串分割工具实例
-//
-func NewStringSplitTool() *StringSplitTool {
-	return &StringSplitTool{
-		name:        "string_split",
-		description: "Split a string by a delimiter.",
-	}
-}
-
-// GetName 实现 Tool 接口。
-func (t *StringSplitTool) GetName() string {
-	return t.name
-}
-
-// GetDescription 实现 Tool 接口。
-func (t *StringSplitTool) GetDescription() string {
-	return t.description
-}
-
-// GetParameters 实现 Tool 接口。
-func (t *StringSplitTool) GetParameters() types.Schema {
-	return types.Schema{
-		Type: "object",
-		Properties: map[string]types.Schema{
-			"text": {
-				Type:        "string",
-				Description: "The string to split",
-			},
-			"delimiter": {
-				Type:        "string",
-				Description: "The delimiter to split by",
-			},
-		},
-		Required: []string{"text", "delimiter"},
-	}
-}
-
-// Execute 实现 Tool 接口。
-func (t *StringSplitTool) Execute(ctx context.Context, args map[string]any) (any, error) {
-	text, ok := args["text"].(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'text' must be a string", ErrInvalidArguments)
-	}
-
-	delimiter, ok := args["delimiter"].(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'delimiter' must be a string", ErrInvalidArguments)
-	}
-
-	return strings.Split(text, delimiter), nil
-}
-
-// ToTypesTool 实现 Tool 接口。
-func (t *StringSplitTool) ToTypesTool() types.Tool {
-	return types.Tool{
-		Name:        t.name,
-		Description: t.description,
-		Parameters:  t.GetParameters(),
-	}
-}
-
-// StringJoinTool 字符串连接工具。
-//
-// 功能：使用分隔符连接字符串数组
-type StringJoinTool struct {
-	name        string
-	description string
-}
-
-// NewStringJoinTool 创建字符串连接工具。
-//
-// 返回：
-//   - *StringJoinTool: 字符串连接工具实例
-//
-func NewStringJoinTool() *StringJoinTool {
-	return &StringJoinTool{
-		name:        "string_join",
-		description: "Join an array of strings with a delimiter.",
-	}
-}
-
-// GetName 实现 Tool 接口。
-func (t *StringJoinTool) GetName() string {
-	return t.name
-}
-
-// GetDescription 实现 Tool 接口。
-func (t *StringJoinTool) GetDescription() string {
-	return t.description
-}
-
-// GetParameters 实现 Tool 接口。
-func (t *StringJoinTool) GetParameters() types.Schema {
-	return types.Schema{
-		Type: "object",
-		Properties: map[string]types.Schema{
-			"strings": {
-				Type:        "array",
-				Description: "The array of strings to join",
-			},
-			"delimiter": {
-				Type:        "string",
-				Description: "The delimiter to join with",
-			},
-		},
-		Required: []string{"strings", "delimiter"},
-	}
-}
-
-// Execute 实现 Tool 接口。
-func (t *StringJoinTool) Execute(ctx context.Context, args map[string]any) (any, error) {
-	stringsAny, ok := args["strings"].([]any)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'strings' must be an array", ErrInvalidArguments)
-	}
-
-	delimiter, ok := args["delimiter"].(string)
-	if !ok {
-		return nil, fmt.Errorf("%w: 'delimiter' must be a string", ErrInvalidArguments)
-	}
-
-	// 转换为字符串数组
-	strings := make([]string, len(stringsAny))
-	for i, v := range stringsAny {
-		str, ok := v.(string)
-		if !ok {
-			return nil, fmt.Errorf("%w: all elements must be strings", ErrInvalidArguments)
-		}
-		strings[i] = str
-	}
-
-	return strings.Join(strings, delimiter), nil
-}
-
-// ToTypesTool 实现 Tool 接口。
-func (t *StringJoinTool) ToTypesTool() types.Tool {
-	return types.Tool{
-		Name:        t.name,
-		Description: t.description,
-		Parameters:  t.GetParameters(),
+		Name:        j.GetName(),
+		Description: j.GetDescription(),
+		Parameters:  convertToolParametersToTypes(j.GetParameters()),
 	}
 }

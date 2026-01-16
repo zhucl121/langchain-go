@@ -120,6 +120,81 @@ func CreateConversationalAgent(llm chat.ChatModel, opts ...AgentOption) Agent {
 	return NewConversationalAgent(config)
 }
 
+// CreatePlanExecuteAgent 创建 Plan-Execute Agent (简化工厂函数)。
+//
+// 这是一个高层 API，先规划再执行的 Agent，适合复杂多步骤任务。
+//
+// 参数：
+//   - llm: 语言模型
+//   - agentTools: 工具列表
+//   - opts: 可选配置
+//
+// 返回：
+//   - Agent: Plan-Execute Agent 实例
+//
+// 示例：
+//
+//	agent := agents.CreatePlanExecuteAgent(llm, tools,
+//	    agents.WithMaxSteps(10),
+//	    agents.WithVerbose(true),
+//	    agents.WithPlanExecuteReplan(true),
+//	)
+//
+func CreatePlanExecuteAgent(llm chat.ChatModel, agentTools []tools.Tool, opts ...PlanExecuteOption) Agent {
+	config := PlanAndExecuteConfig{
+		LLM:          llm,
+		Tools:        agentTools,
+		MaxSteps:     10,
+		EnableReplan: false,
+		Verbose:      false,
+	}
+
+	// 应用选项
+	for _, opt := range opts {
+		opt(&config)
+	}
+
+	return NewPlanAndExecuteAgent(config)
+}
+
+// PlanExecuteOption 是 Plan-Execute Agent 配置选项。
+type PlanExecuteOption func(*PlanAndExecuteConfig)
+
+// WithPlanExecuteMaxSteps 设置最大步数。
+func WithPlanExecuteMaxSteps(maxSteps int) PlanExecuteOption {
+	return func(config *PlanAndExecuteConfig) {
+		config.MaxSteps = maxSteps
+	}
+}
+
+// WithPlanExecuteReplan 设置是否启用重新规划。
+func WithPlanExecuteReplan(enable bool) PlanExecuteOption {
+	return func(config *PlanAndExecuteConfig) {
+		config.EnableReplan = enable
+	}
+}
+
+// WithPlanExecuteVerbose 设置是否输出详细日志。
+func WithPlanExecuteVerbose(verbose bool) PlanExecuteOption {
+	return func(config *PlanAndExecuteConfig) {
+		config.Verbose = verbose
+	}
+}
+
+// WithPlanExecutePlannerPrompt 设置规划器提示词。
+func WithPlanExecutePlannerPrompt(prompt string) PlanExecuteOption {
+	return func(config *PlanAndExecuteConfig) {
+		config.PlannerPrompt = prompt
+	}
+}
+
+// WithPlanExecuteExecutorPrompt 设置执行器提示词。
+func WithPlanExecuteExecutorPrompt(prompt string) PlanExecuteOption {
+	return func(config *PlanAndExecuteConfig) {
+		config.ExecutorPrompt = prompt
+	}
+}
+
 // AgentOption 是 Agent 配置选项。
 type AgentOption func(*AgentConfig)
 

@@ -24,6 +24,12 @@ const (
 
 	// AgentTypePlanAndExecute Plan-and-Execute Agent
 	AgentTypePlanAndExecute AgentType = "plan_and_execute"
+	
+	// AgentTypeSelfAsk Self-Ask Agent (递归分解问题)
+	AgentTypeSelfAsk AgentType = "self_ask"
+	
+	// AgentTypeStructuredChat Structured Chat Agent (结构化对话)
+	AgentTypeStructuredChat AgentType = "structured_chat"
 )
 
 // Agent 是 Agent 接口。
