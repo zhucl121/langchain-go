@@ -3,7 +3,7 @@
 ## 📦 安装
 
 ```bash
-go get langchain-go
+go get github.com/zhuchenglong/langchain-go
 ```
 
 ---
@@ -135,9 +135,9 @@ package main
 
 import (
     "context"
-    "langchain-go/core/agents"
-    "langchain-go/core/chat/ollama"
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/agents"
+    "github.com/zhuchenglong/langchain-go/core/chat/ollama"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {

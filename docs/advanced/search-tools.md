@@ -48,7 +48,7 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/core/tools/search"
+	"github.com/zhuchenglong/langchain-go/core/tools/search"
 )
 
 func main() {
@@ -96,7 +96,7 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/core/tools/search"
+	"github.com/zhuchenglong/langchain-go/core/tools/search"
 )
 
 func main() {
@@ -146,7 +146,7 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/core/tools/search"
+	"github.com/zhuchenglong/langchain-go/core/tools/search"
 )
 
 func main() {
@@ -266,10 +266,10 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/core/agents"
-	"langchain-go/core/chat"
-	"langchain-go/core/tools"
-	"langchain-go/core/tools/search"
+	"github.com/zhuchenglong/langchain-go/core/agents"
+	"github.com/zhuchenglong/langchain-go/core/chat"
+	"github.com/zhuchenglong/langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/core/tools/search"
 )
 
 func main() {
@@ -319,10 +319,10 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/core/agents"
-	"langchain-go/core/chat"
-	"langchain-go/core/tools"
-	"langchain-go/core/tools/search"
+	"github.com/zhuchenglong/langchain-go/core/agents"
+	"github.com/zhuchenglong/langchain-go/core/chat"
+	"github.com/zhuchenglong/langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/core/tools/search"
 )
 
 func main() {
@@ -371,8 +371,8 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/core/tools"
-	"langchain-go/core/tools/search"
+	"github.com/zhuchenglong/langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/core/tools/search"
 )
 
 func main() {

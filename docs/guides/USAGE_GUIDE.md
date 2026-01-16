@@ -60,8 +60,8 @@ result, _ := ragChain.Run(ctx, "What is LangChain?")
 ### 安装
 
 ```bash
-go get langchain-go/retrieval/chains
-go get langchain-go/retrieval/retrievers
+go get github.com/zhuchenglong/langchain-go/retrieval/chains
+go get github.com/zhuchenglong/langchain-go/retrieval/retrievers
 ```
 
 ### 基础 RAG 应用
@@ -73,12 +73,12 @@ import (
     "context"
     "fmt"
     
-    "langchain-go/core/chat/ollama"
-    "langchain-go/retrieval/chains"
-    "langchain-go/retrieval/embeddings"
-    "langchain-go/retrieval/loaders"
-    "langchain-go/retrieval/retrievers"
-    "langchain-go/retrieval/vectorstores"
+    "github.com/zhuchenglong/langchain-go/core/chat/ollama"
+    "github.com/zhuchenglong/langchain-go/retrieval/chains"
+    "github.com/zhuchenglong/langchain-go/retrieval/embeddings"
+    "github.com/zhuchenglong/langchain-go/retrieval/loaders"
+    "github.com/zhuchenglong/langchain-go/retrieval/retrievers"
+    "github.com/zhuchenglong/langchain-go/retrieval/vectorstores"
 )
 
 func main() {
@@ -173,7 +173,7 @@ for i, result := range results {
 使用预定义模板:
 
 ```go
-import "langchain-go/core/prompts/templates"
+import "github.com/zhuchenglong/langchain-go/core/prompts/templates"
 
 ragChain := chains.NewRAGChain(retriever, llm,
     chains.WithPrompt(templates.DetailedRAGPrompt),
@@ -209,7 +209,7 @@ ragChain := chains.NewRAGChain(retriever, llm,
 使用 LLM 生成多个查询变体,提高召回率:
 
 ```go
-import "langchain-go/retrieval/retrievers"
+import "github.com/zhuchenglong/langchain-go/retrieval/retrievers"
 
 // 基础检索器
 baseRetriever := retrievers.NewVectorStoreRetriever(vectorStore)
@@ -266,7 +266,7 @@ docs, _ := ensemble.GetRelevantDocuments(ctx, "question")
 ### 预定义模板
 
 ```go
-import "langchain-go/core/prompts/templates"
+import "github.com/zhuchenglong/langchain-go/core/prompts/templates"
 
 // RAG 模板
 templates.DefaultRAGPrompt        // 默认 RAG prompt

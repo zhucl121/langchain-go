@@ -17,7 +17,7 @@ result, _ := ragChain.Run(ctx, "What is LangChain?")
 ### 1. RAG Chain
 
 ```go
-import "langchain-go/retrieval/chains"
+import "github.com/zhuchenglong/langchain-go/retrieval/chains"
 
 // 基础用法
 ragChain := chains.NewRAGChain(retriever, llm)
@@ -46,7 +46,7 @@ results, _ := ragChain.Batch(ctx, questions)
 ### 2. 检索器
 
 ```go
-import "langchain-go/retrieval/retrievers"
+import "github.com/zhuchenglong/langchain-go/retrieval/retrievers"
 
 // 向量检索器
 retriever := retrievers.NewVectorStoreRetriever(vectorStore,
@@ -71,7 +71,7 @@ ensemble := retrievers.NewEnsembleRetriever(
 ### 3. Prompt 模板
 
 ```go
-import "langchain-go/core/prompts/templates"
+import "github.com/zhuchenglong/langchain-go/core/prompts/templates"
 
 // RAG 模板
 templates.DefaultRAGPrompt        // 默认

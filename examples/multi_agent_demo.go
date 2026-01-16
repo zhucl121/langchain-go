@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"langchain-go/core/agents"
-	"langchain-go/core/chat/ollama"
+	"langchain-go/core/chat/providers/openai"
 	"langchain-go/core/tools"
 )
 
@@ -33,7 +33,7 @@ func runBasicExample() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 
 	// 1. 创建协调策略
 	strategy := agents.NewSequentialStrategy(llm)
@@ -96,7 +96,7 @@ func runContentCreationPipeline() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
@@ -165,7 +165,7 @@ func runDataAnalysisPipeline() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
@@ -239,7 +239,7 @@ func runCustomAgentExample() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 
 	// 创建自定义 Agent
 	type CustomAgent struct {
@@ -265,7 +265,7 @@ func runPerformanceBenchmark() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
@@ -325,7 +325,7 @@ func runErrorHandlingExample() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
 

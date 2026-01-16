@@ -14,8 +14,8 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -55,8 +55,8 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/chat/providers/anthropic"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/anthropic"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -99,9 +99,9 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/runnable"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -157,8 +157,8 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -246,8 +246,8 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -318,8 +318,8 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -413,8 +413,8 @@ ChatModel 实现了 `Runnable` 接口，可以与其他 Runnable 组合：
 
 ```go
 import (
-	"langchain-go/core/runnable"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/runnable"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
 )
 
 // 创建模型

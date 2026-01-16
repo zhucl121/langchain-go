@@ -11,7 +11,7 @@ import (
 	"os"
 	
 	"langchain-go/core/agents"
-	"langchain-go/core/chat/providers"
+	"langchain-go/core/chat/providers/openai"
 	"langchain-go/core/tools"
 )
 
@@ -97,11 +97,7 @@ func googleSearchDemo(ctx context.Context) {
 
 func agentDemo(ctx context.Context) {
 	// 创建 LLM
-	llm := providers.NewOpenAI(providers.OpenAIConfig{
-		APIKey:      os.Getenv("OPENAI_API_KEY"),
-		Model:       "gpt-4",
-		Temperature: 0.7,
-	})
+	llm := openai.NewChatOpenAI("gpt-4")
 	
 	// 创建多个搜索工具
 	searchTools := []tools.Tool{

@@ -75,14 +75,16 @@ func (f *FileReadTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (f *FileReadTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the file to read",
-			Required:    true,
+func (f *FileReadTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the file to read",
+			},
 		},
+		Required: []string{"path"},
 	}
 }
 
@@ -170,7 +172,7 @@ func (f *FileReadTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        f.GetName(),
 		Description: f.GetDescription(),
-		Parameters:  convertToolParametersToTypes(f.GetParameters()),
+		Parameters:  f.GetParameters(),
 	}
 }
 
@@ -239,20 +241,20 @@ func (f *FileWriteTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (f *FileWriteTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the file to write",
-			Required:    true,
+func (f *FileWriteTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the file to write",
+			},
+			"content": {
+				Type:        "string",
+				Description: "Content to write to the file",
+			},
 		},
-		{
-			Name:        "content",
-			Type:        "string",
-			Description: "Content to write to the file",
-			Required:    true,
-		},
+		Required: []string{"path", "content"},
 	}
 }
 
@@ -342,7 +344,7 @@ func (f *FileWriteTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        f.GetName(),
 		Description: f.GetDescription(),
-		Parameters:  convertToolParametersToTypes(f.GetParameters()),
+		Parameters:  f.GetParameters(),
 	}
 }
 
@@ -407,14 +409,16 @@ func (l *ListDirectoryTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (l *ListDirectoryTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the directory to list",
-			Required:    true,
+func (l *ListDirectoryTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the directory to list",
+			},
 		},
+		Required: []string{"path"},
 	}
 }
 
@@ -524,7 +528,7 @@ func (l *ListDirectoryTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        l.GetName(),
 		Description: l.GetDescription(),
-		Parameters:  convertToolParametersToTypes(l.GetParameters()),
+		Parameters:  l.GetParameters(),
 	}
 }
 
@@ -588,20 +592,20 @@ func (f *FileCopyTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (f *FileCopyTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "source",
-			Type:        "string",
-			Description: "Source file path",
-			Required:    true,
+func (f *FileCopyTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"source": {
+				Type:        "string",
+				Description: "Source file path",
+			},
+			"destination": {
+				Type:        "string",
+				Description: "Destination file path",
+			},
 		},
-		{
-			Name:        "destination",
-			Type:        "string",
-			Description: "Destination file path",
-			Required:    true,
-		},
+		Required: []string{"source", "destination"},
 	}
 }
 
@@ -645,6 +649,6 @@ func (f *FileCopyTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        f.GetName(),
 		Description: f.GetDescription(),
-		Parameters:  convertToolParametersToTypes(f.GetParameters()),
+		Parameters:  f.GetParameters(),
 	}
 }

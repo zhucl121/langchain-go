@@ -88,14 +88,16 @@ func (w *WikipediaSearchTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (w *WikipediaSearchTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "query",
-			Type:        "string",
-			Description: "The search query",
-			Required:    true,
+func (w *WikipediaSearchTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"query": {
+				Type:        "string",
+				Description: "The search query",
+			},
 		},
+		Required: []string{"query"},
 	}
 }
 
@@ -269,7 +271,7 @@ func (w *WikipediaSearchTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        w.GetName(),
 		Description: w.GetDescription(),
-		Parameters:  convertToolParametersToTypes(w.GetParameters()),
+		Parameters:  w.GetParameters(),
 	}
 }
 
@@ -371,14 +373,16 @@ func (a *ArxivSearchTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (a *ArxivSearchTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "query",
-			Type:        "string",
-			Description: "The search query (keywords, author name, etc.)",
-			Required:    true,
+func (a *ArxivSearchTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"query": {
+				Type:        "string",
+				Description: "The search query (keywords, author name, etc.)",
+			},
 		},
+		Required: []string{"query"},
 	}
 }
 
@@ -552,7 +556,7 @@ func (a *ArxivSearchTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        a.GetName(),
 		Description: a.GetDescription(),
-		Parameters:  convertToolParametersToTypes(a.GetParameters()),
+		Parameters:  a.GetParameters(),
 	}
 }
 
@@ -563,20 +567,6 @@ type arxivResult struct {
 	Abstract  string
 	URL       string
 	Published string
-}
-
-// convertToolParametersToTypes 转换工具参数为 types 参数。
-func convertToolParametersToTypes(params []ToolParameter) []types.ToolParameter {
-	result := make([]types.ToolParameter, len(params))
-	for i, p := range params {
-		result[i] = types.ToolParameter{
-			Name:        p.Name,
-			Type:        p.Type,
-			Description: p.Description,
-			Required:    p.Required,
-		}
-	}
-	return result
 }
 
 // ========================
@@ -674,14 +664,16 @@ func (t *TavilySearchTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (t *TavilySearchTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "query",
-			Type:        "string",
-			Description: "The search query",
-			Required:    true,
+func (t *TavilySearchTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"query": {
+				Type:        "string",
+				Description: "The search query",
+			},
 		},
+		Required: []string{"query"},
 	}
 }
 
@@ -805,7 +797,7 @@ func (t *TavilySearchTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        t.GetName(),
 		Description: t.GetDescription(),
-		Parameters:  convertToolParametersToTypes(t.GetParameters()),
+		Parameters:  t.GetParameters(),
 	}
 }
 
@@ -914,14 +906,16 @@ func (g *GoogleSearchTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (g *GoogleSearchTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "query",
-			Type:        "string",
-			Description: "The search query",
-			Required:    true,
+func (g *GoogleSearchTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"query": {
+				Type:        "string",
+				Description: "The search query",
+			},
 		},
+		Required: []string{"query"},
 	}
 }
 
@@ -1030,7 +1024,7 @@ func (g *GoogleSearchTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        g.GetName(),
 		Description: g.GetDescription(),
-		Parameters:  convertToolParametersToTypes(g.GetParameters()),
+		Parameters:  g.GetParameters(),
 	}
 }
 

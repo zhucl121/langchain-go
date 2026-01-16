@@ -6,7 +6,7 @@
 
 ```bash
 # 已包含在 langchain-go 中，无需额外安装
-go get langchain-go/core/agents
+go get github.com/zhuchenglong/langchain-go/core/agents
 ```
 
 ### 最简单的例子
@@ -17,9 +17,9 @@ package main
 import (
     "context"
     "fmt"
-    "langchain-go/core/agents"
-    "langchain-go/core/chat/ollama"
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/agents"
+    "github.com/zhuchenglong/langchain-go/core/chat/ollama"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {

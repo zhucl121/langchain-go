@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
 )
 
 func main() {
@@ -55,8 +55,8 @@ import (
 	"log"
 	"os"
 
-	"langchain-go/core/prompts"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
 )
 
 func main() {
@@ -95,7 +95,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
 )
 
 func main() {

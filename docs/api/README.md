@@ -55,7 +55,7 @@ langchain-go/
 
 **导入：**
 ```go
-import "langchain-go/core/types"
+import "github.com/zhuchenglong/langchain-go/core/types"
 ```
 
 ### `core/runnable`
@@ -68,7 +68,7 @@ Runnable 系统，LCEL 链式组合的核心。
 
 **导入：**
 ```go
-import "langchain-go/core/runnable"
+import "github.com/zhuchenglong/langchain-go/core/runnable"
 ```
 
 ### `core/chatmodels`
@@ -80,7 +80,7 @@ import "langchain-go/core/runnable"
 
 **导入：**
 ```go
-import "langchain-go/core/chatmodels"
+import "github.com/zhuchenglong/langchain-go/core/chatmodels"
 ```
 
 ### `core/prompts`
@@ -93,7 +93,7 @@ import "langchain-go/core/chatmodels"
 
 **导入：**
 ```go
-import "langchain-go/core/prompts"
+import "github.com/zhuchenglong/langchain-go/core/prompts"
 ```
 
 ### `core/output`
@@ -106,7 +106,7 @@ import "langchain-go/core/prompts"
 
 **导入：**
 ```go
-import "langchain-go/core/output"
+import "github.com/zhuchenglong/langchain-go/core/output"
 ```
 
 ### `core/tools`
@@ -119,7 +119,7 @@ import "langchain-go/core/output"
 
 **导入：**
 ```go
-import "langchain-go/core/tools"
+import "github.com/zhuchenglong/langchain-go/core/tools"
 ```
 
 ### `core/agents`
@@ -132,7 +132,7 @@ Agent 系统。
 
 **导入：**
 ```go
-import "langchain-go/core/agents"
+import "github.com/zhuchenglong/langchain-go/core/agents"
 ```
 
 ### `state`
@@ -145,7 +145,7 @@ StateGraph 状态图系统。
 
 **导入：**
 ```go
-import "langchain-go/state"
+import "github.com/zhuchenglong/langchain-go/state"
 ```
 
 ### `checkpoints`
@@ -162,8 +162,8 @@ Checkpoint 持久化。
 
 **导入：**
 ```go
-import "langchain-go/checkpoints/postgres"
-import "langchain-go/checkpoints/sqlite"
+import "github.com/zhuchenglong/langchain-go/checkpoints/postgres"
+import "github.com/zhuchenglong/langchain-go/checkpoints/sqlite"
 ```
 
 ### `retrieval/loaders`
@@ -178,7 +178,7 @@ import "langchain-go/checkpoints/sqlite"
 
 **导入：**
 ```go
-import "langchain-go/retrieval/loaders"
+import "github.com/zhuchenglong/langchain-go/retrieval/loaders"
 ```
 
 ### `retrieval/vectorstores`
@@ -192,7 +192,7 @@ import "langchain-go/retrieval/loaders"
 
 **导入：**
 ```go
-import "langchain-go/retrieval/vectorstores"
+import "github.com/zhuchenglong/langchain-go/retrieval/vectorstores"
 ```
 
 ---
@@ -248,9 +248,9 @@ go doc langchain-go/core/runnable.Runnable.Invoke
 ```go
 // 导入包
 import (
-    "langchain-go/core/runnable"
-    "langchain-go/core/types"
-    "langchain-go/chatmodels/openai"
+    "github.com/zhuchenglong/langchain-go/core/runnable"
+    "github.com/zhuchenglong/langchain-go/core/types"
+    "github.com/zhuchenglong/langchain-go/chatmodels/openai"
 )
 
 // 使用 API

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/output"
 )
 
 func main() {
@@ -52,7 +52,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/output"
 )
 
 // 定义你的数据结构
@@ -91,9 +91,9 @@ import (
 	"fmt"
 	"os"
 
-	"langchain-go/core/output"
-	"langchain-go/core/prompts"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
 )
 
 type MovieReview struct {

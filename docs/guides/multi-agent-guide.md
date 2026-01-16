@@ -24,9 +24,9 @@ package main
 import (
     "context"
     "fmt"
-    "langchain-go/core/agents"
-    "langchain-go/core/chat/ollama"
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/agents"
+    "github.com/zhuchenglong/langchain-go/core/chat/ollama"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -561,7 +561,7 @@ func (ap *AgentPool) GetAgent() agents.MultiAgent {
 ### 4. 缓存 LLM 响应
 
 ```go
-import "langchain-go/core/cache"
+import "github.com/zhuchenglong/langchain-go/core/cache"
 
 // 使用 Redis 缓存
 redisCache, _ := cache.NewRedisCache(cache.DefaultRedisCacheConfig())

@@ -51,8 +51,8 @@ import (
     "fmt"
     "strings"
 
-    "langchain-go/core/tools"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -101,8 +101,8 @@ import (
     "database/sql"
     "fmt"
 
-    "langchain-go/core/tools"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 // DatabaseTool 数据库查询工具
@@ -173,7 +173,7 @@ import (
     "context"
     "fmt"
 
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -219,7 +219,7 @@ import (
     "fmt"
     "time"
 
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -267,7 +267,7 @@ import (
     "context"
     "fmt"
 
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -305,7 +305,7 @@ import (
     "fmt"
     "time"
 
-    "langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -377,9 +377,9 @@ import (
     "fmt"
     "os"
 
-    "langchain-go/core/chat/providers/openai"
-    "langchain-go/core/tools"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+    "github.com/zhuchenglong/langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -518,10 +518,10 @@ import (
     "fmt"
     "os"
 
-    "langchain-go/core/chat/providers/openai"
-    "langchain-go/core/prompts"
-    "langchain-go/core/tools"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+    "github.com/zhuchenglong/langchain-go/core/prompts"
+    "github.com/zhuchenglong/langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -571,8 +571,8 @@ import (
     "fmt"
     "time"
 
-    "langchain-go/core/tools"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 // 创建天气查询工具
@@ -652,8 +652,8 @@ import (
     "context"
     "fmt"
 
-    "langchain-go/core/tools"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/tools"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 // CSV 读取工具

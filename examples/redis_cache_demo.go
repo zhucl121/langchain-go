@@ -8,7 +8,7 @@ import (
 
 	"langchain-go/core/cache"
 	"langchain-go/core/chat"
-	"langchain-go/core/chat/providers"
+	"langchain-go/core/chat/providers/openai"
 )
 
 // RedisCache 使用示例
@@ -162,10 +162,7 @@ func llmCacheWithRealLLM() {
 	llmCache := cache.NewLLMCache(redisCache)
 
 	// 创建 OpenAI LLM（带缓存）
-	llm := providers.NewOpenAI(providers.OpenAIConfig{
-		APIKey: "your-api-key",
-		Model:  "gpt-3.5-turbo",
-	})
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 
 	ctx := context.Background()
 	prompt := "解释量子计算"

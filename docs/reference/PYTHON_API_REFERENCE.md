@@ -70,9 +70,9 @@ package chains
 
 import (
     "context"
-    "langchain-go/core/chat"
-    "langchain-go/core/prompts"
-    "langchain-go/retrieval/retrievers"
+    "github.com/zhuchenglong/langchain-go/core/chat"
+    "github.com/zhuchenglong/langchain-go/core/prompts"
+    "github.com/zhuchenglong/langchain-go/retrieval/retrievers"
 )
 
 // RAGChain RAG 链
@@ -320,7 +320,7 @@ package retrievers
 
 import (
     "context"
-    "langchain-go/loaders"
+    "github.com/zhuchenglong/langchain-go/loaders"
 )
 
 // Retriever 检索器接口
@@ -419,8 +419,8 @@ package retrievers
 
 import (
     "context"
-    "langchain-go/core/chat"
-    "langchain-go/core/prompts"
+    "github.com/zhuchenglong/langchain-go/core/chat"
+    "github.com/zhuchenglong/langchain-go/core/prompts"
 )
 
 type MultiQueryRetriever struct {
@@ -1001,7 +1001,7 @@ package builtin
 import (
     "fmt"
     "github.com/Knetic/govaluate"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 // NewCalculator 创建计算器工具
@@ -1106,7 +1106,7 @@ langchain-go/core/prompts/templates/
 // core/prompts/templates/rag.go
 package templates
 
-import "langchain-go/core/prompts"
+import "github.com/zhuchenglong/langchain-go/core/prompts"
 
 // DefaultRAGPrompt 默认 RAG prompt
 var DefaultRAGPrompt = prompts.NewPromptTemplate(`

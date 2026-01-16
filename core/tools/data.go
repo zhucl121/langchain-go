@@ -76,14 +76,16 @@ func (c *CSVReaderTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (c *CSVReaderTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the CSV file",
-			Required:    true,
+func (c *CSVReaderTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the CSV file",
+			},
 		},
+		Required: []string{"path"},
 	}
 }
 
@@ -159,7 +161,7 @@ func (c *CSVReaderTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        c.GetName(),
 		Description: c.GetDescription(),
-		Parameters:  convertToolParametersToTypes(c.GetParameters()),
+		Parameters:  c.GetParameters(),
 	}
 }
 
@@ -197,20 +199,20 @@ func (c *CSVWriterTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (c *CSVWriterTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the CSV file",
-			Required:    true,
+func (c *CSVWriterTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the CSV file",
+			},
+			"data": {
+				Type:        "array",
+				Description: "2D array of data to write",
+			},
 		},
-		{
-			Name:        "data",
-			Type:        "array",
-			Description: "2D array of data to write",
-			Required:    true,
-		},
+		Required: []string{"path", "data"},
 	}
 }
 
@@ -255,7 +257,7 @@ func (c *CSVWriterTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        c.GetName(),
 		Description: c.GetDescription(),
-		Parameters:  convertToolParametersToTypes(c.GetParameters()),
+		Parameters:  c.GetParameters(),
 	}
 }
 
@@ -288,14 +290,16 @@ func (y *YAMLReaderTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (y *YAMLReaderTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the YAML file",
-			Required:    true,
+func (y *YAMLReaderTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the YAML file",
+			},
 		},
+		Required: []string{"path"},
 	}
 }
 
@@ -351,7 +355,7 @@ func (y *YAMLReaderTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        y.GetName(),
 		Description: y.GetDescription(),
-		Parameters:  convertToolParametersToTypes(y.GetParameters()),
+		Parameters:  y.GetParameters(),
 	}
 }
 
@@ -378,20 +382,20 @@ func (y *YAMLWriterTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (y *YAMLWriterTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Path to the YAML file",
-			Required:    true,
+func (y *YAMLWriterTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"path": {
+				Type:        "string",
+				Description: "Path to the YAML file",
+			},
+			"data": {
+				Type:        "object",
+				Description: "Data to write (map or struct)",
+			},
 		},
-		{
-			Name:        "data",
-			Type:        "object",
-			Description: "Data to write (map or struct)",
-			Required:    true,
-		},
+		Required: []string{"path", "data"},
 	}
 }
 
@@ -426,7 +430,7 @@ func (y *YAMLWriterTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        y.GetName(),
 		Description: y.GetDescription(),
-		Parameters:  convertToolParametersToTypes(y.GetParameters()),
+		Parameters:  y.GetParameters(),
 	}
 }
 
@@ -458,20 +462,20 @@ func (j *JSONQueryTool) GetDescription() string {
 }
 
 // GetParameters 返回工具参数。
-func (j *JSONQueryTool) GetParameters() []ToolParameter {
-	return []ToolParameter{
-		{
-			Name:        "data",
-			Type:        "object",
-			Description: "JSON data to query",
-			Required:    true,
+func (j *JSONQueryTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"data": {
+				Type:        "object",
+				Description: "JSON data to query",
+			},
+			"path": {
+				Type:        "string",
+				Description: "Dot-notation path (e.g., 'user.name')",
+			},
 		},
-		{
-			Name:        "path",
-			Type:        "string",
-			Description: "Dot-notation path (e.g., 'user.name')",
-			Required:    true,
-		},
+		Required: []string{"data", "path"},
 	}
 }
 
@@ -526,6 +530,6 @@ func (j *JSONQueryTool) ToTypesTool() types.Tool {
 	return types.Tool{
 		Name:        j.GetName(),
 		Description: j.GetDescription(),
-		Parameters:  convertToolParametersToTypes(j.GetParameters()),
+		Parameters:  j.GetParameters(),
 	}
 }

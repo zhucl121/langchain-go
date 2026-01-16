@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -52,8 +52,8 @@ import (
 	"fmt"
 	"strings"
 
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -93,7 +93,7 @@ import (
 	"fmt"
 	"time"
 
-	"langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/core/tools"
 )
 
 func main() {
@@ -128,9 +128,9 @@ import (
 	"fmt"
 	"os"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/tools"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {

@@ -9,7 +9,7 @@ import (
 	"log"
 	
 	"langchain-go/core/agents"
-	"langchain-go/core/chat/ollama"
+	"langchain-go/core/chat/providers/openai"
 	"langchain-go/core/tools"
 )
 
@@ -45,7 +45,7 @@ func exampleSimpleAgent() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	
 	// 2. 创建工具（只有计算器）
 	agentTools := []tools.Tool{
@@ -78,7 +78,7 @@ func exampleAgentWithBasicTools() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	
 	// 2. 获取基础工具（只需 1 行！）
 	agentTools := tools.GetBasicTools()
@@ -127,7 +127,7 @@ func exampleAgentWithAllTools() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	
 	// 2. 获取所有内置工具（1 行！）
 	agentTools := tools.GetBuiltinTools()
@@ -185,7 +185,7 @@ func exampleStreamingAgent() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM 和工具
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	agentTools := tools.GetBasicTools()
 	
 	// 2. 创建 Agent
@@ -235,7 +235,7 @@ func exampleToolCallingAgent() {
 	ctx := context.Background()
 	
 	// 1. 创建支持工具调用的 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	
 	// 2. 创建工具
 	agentTools := []tools.Tool{
@@ -274,7 +274,7 @@ func exampleCustomTools() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
 	
 	// 2. 创建自定义工具（使用工具注册表）
 	registry := tools.NewToolRegistry()

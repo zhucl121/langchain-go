@@ -40,7 +40,7 @@ import (
     "log"
     "time"
     
-    "langchain-go/core/cache"
+    "github.com/zhuchenglong/langchain-go/core/cache"
 )
 
 func main() {

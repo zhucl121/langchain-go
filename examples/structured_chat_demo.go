@@ -12,18 +12,14 @@ import (
 	"os"
 	
 	"langchain-go/core/agents"
-	"langchain-go/core/chat/providers"
+	"langchain-go/core/chat/providers/openai"
 	"langchain-go/core/memory"
 	"langchain-go/core/tools"
 )
 
 func main() {
 	// 1. 创建 LLM
-	llm := providers.NewOpenAI(providers.OpenAIConfig{
-		APIKey:      os.Getenv("OPENAI_API_KEY"),
-		Model:       "gpt-4",
-		Temperature: 0.7,
-	})
+	llm := openai.NewChatOpenAI("gpt-4")
 	
 	// 2. 创建工具
 	toolsList := []tools.Tool{

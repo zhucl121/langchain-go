@@ -9,7 +9,7 @@
 确保您的项目使用 Go 1.22+：
 
 ```bash
-go get langchain-go
+go get github.com/zhuchenglong/langchain-go
 ```
 
 ---
@@ -46,7 +46,7 @@ package main
 import (
     "context"
     "fmt"
-    "langchain-go/graph/state"
+    "github.com/zhuchenglong/langchain-go/graph/state"
 )
 
 type MyState struct {

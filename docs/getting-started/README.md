@@ -55,8 +55,8 @@ package main
 import (
     "context"
     "fmt"
-    "langchain-go/core/chat/providers/openai"
-    "langchain-go/pkg/types"
+    "github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+    "github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {

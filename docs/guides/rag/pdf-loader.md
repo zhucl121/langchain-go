@@ -32,7 +32,7 @@ import (
     "fmt"
     "log"
 
-    "langchain-go/retrieval/loaders"
+    "github.com/zhuchenglong/langchain-go/retrieval/loaders"
 )
 
 func main() {
@@ -229,9 +229,9 @@ func extractChapter(bookPath string, startPage, endPage int) (*loaders.Document,
 
 ```go
 import (
-    "langchain-go/retrieval/embeddings"
-    "langchain-go/retrieval/loaders"
-    "langchain-go/retrieval/vectorstores"
+    "github.com/zhuchenglong/langchain-go/retrieval/embeddings"
+    "github.com/zhuchenglong/langchain-go/retrieval/loaders"
+    "github.com/zhuchenglong/langchain-go/retrieval/vectorstores"
 )
 
 func indexPDF(pdfPath string) error {
@@ -271,7 +271,7 @@ func indexPDF(pdfPath string) error {
 ### 2. 与文本分割器结合
 
 ```go
-import "langchain-go/retrieval/splitters"
+import "github.com/zhuchenglong/langchain-go/retrieval/splitters"
 
 func splitPDFByChunks(pdfPath string) ([]*loaders.Document, error) {
     ctx := context.Background()
@@ -564,9 +564,9 @@ import (
     "fmt"
     "log"
 
-    "langchain-go/retrieval/loaders"
-    "langchain-go/retrieval/embeddings"
-    "langchain-go/retrieval/vectorstores"
+    "github.com/zhuchenglong/langchain-go/retrieval/loaders"
+    "github.com/zhuchenglong/langchain-go/retrieval/embeddings"
+    "github.com/zhuchenglong/langchain-go/retrieval/vectorstores"
 )
 
 func main() {

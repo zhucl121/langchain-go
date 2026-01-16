@@ -31,10 +31,10 @@ import (
     "fmt"
     "log"
 
-    "langchain-go/core/chat/providers/openai"
-    "langchain-go/retrieval/embeddings"
-    "langchain-go/retrieval/loaders"
-    "langchain-go/retrieval/vectorstores"
+    "github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+    "github.com/zhuchenglong/langchain-go/retrieval/embeddings"
+    "github.com/zhuchenglong/langchain-go/retrieval/loaders"
+    "github.com/zhuchenglong/langchain-go/retrieval/vectorstores"
 )
 
 func main() {

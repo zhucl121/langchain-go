@@ -4,9 +4,6 @@
 *.dll
 *.so
 *.dylib
-bin/
-dist/
-build/
 
 # Test binary, built with `go test -c`
 *.test
@@ -15,7 +12,6 @@ build/
 *.out
 coverage.out
 coverage.html
-*.coverprofile
 
 # Dependency directories
 vendor/
@@ -23,85 +19,24 @@ vendor/
 # Go workspace file
 go.work
 
-# IDE specific files
+# IDE
+.vscode/
 .idea/
 *.swp
 *.swo
 *~
-.vscode/
-*.code-workspace
 .DS_Store
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# API keys and secrets
-secrets/
-*.key
-*.pem
-credentials.json
-
-# Logs
-*.log
-logs/
 
 # Temporary files
-tmp/
-temp/
 *.tmp
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# OS specific
-Thumbs.db
-.DS_Store
-.AppleDouble
-.LSOverride
-
-# Backup files
-*~
-*.bak
-*.backup
-
-# Test artifacts
-testdata/output/
-test-results/
-
-# Documentation builds
-docs/_build/
-docs/.doctrees/
-site/
-
-# Cache directories
-.cache/
-__pycache__/
-*.pyc
-
-# Editor specific
-.project
-.settings/
-.classpath
-*.iml
+*.temp
+*.log
 
 # Build artifacts
-*.o
-*.a
-*.so
+bin/
+dist/
+build/
 
-# Profiling data
-*.prof
-cpu.prof
-mem.prof
-trace.out
-
-# Examples output
-examples/output/
-examples/*.db
-
-# Milvus data (if running locally)
-milvus_data/
+# OS
+Thumbs.db
+.directory

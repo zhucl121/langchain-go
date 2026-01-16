@@ -183,7 +183,7 @@ langchain-go/core/prompts/templates/
 
 **使用示例**:
 ```go
-import "langchain-go/core/prompts/templates"
+import "github.com/zhuchenglong/langchain-go/core/prompts/templates"
 
 // 使用预定义模板
 ragChain := chains.NewRAGChain(retriever, llm,

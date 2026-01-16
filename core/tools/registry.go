@@ -36,7 +36,7 @@ package tools
 func GetBuiltinTools() []Tool {
 	return []Tool{
 		// 计算器工具
-		NewCalculator(),
+		NewCalculatorTool(),
 		
 		// 时间/日期工具
 		NewGetTimeTool(nil),
@@ -48,21 +48,24 @@ func GetBuiltinTools() []Tool {
 		// HTTP 工具
 		NewHTTPGetTool(nil),
 		NewHTTPPostTool(nil),
-		NewHTTPRequestTool(nil),
+		NewHTTPRequestTool(HTTPRequestConfig{}),
 		
-		// JSON/数据处理工具
-		NewJSONParseTool(),
-		NewJSONStringifyTool(),
-		NewJSONExtractTool(),
-		NewStringLengthTool(),
-		NewStringSplitTool(),
-		NewStringJoinTool(),
+		// 数据处理工具
+		NewJSONQueryTool(),
+		NewCSVReaderTool(nil),
+		NewYAMLReaderTool(),
+		
+		// 文件系统工具
+		NewFileReadTool(nil),
+		NewFileWriteTool(nil),
+		NewListDirectoryTool(nil),
 		
 		// 实用工具
 		NewRandomNumberTool(),
 		NewUUIDGeneratorTool(),
 		NewBase64EncodeTool(),
 		NewBase64DecodeTool(),
+		NewSleepTool(),
 	}
 }
 
@@ -86,7 +89,7 @@ func GetBuiltinTools() []Tool {
 //
 func GetBasicTools() []Tool {
 	return []Tool{
-		NewCalculator(),
+		NewCalculatorTool(),
 		NewGetTimeTool(nil),
 		NewGetDateTool(nil),
 		NewHTTPGetTool(nil),
@@ -117,33 +120,22 @@ func GetHTTPTools() []Tool {
 	return []Tool{
 		NewHTTPGetTool(nil),
 		NewHTTPPostTool(nil),
-		NewHTTPRequestTool(nil),
+		NewHTTPRequestTool(HTTPRequestConfig{}),
 	}
 }
 
-// GetJSONTools 返回所有 JSON 处理工具。
+// GetDataTools 返回所有数据处理工具。
 //
 // 返回：
-//   - []Tool: JSON 工具列表
+//   - []Tool: 数据处理工具列表
 //
-func GetJSONTools() []Tool {
+func GetDataTools() []Tool {
 	return []Tool{
-		NewJSONParseTool(),
-		NewJSONStringifyTool(),
-		NewJSONExtractTool(),
-	}
-}
-
-// GetStringTools 返回所有字符串处理工具。
-//
-// 返回：
-//   - []Tool: 字符串工具列表
-//
-func GetStringTools() []Tool {
-	return []Tool{
-		NewStringLengthTool(),
-		NewStringSplitTool(),
-		NewStringJoinTool(),
+		NewJSONQueryTool(),
+		NewCSVReaderTool(nil),
+		NewCSVWriterTool(nil),
+		NewYAMLReaderTool(),
+		NewYAMLWriterTool(),
 	}
 }
 
@@ -179,6 +171,20 @@ func GetSearchTools() []Tool {
 		// NewGoogleSearch(apiKey),
 		// NewBingSearch(apiKey),
 		// NewDuckDuckGoSearch(),
+	}
+}
+
+// GetFilesystemTools 返回所有文件系统工具。
+//
+// 返回：
+//   - []Tool: 文件系统工具列表
+//
+func GetFilesystemTools() []Tool {
+	return []Tool{
+		NewFileReadTool(nil),
+		NewFileWriteTool(nil),
+		NewListDirectoryTool(nil),
+		NewFileCopyTool(nil),
 	}
 }
 
@@ -235,14 +241,12 @@ func GetToolsByCategory(category ToolCategory) []Tool {
 		return GetTimeTools()
 	case CategoryHTTP:
 		return GetHTTPTools()
-	case CategoryJSON:
-		return GetJSONTools()
-	case CategoryString:
-		return GetStringTools()
 	case CategoryUtility:
 		return GetUtilityTools()
 	case CategorySearch:
 		return GetSearchTools()
+	case CategoryFilesystem:
+		return GetFilesystemTools()
 	default:
 		return []Tool{}
 	}

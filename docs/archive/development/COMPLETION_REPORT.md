@@ -77,7 +77,7 @@ ensemble := retrievers.NewEnsembleRetriever(
 
 **使用示例**:
 ```go
-import "langchain-go/core/prompts/templates"
+import "github.com/zhuchenglong/langchain-go/core/prompts/templates"
 
 ragChain := chains.NewRAGChain(retriever, llm,
     chains.WithPrompt(templates.DetailedRAGPrompt),

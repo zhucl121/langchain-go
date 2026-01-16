@@ -23,7 +23,7 @@ func TestTavilySearchTool(t *testing.T) {
 	}
 	
 	params := tool.GetParameters()
-	if len(params) == 0 {
+	if len(params.Properties) == 0 {
 		t.Error("Expected at least one parameter")
 	}
 }

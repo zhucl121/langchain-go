@@ -46,7 +46,7 @@ Agent 是一个可以使用工具、推理和采取行动的智能系统。LangC
 ### 基础 Agent
 
 ```go
-import "langchain-go/core/agents"
+import "github.com/zhuchenglong/langchain-go/core/agents"
 
 // 创建 Agent
 agent, _ := agents.CreateAgent(agents.Config{
@@ -65,7 +65,7 @@ result, _ := agent.Invoke(ctx, "帮我搜索...")
 ### Plan-Execute Agent
 
 ```go
-import "langchain-go/core/agents/planexecute"
+import "github.com/zhuchenglong/langchain-go/core/agents/planexecute"
 
 // 创建 Plan-Execute Agent
 agent, _ := planexecute.NewPlanExecuteAgent(planexecute.Config{

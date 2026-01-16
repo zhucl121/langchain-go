@@ -41,9 +41,9 @@ import (
 	"fmt"
 	"os"
 
-	"langchain-go/core/output"
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -83,7 +83,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/output"
 )
 
 func main() {
@@ -117,9 +117,9 @@ import (
 	"fmt"
 	"os"
 
-	"langchain-go/core/output"
-	"langchain-go/core/prompts"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
 )
 
 func main() {
@@ -187,9 +187,9 @@ import (
 	"fmt"
 	"os"
 
-	"langchain-go/core/output"
-	"langchain-go/core/prompts"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
 )
 
 // 定义结构体
@@ -285,7 +285,7 @@ fmt.Println(employee.Address.City) // "Boston"
 ### 自定义 Schema
 
 ```go
-import "langchain-go/pkg/types"
+import "github.com/zhuchenglong/langchain-go/pkg/types"
 
 // 使用自定义 Schema
 customSchema := &types.Schema{
@@ -322,7 +322,7 @@ package main
 import (
 	"fmt"
 
-	"langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/output"
 )
 
 func main() {
@@ -440,9 +440,9 @@ import (
 	"fmt"
 	"os"
 
-	"langchain-go/core/output"
-	"langchain-go/core/prompts"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/output"
+	"github.com/zhuchenglong/langchain-go/core/prompts"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
 )
 
 type Recipe struct {

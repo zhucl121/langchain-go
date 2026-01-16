@@ -30,8 +30,8 @@ import (
 	"log"
 	"os"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -87,8 +87,8 @@ import (
 	"log"
 	"os"
 
-	"langchain-go/core/chat/providers/anthropic"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/anthropic"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -145,9 +145,9 @@ import (
 	"log"
 	"os"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/core/runnable"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
@@ -203,8 +203,8 @@ import (
 	"os"
 	"strings"
 
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/pkg/types"
+	"github.com/zhuchenglong/langchain-go/core/chat/providers/openai"
+	"github.com/zhuchenglong/langchain-go/pkg/types"
 )
 
 func main() {
