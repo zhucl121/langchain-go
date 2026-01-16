@@ -97,7 +97,10 @@ func googleSearchDemo(ctx context.Context) {
 
 func agentDemo(ctx context.Context) {
 	// 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-4")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-4"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 创建多个搜索工具
 	searchTools := []tools.Tool{

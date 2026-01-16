@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"langchain-go/core/chat"
+	"langchain-go/pkg/types"
 )
 
 // MultiAgent 扩展了基础 Agent，支持协作能力
@@ -745,8 +746,8 @@ Return the subtasks as a JSON array with the following format:
 
 Only return the JSON array, no additional text.`, task)
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := s.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := s.llm.Invoke(ctx, messages)
 	if err != nil {
 		return nil, err
 	}
@@ -769,8 +770,8 @@ Results: %s
 
 Provide a comprehensive and well-structured final answer.`, string(resultsJSON))
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := s.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := s.llm.Invoke(ctx, messages)
 	if err != nil {
 		return "", err
 	}

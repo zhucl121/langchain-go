@@ -33,7 +33,7 @@ func CreateReActAgent(llm chat.ChatModel, agentTools []tools.Tool, opts ...Agent
 		LLM:          llm,
 		Tools:        agentTools,
 		MaxSteps:     10,
-		SystemPrompt: templates.ReActPrompt,
+		SystemPrompt: templates.ReActPrompt.Template,
 		Verbose:      false,
 		Extra:        make(map[string]any),
 	}
@@ -71,7 +71,7 @@ func CreateToolCallingAgent(llm chat.ChatModel, agentTools []tools.Tool, opts ..
 		LLM:          llm,
 		Tools:        agentTools,
 		MaxSteps:     10,
-		SystemPrompt: templates.ToolCallingPrompt,
+		SystemPrompt: templates.ToolCallingPrompt.Template,
 		Verbose:      false,
 		Extra:        make(map[string]any),
 	}

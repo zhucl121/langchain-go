@@ -209,7 +209,7 @@ func integrationExample() {
 	
 	// 3. 使用自定义 prompt
 	customPrompt := prompts.PromptTemplateConfig{
-		Template: prompt.GetTemplate(), // 从 Hub prompt 获取模板
+		Template: prompt.Template, // 从 Hub prompt 获取模板
 		InputVariables: []string{"input", "tools", "history"},
 	}
 	

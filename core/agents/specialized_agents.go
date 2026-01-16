@@ -9,6 +9,7 @@ import (
 
 	"langchain-go/core/chat"
 	"langchain-go/core/tools"
+	"langchain-go/pkg/types"
 )
 
 // BaseMultiAgent 基础 Multi-Agent 实现
@@ -16,6 +17,7 @@ type BaseMultiAgent struct {
 	id           string
 	llm          chat.ChatModel
 	capabilities []string
+	agentTools   []tools.Tool
 	messageBus   *MessageBus
 	mu           sync.RWMutex
 }
@@ -30,6 +32,20 @@ func (bma *BaseMultiAgent) GetCapabilities() []string {
 	bma.mu.RLock()
 	defer bma.mu.RUnlock()
 	return append([]string{}, bma.capabilities...)
+}
+
+// GetTools 返回Agent的工具列表
+func (bma *BaseMultiAgent) GetTools() []tools.Tool {
+	bma.mu.RLock()
+	defer bma.mu.RUnlock()
+	return bma.agentTools
+}
+
+// SetTools 设置Agent的工具列表
+func (bma *BaseMultiAgent) SetTools(tools []tools.Tool) {
+	bma.mu.Lock()
+	defer bma.mu.Unlock()
+	bma.agentTools = tools
 }
 
 // ReceiveMessage 接收消息（子类需要重写）
@@ -56,6 +72,16 @@ func (bma *BaseMultiAgent) SetMessageBus(bus *MessageBus) {
 // CanHandle 检查是否可以处理任务（子类需要重写）
 func (bma *BaseMultiAgent) CanHandle(task string) (bool, float64) {
 	return false, 0.0
+}
+
+// Plan 规划下一步行动（子类需要重写）
+func (bma *BaseMultiAgent) Plan(ctx context.Context, input string, history []AgentStep) (*AgentAction, error) {
+	return nil, fmt.Errorf("Plan not implemented for %s", bma.id)
+}
+
+// GetType 返回Agent类型
+func (bma *BaseMultiAgent) GetType() AgentType {
+	return AgentTypeReAct // 默认类型
 }
 
 // SendResult 发送结果消息
@@ -248,9 +274,9 @@ func (ra *ResearcherAgent) research(ctx context.Context, query string) (string, 
 	// 1. 使用搜索工具收集信息
 	searchResult := ""
 	if ra.searchTool != nil {
-		result, err := ra.searchTool.Run(ctx, query)
+		result, err := ra.searchTool.Execute(ctx, map[string]any{"query": query})
 		if err == nil {
-			searchResult = result
+			searchResult = fmt.Sprintf("%v", result)
 		}
 	}
 
@@ -264,8 +290,8 @@ Search Results:
 
 Provide a well-structured research summary with key findings.`, query, searchResult)
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := ra.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := ra.llm.Invoke(ctx, messages)
 	if err != nil {
 		return "", err
 	}
@@ -275,7 +301,7 @@ Provide a well-structured research summary with key findings.`, query, searchRes
 
 // CanHandle 检查是否可以处理任务
 func (ra *ResearcherAgent) CanHandle(task string) (bool, float64) {
-	keywords := []string{"research", "search", "find", "investigate", "explore", "study", "analyze"}
+	keywords := []string{"research", "search", "find", "investigate", "explore", "study"}
 	taskLower := strings.ToLower(task)
 
 	for _, keyword := range keywords {
@@ -328,8 +354,8 @@ Task: %s
 
 Write a well-structured, engaging, and high-quality content that fulfills the task requirements.`, wa.style, task)
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := wa.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := wa.llm.Invoke(ctx, messages)
 	if err != nil {
 		return "", err
 	}
@@ -404,8 +430,8 @@ Provide a detailed review with:
 4. Specific suggestions
 5. Final rating (1-10)`, criteriaStr, content)
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := ra.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := ra.llm.Invoke(ctx, messages)
 	if err != nil {
 		return "", err
 	}
@@ -470,8 +496,8 @@ Provide:
 3. Insights and recommendations
 4. Statistical summary (if applicable)`, data)
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := aa.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := aa.llm.Invoke(ctx, messages)
 	if err != nil {
 		return "", err
 	}
@@ -538,8 +564,8 @@ Provide a comprehensive plan with:
 5. Risk considerations
 6. Success criteria`, goal)
 
-	messages := []chat.Message{chat.NewHumanMessage(prompt)}
-	response, err := pa.llm.Generate(ctx, messages)
+	messages := []types.Message{types.NewUserMessage(prompt)}
+	response, err := pa.llm.Invoke(ctx, messages)
 	if err != nil {
 		return "", err
 	}

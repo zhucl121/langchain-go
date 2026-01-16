@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	
 	"langchain-go/core/agents"
 	"langchain-go/core/chat/providers/openai"
@@ -18,7 +17,10 @@ import (
 
 func main() {
 	// 1. 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-4")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-4"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 创建搜索工具（Self-Ask Agent 需要搜索工具来回答子问题）
 	searchTool := tools.NewWikipediaSearch(&tools.WikipediaSearchConfig{
@@ -87,13 +89,15 @@ func main() {
 		case agents.EventTypeStart:
 			fmt.Println("🚀 Starting...")
 		case agents.EventTypeStep:
-			fmt.Printf("📝 Step %d: %s\n", event.StepNumber, event.StepLog)
+			fmt.Printf("📝 Step %d\n", event.Step)
 		case agents.EventTypeToolCall:
-			fmt.Printf("🔧 Using tool: %s\n", event.ToolName)
+			if event.Action != nil {
+				fmt.Printf("🔧 Using tool: %s\n", event.Action.Tool)
+			}
 		case agents.EventTypeToolResult:
-			fmt.Printf("✅ Tool result: %s\n", event.ToolResult)
+			fmt.Printf("✅ Tool result: %s\n", event.Observation)
 		case agents.EventTypeFinish:
-			fmt.Printf("🎉 Final answer: %s\n", event.Output)
+			fmt.Printf("🎉 Final answer: %s\n", event.Observation)
 		case agents.EventTypeError:
 			fmt.Printf("❌ Error: %v\n", event.Error)
 		}

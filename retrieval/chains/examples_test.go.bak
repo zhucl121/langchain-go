@@ -55,7 +55,7 @@ func Example_completeRAG() {
 	// 步骤 3: 创建 RAG Chain (只需 3 行!)
 	// 注意：实际使用需要先实现 retrievers 包
 	// retriever := retrievers.NewVectorStoreRetriever(vectorStore)
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := // ollama.NewChatOllama("qwen2.5:7b")
 	// ragChain := chains.NewRAGChain(retriever, llm)
 
 	// 步骤 4: 执行查询
@@ -89,7 +89,7 @@ func Example_streamingRAG() {
 
 	// // 创建 RAG Chain
 	// retriever := retrievers.NewVectorStoreRetriever(vectorStore)
-	// llm := ollama.NewChatOllama("qwen2.5:7b")
+	// llm := // ollama.NewChatOllama("qwen2.5:7b")
 	// ragChain := chains.NewRAGChain(retriever, llm)
 
 	// // 流式执行
@@ -138,7 +138,7 @@ func Example_batchRAG() {
 
 	// // 创建 RAG Chain
 	// retriever := retrievers.NewVectorStoreRetriever(vectorStore)
-	// llm := ollama.NewChatOllama("qwen2.5:7b")
+	// llm := // ollama.NewChatOllama("qwen2.5:7b")
 	// ragChain := chains.NewRAGChain(retriever, llm)
 
 	// // 批量查询

@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"strings"
 	
+	"langchain-go/core/chat"
 	"langchain-go/core/memory"
+	"langchain-go/core/tools"
 	"langchain-go/pkg/types"
 )
 
@@ -80,7 +82,7 @@ func (sca *StructuredChatAgent) Plan(ctx context.Context, input string, history 
 
 	// 从记忆中加载历史对话
 	if sca.memory != nil {
-		memoryVars, err := sca.memory.LoadMemory(ctx, map[string]any{
+		memoryVars, err := sca.memory.LoadMemoryVariables(ctx, map[string]any{
 			"conversation_id": sca.conversationID,
 		})
 		if err == nil {
@@ -107,7 +109,7 @@ func (sca *StructuredChatAgent) Plan(ctx context.Context, input string, history 
 	// 决定是否需要工具调用
 	needsToolCall := sca.needsToolCall(input, history)
 
-	var response *types.Message
+	var response types.Message
 	var err error
 
 	if needsToolCall && len(sca.tools) > 0 {
@@ -141,11 +143,15 @@ func (sca *StructuredChatAgent) Plan(ctx context.Context, input string, history 
 
 	// 保存到记忆
 	if sca.memory != nil {
-		_ = sca.memory.SaveContext(ctx, map[string]any{
-			"conversation_id": sca.conversationID,
-			"input":          input,
-			"output":         formattedOutput,
-		})
+		_ = sca.memory.SaveContext(ctx, 
+			map[string]any{
+				"conversation_id": sca.conversationID,
+				"input":          input,
+			},
+			map[string]any{
+				"output": formattedOutput,
+			},
+		)
 	}
 
 	return &AgentAction{

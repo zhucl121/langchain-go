@@ -11,6 +11,7 @@ import (
 	"langchain-go/core/agents"
 	"langchain-go/core/chat/providers/openai"
 	"langchain-go/core/tools"
+	"langchain-go/pkg/types"
 )
 
 func main() {
@@ -45,11 +46,14 @@ func exampleSimpleAgent() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 创建工具（只有计算器）
 	agentTools := []tools.Tool{
-		tools.NewCalculator(),
+		tools.NewCalculatorTool(),
 	}
 	
 	// 3. 创建 Agent（1 行！）
@@ -78,7 +82,10 @@ func exampleAgentWithBasicTools() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 获取基础工具（只需 1 行！）
 	agentTools := tools.GetBasicTools()
@@ -127,7 +134,10 @@ func exampleAgentWithAllTools() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 获取所有内置工具（1 行！）
 	agentTools := tools.GetBuiltinTools()
@@ -185,7 +195,10 @@ func exampleStreamingAgent() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM 和工具
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	agentTools := tools.GetBasicTools()
 	
 	// 2. 创建 Agent
@@ -235,11 +248,14 @@ func exampleToolCallingAgent() {
 	ctx := context.Background()
 	
 	// 1. 创建支持工具调用的 LLM
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 创建工具
 	agentTools := []tools.Tool{
-		tools.NewCalculator(),
+		tools.NewCalculatorTool(),
 		tools.NewGetTimeTool(nil),
 		tools.NewGetDateTool(nil),
 	}
@@ -274,7 +290,10 @@ func exampleCustomTools() {
 	ctx := context.Background()
 	
 	// 1. 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 创建自定义工具（使用工具注册表）
 	registry := tools.NewToolRegistry()
@@ -286,10 +305,10 @@ func exampleCustomTools() {
 	greetTool := tools.NewFunctionTool(tools.FunctionToolConfig{
 		Name:        "greet",
 		Description: "Greet someone by name",
-		Parameters: func() tools.Schema {
-			return tools.Schema{
+		Parameters: func() types.Schema {
+			return types.Schema{
 				Type: "object",
-				Properties: map[string]tools.Schema{
+				Properties: map[string]types.Schema{
 					"name": {
 						Type:        "string",
 						Description: "The name to greet",

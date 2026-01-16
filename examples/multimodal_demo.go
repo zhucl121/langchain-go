@@ -249,7 +249,7 @@ func demoTextToSpeech() {
 	
 	speeds := []float64{0.5, 1.0, 1.5, 2.0}
 	for _, speed := range speeds {
-		result, err := tool.Execute(ctx, map[string]any{
+		_, err := tool.Execute(ctx, map[string]any{
 			"text":  "The quick brown fox jumps over the lazy dog.",
 			"speed": speed,
 		})

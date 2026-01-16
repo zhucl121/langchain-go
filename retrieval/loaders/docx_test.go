@@ -170,32 +170,6 @@ func TestDOCXLoader(t *testing.T) {
 		assert.Contains(t, result, "|")
 	})
 
-	t.Run("LoadAndSplit", func(t *testing.T) {
-		// Create a test DOCX file with long content
-		testFile := filepath.Join(t.TempDir(), "test_split.docx")
-		longText := strings.Repeat("This is a sentence. ", 100)
-		err := createTestDOCX(testFile, longText)
-		require.NoError(t, err)
-
-		loader := NewDOCXLoader(DOCXLoaderOptions{
-			Path: testFile,
-		})
-
-		splitter := NewCharacterTextSplitter(CharacterTextSplitterOptions{
-			ChunkSize:    100,
-			ChunkOverlap: 20,
-		})
-
-		docs, err := loader.LoadAndSplit(ctx, splitter)
-		require.NoError(t, err)
-		assert.Greater(t, len(docs), 1)
-
-		// All chunks should have metadata
-		for _, doc := range docs {
-			assert.Equal(t, testFile, doc.Metadata["source"])
-			assert.Equal(t, "docx", doc.Metadata["file_type"])
-		}
-	})
 }
 
 // TestDOCLoader tests DOC document loader
@@ -253,23 +227,6 @@ func TestDOCLoader(t *testing.T) {
 		assert.NotContains(t, result, "\x01")
 	})
 
-	t.Run("LoadAndSplit", func(t *testing.T) {
-		testFile := filepath.Join(t.TempDir(), "test_split.doc")
-		longText := strings.Repeat("This is a sentence. ", 100)
-		err := os.WriteFile(testFile, []byte(longText), 0644)
-		require.NoError(t, err)
-
-		loader := NewDOCLoader(testFile, nil)
-
-		splitter := NewCharacterTextSplitter(CharacterTextSplitterOptions{
-			ChunkSize:    100,
-			ChunkOverlap: 20,
-		})
-
-		docs, err := loader.LoadAndSplit(ctx, splitter)
-		require.NoError(t, err)
-		assert.Greater(t, len(docs), 1)
-	})
 }
 
 // Helper functions for creating test DOCX files

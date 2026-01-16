@@ -13,7 +13,7 @@ import (
 // TestPlannerCreatePlan 测试 Planner 创建计划
 func TestPlannerCreatePlan(t *testing.T) {
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		return types.NewAssistantMessage(`Here's the plan:
 1. Search for current weather information
 2. Analyze the weather data
@@ -112,7 +112,7 @@ Then we should:
 // TestStepExecutor 测试步骤执行器
 func TestStepExecutor(t *testing.T) {
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		return types.NewAssistantMessage("The weather is sunny and 72°F"), nil
 	}
 	
@@ -153,7 +153,7 @@ func TestStepExecutor(t *testing.T) {
 func TestPlanAndExecuteAgent(t *testing.T) {
 	callCount := 0
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		responses := []string{
 			// Planner response
 			`1. Get weather information
@@ -219,7 +219,7 @@ func TestPlanAndExecuteAgent(t *testing.T) {
 func TestPlanAndExecuteAgentReplan(t *testing.T) {
 	callCount := 0
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		responses := []string{
 			// Initial plan
 			`1. Search for information
@@ -305,7 +305,7 @@ func TestPlanStepDependencies(t *testing.T) {
 // TestExecutorWithPreviousResults 测试使用之前结果的执行
 func TestExecutorWithPreviousResults(t *testing.T) {
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		return types.NewAssistantMessage("Using previous result: 42, the answer is 84"), nil
 	}
 	

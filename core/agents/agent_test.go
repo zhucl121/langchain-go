@@ -8,78 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	
-	"langchain-go/core/chat"
 	"langchain-go/core/runnable"
 	"langchain-go/core/tools"
 	"langchain-go/pkg/types"
 )
 
-// MockChatModel 是用于测试的 Mock ChatModel
-type MockChatModel struct {
-	*chat.BaseChatModel
-	invokeFunc func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error)
-}
 
-func NewMockChatModel() *MockChatModel {
-	return &MockChatModel{
-		BaseChatModel: chat.NewBaseChatModel("mock-model", "mock"),
-	}
-}
-
-func (m *MockChatModel) Invoke(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
-	if m.invokeFunc != nil {
-		return m.invokeFunc(ctx, messages, opts...)
-	}
-	return types.NewAssistantMessage("mock response"), nil
-}
-
-func (m *MockChatModel) Stream(ctx context.Context, messages []types.Message, opts ...runnable.Option) (<-chan runnable.StreamEvent[types.Message], error) {
-	out := make(chan runnable.StreamEvent[types.Message], 1)
-	go func() {
-		defer close(out)
-		out <- runnable.StreamEvent[types.Message]{
-			Data: types.NewAssistantMessage("mock stream response"),
-		}
-	}()
-	return out, nil
-}
-
-func (m *MockChatModel) Batch(ctx context.Context, inputs [][]types.Message, opts ...runnable.Option) ([]types.Message, error) {
-	results := make([]types.Message, len(inputs))
-	for i := range inputs {
-		results[i] = types.NewAssistantMessage("mock batch response")
-	}
-	return results, nil
-}
-
-func (m *MockChatModel) BindTools(tools []types.Tool) chat.ChatModel {
-	newModel := NewMockChatModel()
-	newModel.SetBoundTools(tools)
-	newModel.invokeFunc = m.invokeFunc
-	return newModel
-}
-
-func (m *MockChatModel) WithStructuredOutput(schema types.Schema) chat.ChatModel {
-	newModel := NewMockChatModel()
-	newModel.SetOutputSchema(schema)
-	newModel.invokeFunc = m.invokeFunc
-	return newModel
-}
-
-func (m *MockChatModel) WithConfig(config *types.Config) runnable.Runnable[[]types.Message, types.Message] {
-	newModel := NewMockChatModel()
-	newModel.SetConfig(config)
-	newModel.invokeFunc = m.invokeFunc
-	return newModel
-}
-
-func (m *MockChatModel) WithRetry(policy types.RetryPolicy) runnable.Runnable[[]types.Message, types.Message] {
-	return runnable.NewRetryRunnable[[]types.Message, types.Message](m, policy)
-}
-
-func (m *MockChatModel) WithFallbacks(fallbacks ...runnable.Runnable[[]types.Message, types.Message]) runnable.Runnable[[]types.Message, types.Message] {
-	return runnable.NewFallbackRunnable[[]types.Message, types.Message](m, fallbacks)
-}
 
 // MockTool 是用于测试的 Mock Tool
 type MockTool struct {
@@ -240,7 +174,7 @@ func TestExecutor_Execute(t *testing.T) {
 	
 	t.Run("Successful execution", func(t *testing.T) {
 		// Mock LLM 返回 Final Answer
-		mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+		mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 			return types.NewAssistantMessage("Final Answer: 42"), nil
 		}
 		
@@ -264,7 +198,7 @@ func TestExecutor_Execute(t *testing.T) {
 	
 	t.Run("Max steps reached", func(t *testing.T) {
 		// Mock LLM 始终返回工具调用
-		mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+		mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 			return types.NewAssistantMessage("Thought: I need to use calculator\nAction: calculator\nAction Input: 6*7"), nil
 		}
 		
@@ -339,7 +273,7 @@ func TestAgentResult(t *testing.T) {
 // TestExecutor_Batch
 func TestExecutor_Batch(t *testing.T) {
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		return types.NewAssistantMessage("Final Answer: Done"), nil
 	}
 	
@@ -370,7 +304,7 @@ func TestExecutor_Batch(t *testing.T) {
 // TestExecutor_WithMiddleware
 func TestExecutor_WithMiddleware(t *testing.T) {
 	mockLLM := NewMockChatModel()
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		return types.NewAssistantMessage("Final Answer: OK"), nil
 	}
 	
@@ -473,7 +407,7 @@ func TestExecutor_ToolCallError(t *testing.T) {
 	
 	callCount := 0
 	// Mock LLM 返回工具调用
-	mockLLM.invokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
+	mockLLM.InvokeFunc = func(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 		callCount++
 		// 第一次调用返回工具调用，第二次返回最终答案
 		if callCount == 1 {

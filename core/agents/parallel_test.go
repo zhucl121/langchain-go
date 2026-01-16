@@ -27,6 +27,15 @@ func (m *mockSlowTool) GetDescription() string {
 	return fmt.Sprintf("A slow tool that takes %v to execute", m.delay)
 }
 
+func (m *mockSlowTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"input": {Type: "string"},
+		},
+	}
+}
+
 func (m *mockSlowTool) Execute(ctx context.Context, input map[string]any) (any, error) {
 	// 模拟耗时操作
 	select {
@@ -104,7 +113,9 @@ func TestParallelExecutor_RunParallel(t *testing.T) {
 		tools: []tools.Tool{tool1, tool2, tool3},
 	}
 	
-	toolExecutor := tools.NewToolExecutor([]tools.Tool{tool1, tool2, tool3})
+	toolExecutor := tools.NewToolExecutor(tools.ToolExecutorConfig{
+		Tools: []tools.Tool{tool1, tool2, tool3},
+	})
 	
 	baseExecutor := agents.NewAgentExecutor(agents.AgentExecutorConfig{
 		Agent:        agent,
@@ -189,7 +200,9 @@ func TestParallelExecutor_Timeout(t *testing.T) {
 		tools: []tools.Tool{slowTool},
 	}
 	
-	toolExecutor := tools.NewToolExecutor([]tools.Tool{slowTool})
+	toolExecutor := tools.NewToolExecutor(tools.ToolExecutorConfig{
+		Tools: []tools.Tool{slowTool},
+	})
 	
 	baseExecutor := agents.NewAgentExecutor(agents.AgentExecutorConfig{
 		Agent:        agent,
@@ -231,9 +244,9 @@ func TestParallelExecutor_Timeout(t *testing.T) {
 
 func TestParallelExecutor_MaxConcurrency(t *testing.T) {
 	// 创建多个工具
-	tools := make([]tools.Tool, 10)
+	testTools := make([]tools.Tool, 10)
 	for i := 0; i < 10; i++ {
-		tools[i] = &mockSlowTool{
+		testTools[i] = &mockSlowTool{
 			name:   fmt.Sprintf("tool%d", i),
 			delay:  50 * time.Millisecond,
 			result: fmt.Sprintf("result%d", i),
@@ -241,10 +254,12 @@ func TestParallelExecutor_MaxConcurrency(t *testing.T) {
 	}
 
 	agent := &mockAgent{
-		tools: tools,
+		tools: testTools,
 	}
 	
-	toolExecutor := tools.NewToolExecutor(tools)
+	toolExecutor := tools.NewToolExecutor(tools.ToolExecutorConfig{
+		Tools: testTools,
+	})
 	
 	baseExecutor := agents.NewAgentExecutor(agents.AgentExecutorConfig{
 		Agent:        agent,
@@ -334,7 +349,9 @@ func TestAgentExecutor_WithParallelExecution(t *testing.T) {
 		tools: []tools.Tool{tool},
 	}
 	
-	toolExecutor := tools.NewToolExecutor([]tools.Tool{tool})
+	toolExecutor := tools.NewToolExecutor(tools.ToolExecutorConfig{
+		Tools: []tools.Tool{tool},
+	})
 	
 	baseExecutor := agents.NewAgentExecutor(agents.AgentExecutorConfig{
 		Agent:        agent,
@@ -371,7 +388,9 @@ func TestParallelExecutor_EmptyActions(t *testing.T) {
 		tools: []tools.Tool{},
 	}
 	
-	toolExecutor := tools.NewToolExecutor([]tools.Tool{})
+	toolExecutor := tools.NewToolExecutor(tools.ToolExecutorConfig{
+		Tools: []tools.Tool{},
+	})
 	
 	baseExecutor := agents.NewAgentExecutor(agents.AgentExecutorConfig{
 		Agent:        agent,

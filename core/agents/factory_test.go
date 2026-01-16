@@ -5,18 +5,17 @@ import (
 	"testing"
 	
 	"langchain-go/core/agents"
-	"langchain-go/core/chat/ollama"
 	"langchain-go/core/tools"
 )
 
 // TestCreateReActAgent 测试创建 ReAct Agent。
 func TestCreateReActAgent(t *testing.T) {
 	// 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := agents.NewMockChatModel()
 	
 	// 创建工具
 	agentTools := []tools.Tool{
-		tools.NewCalculator(),
+		tools.NewCalculatorTool(),
 		tools.NewGetTimeTool(nil),
 		tools.NewGetDateTool(nil),
 	}
@@ -44,11 +43,11 @@ func TestCreateReActAgent(t *testing.T) {
 // TestCreateToolCallingAgent 测试创建 Tool Calling Agent。
 func TestCreateToolCallingAgent(t *testing.T) {
 	// 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := agents.NewMockChatModel()
 	
 	// 创建工具
 	agentTools := []tools.Tool{
-		tools.NewCalculator(),
+		tools.NewCalculatorTool(),
 	}
 	
 	// 创建 Agent
@@ -73,11 +72,11 @@ func TestSimplifiedAgentExecutor(t *testing.T) {
 	ctx := context.Background()
 	
 	// 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := agents.NewMockChatModel()
 	
 	// 创建工具
 	agentTools := []tools.Tool{
-		tools.NewCalculator(),
+		tools.NewCalculatorTool(),
 		tools.NewGetTimeTool(nil),
 	}
 	
@@ -108,7 +107,7 @@ func TestSimplifiedAgentExecutor(t *testing.T) {
 // ExampleCreateReActAgent 示例：创建 ReAct Agent。
 func ExampleCreateReActAgent() {
 	// 创建 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := agents.NewMockChatModel()
 	
 	// 获取内置工具
 	agentTools := tools.GetBasicTools()
@@ -127,7 +126,7 @@ func ExampleCreateReActAgent() {
 // ExampleCreateToolCallingAgent 示例：创建 Tool Calling Agent。
 func ExampleCreateToolCallingAgent() {
 	// 创建支持工具调用的 LLM
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := agents.NewMockChatModel()
 	
 	// 获取所有内置工具
 	agentTools := tools.GetBuiltinTools()
@@ -148,7 +147,7 @@ func ExampleCreateToolCallingAgent() {
 
 // ExampleAgentExecutor_Stream 示例：流式执行 Agent。
 func ExampleAgentExecutor_Stream() {
-	llm := ollama.NewChatOllama("qwen2.5:7b")
+	llm := agents.NewMockChatModel()
 	agentTools := tools.GetBasicTools()
 	
 	agent := agents.CreateReActAgent(llm, agentTools)

@@ -19,14 +19,16 @@ func (m *MockSearchTool) GetDescription() string {
 	return "Search for information"
 }
 
-func (m *MockSearchTool) GetParameters() []tools.ToolParameter {
-	return []tools.ToolParameter{
-		{
-			Name:        "query",
-			Type:        "string",
-			Description: "The search query",
-			Required:    true,
+func (m *MockSearchTool) GetParameters() types.Schema {
+	return types.Schema{
+		Type: "object",
+		Properties: map[string]types.Schema{
+			"query": {
+				Type:        "string",
+				Description: "The search query",
+			},
 		},
+		Required: []string{"query"},
 	}
 }
 

@@ -110,30 +110,35 @@ func (ofa *OpenAIFunctionsAgent) buildMessages(input string, history []AgentStep
 	}
 	
 	// 添加历史
-	for _, step := range history {
+	for i, step := range history {
 		if step.Action != nil && step.Action.Type == ActionToolCall {
-			// 添加 function call 消息
-			funcCall := map[string]any{
-				"name": step.Action.Tool,
-				"arguments": step.Action.ToolInput,
+			// 将 ToolInput 转换为 JSON 字符串
+			toolInputJSON, err := json.Marshal(step.Action.ToolInput)
+			if err != nil {
+				toolInputJSON = []byte("{}")
 			}
-			funcCallJSON, _ := json.Marshal(funcCall)
 			
+			// 添加 function call 消息
 			messages = append(messages, types.Message{
-				Role: "assistant",
+				Role:    types.RoleAssistant,
 				Content: "",
-				FunctionCall: &types.FunctionCall{
-					Name:      step.Action.Tool,
-					Arguments: string(funcCallJSON),
+				ToolCalls: []types.ToolCall{
+					{
+						ID:   fmt.Sprintf("call_%d", i),
+						Type: "function",
+						Function: types.FunctionCall{
+							Name:      step.Action.Tool,
+							Arguments: string(toolInputJSON),
+						},
+					},
 				},
 			})
 			
 			// 添加 function response
-			messages = append(messages, types.Message{
-				Role:         "function",
-				Content:      step.Observation,
-				Name:         step.Action.Tool,
-			})
+			messages = append(messages, types.NewToolMessage(
+				fmt.Sprintf("call_%d", i),
+				step.Observation,
+			))
 		}
 	}
 	
@@ -153,50 +158,11 @@ func (ofa *OpenAIFunctionsAgent) convertToolsToFunctions() []types.Function {
 		functions[i] = types.Function{
 			Name:        tool.GetName(),
 			Description: tool.GetDescription(),
-			Parameters:  ofa.convertParametersToJSONSchema(tool),
+			Parameters:  tool.GetParameters(),
 		}
 	}
 	
 	return functions
-}
-
-// convertParametersToJSONSchema 转换参数为 JSON Schema。
-func (ofa *OpenAIFunctionsAgent) convertParametersToJSONSchema(tool tools.Tool) map[string]any {
-	// 获取工具参数
-	params := tool.GetParameters()
-	
-	if params == nil || len(params) == 0 {
-		return map[string]any{
-			"type": "object",
-			"properties": map[string]any{},
-		}
-	}
-	
-	// 转换为 JSON Schema 格式
-	properties := make(map[string]any)
-	required := []string{}
-	
-	for _, param := range params {
-		properties[param.Name] = map[string]any{
-			"type":        param.Type,
-			"description": param.Description,
-		}
-		
-		if param.Required {
-			required = append(required, param.Name)
-		}
-	}
-	
-	schema := map[string]any{
-		"type":       "object",
-		"properties": properties,
-	}
-	
-	if len(required) > 0 {
-		schema["required"] = required
-	}
-	
-	return schema
 }
 
 // invokeLLMWithFunctions 调用 LLM（带 functions）。
@@ -229,23 +195,26 @@ func (ofa *OpenAIFunctionsAgent) invokeLLMWithFunctions(
 
 // parseResponse 解析 LLM 响应。
 func (ofa *OpenAIFunctionsAgent) parseResponse(response *types.Message) (*AgentAction, error) {
-	// 检查是否有 function call
-	if response.FunctionCall != nil {
+	// 检查是否有 tool calls
+	if len(response.ToolCalls) > 0 {
+		// 使用第一个 tool call
+		toolCall := response.ToolCalls[0]
+		
 		// 解析参数
 		var toolInput map[string]any
-		if err := json.Unmarshal([]byte(response.FunctionCall.Arguments), &toolInput); err != nil {
+		if err := json.Unmarshal([]byte(toolCall.Function.Arguments), &toolInput); err != nil {
 			return nil, fmt.Errorf("failed to parse function arguments: %w", err)
 		}
 		
 		return &AgentAction{
 			Type:      ActionToolCall,
-			Tool:      response.FunctionCall.Name,
+			Tool:      toolCall.Function.Name,
 			ToolInput: toolInput,
-			Log:       fmt.Sprintf("Calling function: %s with arguments: %s", response.FunctionCall.Name, response.FunctionCall.Arguments),
+			Log:       fmt.Sprintf("Calling function: %s with arguments: %s", toolCall.Function.Name, toolCall.Function.Arguments),
 		}, nil
 	}
 	
-	// 如果没有 function call，说明任务完成
+	// 如果没有 tool call，说明任务完成
 	return &AgentAction{
 		Type:        ActionFinish,
 		FinalAnswer: response.Content,

@@ -4,24 +4,9 @@ import (
 	"context"
 	"testing"
 	"time"
-
-	"langchain-go/core/chat"
+	
+	"langchain-go/core/tools"
 )
-
-// MockChatModel 模拟的 ChatModel
-type MockChatModel struct{}
-
-func (m *MockChatModel) Generate(ctx context.Context, messages []chat.Message, opts ...chat.Option) (*chat.Response, error) {
-	return &chat.Response{
-		Content: `[{"id": "subtask_1", "description": "Research topic", "priority": 1}]`,
-	}, nil
-}
-
-func (m *MockChatModel) Stream(ctx context.Context, messages []chat.Message, opts ...chat.Option) (<-chan *chat.StreamChunk, error) {
-	ch := make(chan *chat.StreamChunk, 1)
-	close(ch)
-	return ch, nil
-}
 
 // MockMultiAgent 模拟的 MultiAgent
 type MockMultiAgent struct {
@@ -47,6 +32,21 @@ func (m *MockMultiAgent) ReceiveMessage(ctx context.Context, msg *AgentMessage) 
 
 func (m *MockMultiAgent) CanHandle(task string) (bool, float64) {
 	return true, 0.8
+}
+
+func (m *MockMultiAgent) GetTools() []tools.Tool {
+	return nil
+}
+
+func (m *MockMultiAgent) Plan(ctx context.Context, input string, history []AgentStep) (*AgentAction, error) {
+	return &AgentAction{
+		Tool:      "test",
+		ToolInput: map[string]any{"input": input},
+	}, nil
+}
+
+func (m *MockMultiAgent) GetType() AgentType {
+	return AgentTypeReAct
 }
 
 func TestMultiAgentSystem_AddAgent(t *testing.T) {

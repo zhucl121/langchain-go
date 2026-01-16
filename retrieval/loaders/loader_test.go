@@ -191,8 +191,8 @@ func TestJSONLoader_Array(t *testing.T) {
 	assert.Equal(t, "Doc 2", docs[1].Content)
 }
 
-// TestCSVLoader
-func TestCSVLoader(t *testing.T) {
+// TestCSVLoaderBasic 测试基础 CSV加载
+func TestCSVLoaderBasic(t *testing.T) {
 	tmpFile, err := os.CreateTemp("", "test-*.csv")
 	require.NoError(t, err)
 	defer os.Remove(tmpFile.Name())

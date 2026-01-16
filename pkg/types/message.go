@@ -93,6 +93,20 @@ type FunctionCall struct {
 	Arguments string `json:"arguments"`
 }
 
+// Function 表示一个可调用的函数定义（用于 OpenAI Functions）。
+//
+// Function 描述了工具的接口，用于 LLM 理解如何调用工具。
+type Function struct {
+	// Name 函数名称
+	Name string `json:"name"`
+
+	// Description 函数描述
+	Description string `json:"description"`
+
+	// Parameters 函数参数的 JSON Schema
+	Parameters Schema `json:"parameters"`
+}
+
 // NewSystemMessage 创建一条系统消息。
 //
 // 系统消息通常用于设置 AI 的行为和角色。

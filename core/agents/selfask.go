@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	
+	"langchain-go/core/chat"
+	"langchain-go/core/tools"
 	"langchain-go/pkg/types"
 )
 

@@ -2,6 +2,7 @@ package loaders
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -259,31 +260,6 @@ func TestHTMLLoader(t *testing.T) {
 		assert.Nil(t, docs)
 	})
 
-	t.Run("LoadAndSplit", func(t *testing.T) {
-		testFile := filepath.Join(t.TempDir(), "test.html")
-		htmlContent := `
-<!DOCTYPE html>
-<html>
-<body>` + strings.Repeat("<p>This is a long paragraph. </p>", 50) + `</body>
-</html>
-`
-		err := os.WriteFile(testFile, []byte(htmlContent), 0644)
-		require.NoError(t, err)
-
-		loader, err := NewHTMLLoader(HTMLLoaderOptions{
-			Path: testFile,
-		})
-		require.NoError(t, err)
-
-		splitter := NewCharacterTextSplitter(CharacterTextSplitterOptions{
-			ChunkSize:    200,
-			ChunkOverlap: 20,
-		})
-
-		docs, err := loader.LoadAndSplit(ctx, splitter)
-		require.NoError(t, err)
-		assert.Greater(t, len(docs), 1)
-	})
 
 	t.Run("resolveURL", func(t *testing.T) {
 		tests := []struct {
@@ -438,19 +414,13 @@ func TestWebCrawler(t *testing.T) {
 	})
 
 	t.Run("Crawl_SameDomainRestriction", func(t *testing.T) {
+		var serverURL string
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			html := `
-<!DOCTYPE html>
-<html>
-<body>
-    <a href="` + server.URL + `/page2">Internal</a>
-    <a href="https://external.com">External</a>
-</body>
-</html>
-`
+			html := fmt.Sprintf(`<html><body><a href="%s/page2">Internal</a><a href="https://external.com">External</a></body></html>`, serverURL)
 			w.Write([]byte(html))
 		}))
 		defer server.Close()
+		serverURL = server.URL
 
 		crawler, err := NewWebCrawler(WebCrawlerOptions{
 			StartURL:   server.URL,

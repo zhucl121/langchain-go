@@ -7,16 +7,18 @@ import (
 	
 	"langchain-go/core/agents"
 	"langchain-go/core/chat"
+	"langchain-go/core/runnable"
 	"langchain-go/core/tools"
 	"langchain-go/pkg/types"
 )
 
 // 创建一个简单的 Mock ChatModel 用于演示
 type DemoChatModel struct {
+	*chat.BaseChatModel
 	callCount int
 }
 
-func (d *DemoChatModel) Invoke(ctx context.Context, messages []types.Message, opts ...any) (types.Message, error) {
+func (d *DemoChatModel) Invoke(ctx context.Context, messages []types.Message, opts ...runnable.Option) (types.Message, error) {
 	// 简化演示：根据调用次数返回不同响应
 	d.callCount++
 	
@@ -67,46 +69,67 @@ func (d *DemoChatModel) Invoke(ctx context.Context, messages []types.Message, op
 	return types.NewAssistantMessage("I understand"), nil
 }
 
-func (d *DemoChatModel) Batch(ctx context.Context, messages [][]types.Message, opts ...any) ([]types.Message, error) {
-	return nil, nil
+
+
+func (d *DemoChatModel) Batch(ctx context.Context, inputs [][]types.Message, opts ...runnable.Option) ([]types.Message, error) {
+	results := make([]types.Message, len(inputs))
+	for i, messages := range inputs {
+		msg, err := d.Invoke(ctx, messages, opts...)
+		if err != nil {
+			return nil, err
+		}
+		results[i] = msg
+	}
+	return results, nil
 }
 
-func (d *DemoChatModel) Stream(ctx context.Context, messages []types.Message, opts ...any) (<-chan any, error) {
-	return nil, nil
+func (d *DemoChatModel) Stream(ctx context.Context, messages []types.Message, opts ...runnable.Option) (<-chan runnable.StreamEvent[types.Message], error) {
+	ch := make(chan runnable.StreamEvent[types.Message], 1)
+	go func() {
+		defer close(ch)
+		msg, _ := d.Invoke(ctx, messages, opts...)
+		ch <- runnable.StreamEvent[types.Message]{Data: msg}
+	}()
+	return ch, nil
 }
 
 func (d *DemoChatModel) BindTools(tools []types.Tool) chat.ChatModel {
+	d.SetBoundTools(tools)
 	return d
 }
 
-func (d *DemoChatModel) WithStructuredOutput(schema any) chat.ChatModel {
+func (d *DemoChatModel) WithStructuredOutput(schema types.Schema) chat.ChatModel {
+	d.SetOutputSchema(schema)
 	return d
 }
 
-func (d *DemoChatModel) GetName() string {
-	return "demo-chat-model"
+func (d *DemoChatModel) WithConfig(config *types.Config) runnable.Runnable[[]types.Message, types.Message] {
+	d.SetConfig(config)
+	return d
 }
 
 func main() {
 	fmt.Println("=== Plan-and-Execute Agent Demo ===\n")
 	
 	// 1. 创建 Mock LLM
-	llm := &DemoChatModel{}
+	llm := &DemoChatModel{
+		BaseChatModel: chat.NewBaseChatModel("demo-model", "demo-provider"),
+	}
 	
 	// 2. 创建工具
-	searchTool := tools.NewFunctionTool(
-		"search",
-		"Search the internet for information",
-		func(ctx context.Context, input map[string]any) (any, error) {
+	searchTool := tools.NewFunctionTool(tools.FunctionToolConfig{
+		Name:        "search",
+		Description: "Search the internet for information",
+		Fn: func(ctx context.Context, input map[string]any) (any, error) {
 			fmt.Println("🔍 [Tool: search] Searching for information...")
 			return "Tokyo is the capital of Japan with a population of approximately 13.9 million people in the city proper.", nil
 		},
-	)
+	})
 	
-	calculatorTool := tools.NewFunctionTool(
-		"calculator",
-		"Perform mathematical calculations",
-		func(ctx context.Context, input map[string]any) (any, error) {
+	calculatorTool := tools.NewFunctionTool(tools.FunctionToolConfig{
+		Name:        "calculator",
+		Description: "Perform mathematical calculations",
+		Fn: func(ctx context.Context, input map[string]any) (any, error) {
 			fmt.Println("🧮 [Tool: calculator] Performing calculation...")
 			expression := input["input"].(string)
 			// 简单演示：解析并计算
@@ -115,7 +138,7 @@ func main() {
 			}
 			return "Result: " + expression, nil
 		},
-	)
+	})
 	
 	// 3. 配置 Plan-and-Execute Agent
 	config := agents.PlanAndExecuteConfig{

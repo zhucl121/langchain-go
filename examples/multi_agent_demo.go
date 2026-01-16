@@ -12,7 +12,20 @@ import (
 	"langchain-go/core/agents"
 	"langchain-go/core/chat/providers/openai"
 	"langchain-go/core/tools"
+	"langchain-go/core/tools/search"
 )
+
+// createSearchTool 创建搜索工具
+func createSearchTool() tools.Tool {
+	provider := search.NewDuckDuckGoProvider(search.DuckDuckGoConfig{})
+	searchTool, err := search.NewSearchTool(provider, search.SearchOptions{
+		MaxResults: 5,
+	})
+	if err != nil {
+		log.Fatalf("Failed to create search tool: %v", err)
+	}
+	return searchTool
+}
 
 func main() {
 	fmt.Println("🤖 Multi-Agent System Demo")
@@ -33,7 +46,10 @@ func runBasicExample() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// 1. 创建协调策略
 	strategy := agents.NewSequentialStrategy(llm)
@@ -50,7 +66,7 @@ func runBasicExample() {
 
 	// 4. 添加专用 Agent
 	fmt.Println("✓ 添加 Researcher Agent")
-	searchTool := tools.NewDuckDuckGoSearch()
+	searchTool := createSearchTool()
 	researcher := agents.NewResearcherAgent("researcher", llm, searchTool)
 	system.AddAgent("researcher", researcher)
 	coordinator.RegisterAgent(researcher)
@@ -96,7 +112,10 @@ func runContentCreationPipeline() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
@@ -121,7 +140,7 @@ func runContentCreationPipeline() {
 	coordinator.RegisterAgent(planner)
 	fmt.Println("✓ Planner (规划)")
 
-	researcher := agents.NewResearcherAgent("researcher", llm, tools.NewDuckDuckGoSearch())
+	researcher := agents.NewResearcherAgent("researcher", llm, createSearchTool())
 	system.AddAgent("researcher", researcher)
 	coordinator.RegisterAgent(researcher)
 	fmt.Println("✓ Researcher (研究)")
@@ -165,7 +184,10 @@ func runDataAnalysisPipeline() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
@@ -238,8 +260,11 @@ func runCustomAgentExample() {
 	fmt.Println("🎨 示例 4: 自定义 Agent")
 	fmt.Println("-" + string(make([]byte, 40)))
 
-	ctx := context.Background()
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	_ = context.Background()
+	_, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// 创建自定义 Agent
 	type CustomAgent struct {
@@ -265,7 +290,10 @@ func runPerformanceBenchmark() {
 	fmt.Println("-" + string(make([]byte, 40)))
 
 	ctx := context.Background()
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
@@ -325,7 +353,10 @@ func runErrorHandlingExample() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	strategy := agents.NewSequentialStrategy(llm)
 	coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
 

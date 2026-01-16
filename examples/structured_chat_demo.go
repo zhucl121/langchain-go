@@ -9,7 +9,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	
 	"langchain-go/core/agents"
 	"langchain-go/core/chat/providers/openai"
@@ -19,17 +18,19 @@ import (
 
 func main() {
 	// 1. 创建 LLM
-	llm := openai.NewChatOpenAI("gpt-4")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-4"})
+	if err != nil {
+		log.Fatal(err)
+	}
 	
 	// 2. 创建工具
 	toolsList := []tools.Tool{
 		tools.NewCalculatorTool(),
 		tools.NewWikipediaSearch(nil),
-		tools.NewCurrentTimeTool(),
 	}
 	
 	// 3. 创建对话记忆
-	mem := memory.NewBufferMemory(10) // 保留最近 10 条消息
+	mem := memory.NewBufferMemory() // 保留最近 10 条消息
 	
 	// 4. 创建 Structured Chat Agent
 	agent := agents.CreateStructuredChatAgent(

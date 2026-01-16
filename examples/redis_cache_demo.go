@@ -162,7 +162,10 @@ func llmCacheWithRealLLM() {
 	llmCache := cache.NewLLMCache(redisCache)
 
 	// 创建 OpenAI LLM（带缓存）
-	llm := openai.NewChatOpenAI("gpt-3.5-turbo")
+	llm, err := openai.New(openai.Config{APIKey: "your-api-key", Model: "gpt-3.5-turbo"})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ctx := context.Background()
 	prompt := "解释量子计算"
