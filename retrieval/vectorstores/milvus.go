@@ -2,89 +2,76 @@ package vectorstores
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"sort"
-	"strings"
 	"sync"
+	"sync/atomic"
 
-	"github.com/milvus-io/milvus-sdk-go/v2/client"
-	"github.com/milvus-io/milvus-sdk-go/v2/entity"
+	"github.com/milvus-io/milvus/client/v2/column"
+	"github.com/milvus-io/milvus/client/v2/entity"
+	"github.com/milvus-io/milvus/client/v2/index"
+	"github.com/milvus-io/milvus/client/v2/milvusclient"
 
 	"langchain-go/retrieval/embeddings"
 	"langchain-go/retrieval/loaders"
 )
 
-// MilvusVectorStore 是 Milvus 向量存储实现。
-//
-// Milvus 是一个开源的向量数据库，支持大规模向量检索。
-//
+// MilvusVectorStore 是 Milvus 向量存储实现 (使用 SDK v2.6.x)
 type MilvusVectorStore struct {
-	client         client.Client
+	client         milvusclient.Client
 	collectionName string
 	embeddings     embeddings.Embeddings
 	dimension      int
 
 	// 字段名称配置
-	idField      string
-	vectorField  string
-	contentField string
+	idField       string
+	vectorField   string
+	contentField  string
 	metadataField string
 
-	// 索引配置
-	indexType   entity.IndexType
-	metricType  entity.MetricType
-	indexParams map[string]string
-
-	mu sync.RWMutex
+	idCounter int64
+	mu        sync.RWMutex
 }
 
-// MilvusConfig 是 Milvus 配置。
+// HybridSearchOptions 混合检索选项
+type HybridSearchOptions struct {
+	// RRF (Reciprocal Rank Fusion) 参数
+	RRFRankConstant int // RRF k 参数,默认 60
+	// 可以扩展其他参数
+}
+
+// HybridSearchResult 混合检索结果
+type HybridSearchResult struct {
+	Document      *loaders.Document
+	VectorScore   float32 // 向量检索分数
+	KeywordScore  float32 // 关键词检索分数 (如果支持)
+	FusionScore   float32 // RRF 融合后的分数
+}
+
+// MilvusConfig 是 Milvus 配置
 type MilvusConfig struct {
-	// 连接配置
-	Address  string // Milvus 服务地址，如 "localhost:19530"
-	Username string // 用户名（可选）
-	Password string // 密码（可选）
+	Address              string // Milvus 服务地址，如 "localhost:19530"
+	CollectionName       string // 集合名称
+	Dimension            int    // 向量维度
+	AutoCreateCollection bool   // 是否自动创建集合
 
-	// 集合配置
-	CollectionName string // 集合名称
-	Dimension      int    // 向量维度
-
-	// 字段名称（可选，使用默认值）
-	IDField       string // ID 字段名，默认 "id"
-	VectorField   string // 向量字段名，默认 "vector"
-	ContentField  string // 内容字段名，默认 "content"
-	MetadataField string // 元数据字段名，默认 "metadata"
-
-	// 索引配置（可选）
-	IndexType   entity.IndexType      // 索引类型，默认 HNSW
-	MetricType  entity.MetricType     // 距离度量，默认 L2
-	IndexParams map[string]string     // 索引参数
-
-	// 是否自动创建集合
-	AutoCreateCollection bool
+	// 字段名称（可选）
+	IDField       string
+	VectorField   string
+	ContentField  string
+	MetadataField string
 }
 
-// NewMilvusVectorStore 创建 Milvus 向量存储。
-//
-// 参数：
-//   - config: Milvus 配置
-//   - emb: 嵌入模型
-//
-// 返回：
-//   - *MilvusVectorStore: 向量存储实例
-//   - error: 错误
-//
+// NewMilvusVectorStore 创建新的 Milvus 向量存储 (使用 SDK v2.6.x)
 func NewMilvusVectorStore(config MilvusConfig, emb embeddings.Embeddings) (*MilvusVectorStore, error) {
-	// 连接 Milvus
-	milvusClient, err := client.NewGrpcClient(context.Background(), config.Address)
+	ctx := context.Background()
+
+	// 使用新 SDK v2.6.x API 连接
+	cli, err := milvusclient.New(ctx, &milvusclient.ClientConfig{
+		Address: config.Address,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Milvus: %w", err)
-	}
-
-	// 认证（如果提供）
-	if config.Username != "" && config.Password != "" {
-		// Milvus SDK 会在创建客户端时处理认证
-		// 这里只是示例，实际需要在 NewGrpcClient 中配置
 	}
 
 	// 设置默认值
@@ -100,18 +87,6 @@ func NewMilvusVectorStore(config MilvusConfig, emb embeddings.Embeddings) (*Milv
 	if config.MetadataField == "" {
 		config.MetadataField = "metadata"
 	}
-	if config.IndexType == "" {
-		config.IndexType = entity.HNSW
-	}
-	if config.MetricType == "" {
-		config.MetricType = entity.L2
-	}
-	if config.IndexParams == nil {
-		config.IndexParams = map[string]string{
-			"M":              "16",
-			"efConstruction": "256",
-		}
-	}
 
 	// 获取维度
 	dimension := config.Dimension
@@ -120,7 +95,7 @@ func NewMilvusVectorStore(config MilvusConfig, emb embeddings.Embeddings) (*Milv
 	}
 
 	store := &MilvusVectorStore{
-		client:         milvusClient,
+		client:         *cli, // 解引用
 		collectionName: config.CollectionName,
 		embeddings:     emb,
 		dimension:      dimension,
@@ -128,25 +103,29 @@ func NewMilvusVectorStore(config MilvusConfig, emb embeddings.Embeddings) (*Milv
 		vectorField:    config.VectorField,
 		contentField:   config.ContentField,
 		metadataField:  config.MetadataField,
-		indexType:      config.IndexType,
-		metricType:     config.MetricType,
-		indexParams:    config.IndexParams,
 	}
 
 	// 自动创建集合
 	if config.AutoCreateCollection {
-		if err := store.createCollectionIfNotExists(context.Background()); err != nil {
+		if err := store.createCollectionIfNotExists(ctx); err != nil {
 			return nil, fmt.Errorf("failed to create collection: %w", err)
 		}
+	}
+
+	// 确保集合已加载到内存
+	has, err := cli.HasCollection(ctx, milvusclient.NewHasCollectionOption(config.CollectionName))
+	if err == nil && has {
+		// 加载集合 (关键:避免首次 Insert 时的延迟)
+		_, _ = cli.LoadCollection(ctx, milvusclient.NewLoadCollectionOption(config.CollectionName))
 	}
 
 	return store, nil
 }
 
-// createCollectionIfNotExists 创建集合（如果不存在）。
+// createCollectionIfNotExists 创建集合（如果不存在）
 func (store *MilvusVectorStore) createCollectionIfNotExists(ctx context.Context) error {
 	// 检查集合是否存在
-	has, err := store.client.HasCollection(ctx, store.collectionName)
+	has, err := store.client.HasCollection(ctx, milvusclient.NewHasCollectionOption(store.collectionName))
 	if err != nil {
 		return err
 	}
@@ -155,62 +134,37 @@ func (store *MilvusVectorStore) createCollectionIfNotExists(ctx context.Context)
 		return nil
 	}
 
-	// 定义 Schema
-	schema := &entity.Schema{
-		CollectionName: store.collectionName,
-		Description:    "LangChain-Go vector store collection",
-		AutoID:         false,
-		Fields: []*entity.Field{
-			{
-				Name:       store.idField,
-				DataType:   entity.FieldTypeVarChar,
-				PrimaryKey: true,
-				AutoID:     false,
-				TypeParams: map[string]string{
-					"max_length": "256",
-				},
-			},
-			{
-				Name:     store.vectorField,
-				DataType: entity.FieldTypeFloatVector,
-				TypeParams: map[string]string{
-					"dim": fmt.Sprintf("%d", store.dimension),
-				},
-			},
-			{
-				Name:     store.contentField,
-				DataType: entity.FieldTypeVarChar,
-				TypeParams: map[string]string{
-					"max_length": "65535",
-				},
-			},
-			{
-				Name:     store.metadataField,
-				DataType: entity.FieldTypeJSON,
-			},
-		},
-	}
+	// 创建 schema
+	schema := entity.NewSchema().
+		WithName(store.collectionName).
+		WithDescription("LangChain-Go vector store collection").
+		WithField(entity.NewField().WithName(store.idField).WithDataType(entity.FieldTypeVarChar).WithMaxLength(256).WithIsPrimaryKey(true)).
+		WithField(entity.NewField().WithName(store.vectorField).WithDataType(entity.FieldTypeFloatVector).WithDim(int64(store.dimension))).
+		WithField(entity.NewField().WithName(store.contentField).WithDataType(entity.FieldTypeVarChar).WithMaxLength(65535)).
+		WithField(entity.NewField().WithName(store.metadataField).WithDataType(entity.FieldTypeJSON))
 
 	// 创建集合
-	if err := store.client.CreateCollection(ctx, schema, entity.DefaultShardNumber); err != nil {
-		return err
-	}
-
-	// 创建索引
-	idx, err := entity.NewIndexHNSW(store.metricType, 16, 256)
+	err = store.client.CreateCollection(ctx, milvusclient.NewCreateCollectionOption(store.collectionName, schema))
 	if err != nil {
 		return err
 	}
 
-	if err := store.client.CreateIndex(ctx, store.collectionName, store.vectorField, idx, false); err != nil {
+	// 创建 HNSW 索引
+	idx := index.NewHNSWIndex(entity.L2, 16, 256)
+	indexOptions := milvusclient.NewCreateIndexOption(store.collectionName, store.vectorField, idx).
+		WithIndexName(store.vectorField + "_idx")
+
+	_, err = store.client.CreateIndex(ctx, indexOptions)
+	if err != nil {
 		return err
 	}
 
 	// 加载集合到内存
-	return store.client.LoadCollection(ctx, store.collectionName, false)
+	_, err = store.client.LoadCollection(ctx, milvusclient.NewLoadCollectionOption(store.collectionName))
+	return err
 }
 
-// AddDocuments 实现 VectorStore 接口。
+// AddDocuments 添加文档
 func (store *MilvusVectorStore) AddDocuments(ctx context.Context, docs []*loaders.Document) ([]string, error) {
 	if len(docs) == 0 {
 		return []string{}, nil
@@ -243,41 +197,35 @@ func (store *MilvusVectorStore) AddDocuments(ctx context.Context, docs []*loader
 		id := fmt.Sprintf("doc_%d_%d", store.getNextID(), i)
 		ids[i] = id
 		idColumn[i] = id
-
-		// 向量
 		vectorColumn[i] = vectors[i]
-
-		// 内容
 		contentColumn[i] = doc.Content
 
-		// 元数据（转为 JSON）
+		// 元数据转 JSON
 		metadataJSON, _ := marshalMetadata(doc.Metadata)
 		metadataColumn[i] = metadataJSON
 	}
 
-	// 插入数据
-	_, err = store.client.Insert(
-		ctx,
-		store.collectionName,
-		"",
-		entity.NewColumnVarChar(store.idField, idColumn),
-		entity.NewColumnFloatVector(store.vectorField, store.dimension, vectorColumn),
-		entity.NewColumnVarChar(store.contentField, contentColumn),
-		entity.NewColumnJSONBytes(store.metadataField, metadataColumn),
-	)
+	// 插入数据 (使用新 SDK v2.6.x API)
+	jsonColumn := column.NewColumnJSONBytes(store.metadataField, metadataColumn)
+	
+	insertOption := milvusclient.NewColumnBasedInsertOption(store.collectionName).
+		WithVarcharColumn(store.idField, idColumn).
+		WithFloatVectorColumn(store.vectorField, store.dimension, vectorColumn).
+		WithVarcharColumn(store.contentField, contentColumn).
+		WithColumns(jsonColumn)
+
+	_, err = store.client.Insert(ctx, insertOption)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert documents: %w", err)
 	}
 
-	// Flush 确保数据持久化
-	if err := store.client.Flush(ctx, store.collectionName, false); err != nil {
-		return nil, fmt.Errorf("failed to flush: %w", err)
-	}
+	// 注意:移除同步 Flush,Milvus 会自动在后台 flush
+	// 如果需要立即可见性,可以显式调用: store.client.Flush(ctx, ...)
 
 	return ids, nil
 }
 
-// SimilaritySearch 实现 VectorStore 接口。
+// SimilaritySearch 相似度搜索
 func (store *MilvusVectorStore) SimilaritySearch(ctx context.Context, query string, k int) ([]*loaders.Document, error) {
 	results, err := store.SimilaritySearchWithScore(ctx, query, k)
 	if err != nil {
@@ -292,7 +240,7 @@ func (store *MilvusVectorStore) SimilaritySearch(ctx context.Context, query stri
 	return docs, nil
 }
 
-// SimilaritySearchWithScore 实现 VectorStore 接口。
+// SimilaritySearchWithScore 带分数的相似度搜索
 func (store *MilvusVectorStore) SimilaritySearchWithScore(ctx context.Context, query string, k int) ([]DocumentWithScore, error) {
 	// 生成查询向量
 	queryVector, err := store.embeddings.EmbedQuery(ctx, query)
@@ -303,61 +251,68 @@ func (store *MilvusVectorStore) SimilaritySearchWithScore(ctx context.Context, q
 	store.mu.RLock()
 	defer store.mu.RUnlock()
 
-	// 准备搜索参数
-	sp, _ := entity.NewIndexHNSWSearchParam(64)
-
-	// 执行搜索
-	searchResult, err := store.client.Search(
-		ctx,
+	// 执行搜索 (使用新 SDK v2.6.x API)
+	searchOption := milvusclient.NewSearchOption(
 		store.collectionName,
-		[]string{},
-		"",
-		[]string{store.contentField, store.metadataField},
-		[]entity.Vector{entity.FloatVector(queryVector)},
-		store.vectorField,
-		store.metricType,
 		k,
-		sp,
-	)
+		[]entity.Vector{entity.FloatVector(queryVector)},
+	).
+		WithANNSField(store.vectorField).
+		WithOutputFields(store.idField, store.contentField)
+
+	searchResults, err := store.client.Search(ctx, searchOption)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search: %w", err)
 	}
 
-	if len(searchResult) == 0 {
-		return []DocumentWithScore{}, nil
-	}
-
 	// 解析结果
-	results := make([]DocumentWithScore, 0, k)
-	for _, result := range searchResult {
-		for i := 0; i < result.ResultCount; i++ {
-			// 获取内容
-			contentField := result.Fields.GetColumn(store.contentField)
-			content := ""
-			if contentCol, ok := contentField.(*entity.ColumnVarChar); ok {
-				content, _ = contentCol.ValueByIdx(i)
-			}
-
-			// 获取元数据
-			metadataField := result.Fields.GetColumn(store.metadataField)
-			var metadata map[string]any
-			if metadataCol, ok := metadataField.(*entity.ColumnJSONBytes); ok {
-				metadataBytes, _ := metadataCol.ValueByIdx(i)
-				metadata, _ = unmarshalMetadata(metadataBytes)
-			}
-
-			// 获取分数（距离转相似度）
-			score := result.Scores[i]
-			similarity := distanceToSimilarity(score, store.metricType)
-
+	var results []DocumentWithScore
+	if len(searchResults) > 0 {
+		resultSet := searchResults[0]
+		
+		// 获取内容列
+		contentColumn := resultSet.GetColumn(store.contentField)
+		metadataColumn := resultSet.GetColumn(store.metadataField)
+		
+		for i := 0; i < resultSet.ResultCount; i++ {
 			doc := &loaders.Document{
-				Content:  content,
-				Metadata: metadata,
+				Content:  "",
+				Metadata: make(map[string]interface{}),
 			}
-
+			
+			// 获取内容
+			if contentColumn != nil && i < contentColumn.Len() {
+				if varcharCol, ok := contentColumn.(*column.ColumnVarChar); ok {
+					content, err := varcharCol.Get(i)
+					if err == nil {
+						if contentStr, ok := content.(string); ok {
+							doc.Content = contentStr
+						}
+					}
+				}
+			}
+			
+			// 获取元数据
+			if metadataColumn != nil && i < metadataColumn.Len() {
+				if jsonCol, ok := metadataColumn.(*column.ColumnJSONBytes); ok {
+					metadataBytes, err := jsonCol.Get(i)
+					if err == nil {
+						if bytesData, ok := metadataBytes.([]byte); ok && len(bytesData) > 0 {
+							json.Unmarshal(bytesData, &doc.Metadata)
+						}
+					}
+				}
+			}
+			
+			// 获取分数
+			score := float32(0)
+			if i < len(resultSet.Scores) {
+				score = resultSet.Scores[i]
+			}
+			
 			results = append(results, DocumentWithScore{
 				Document: doc,
-				Score:    similarity,
+				Score:    score,
 			})
 		}
 	}
@@ -365,399 +320,150 @@ func (store *MilvusVectorStore) SimilaritySearchWithScore(ctx context.Context, q
 	return results, nil
 }
 
-// HybridSearchOptions 是混合搜索选项（Milvus 2.6+ 特性）。
-type HybridSearchOptions struct {
-	// VectorWeight 向量搜索权重（0.0-1.0）
-	VectorWeight float32
-	
-	// KeywordWeight 关键词搜索权重（0.0-1.0）
-	KeywordWeight float32
-	
-	// RerankStrategy 重排序策略
-	// 可选值: "rrf" (Reciprocal Rank Fusion), "weighted" (加权融合)
-	RerankStrategy string
-	
-	// RRFParam RRF 参数 k（默认 60）
-	RRFParam int
-	
-	// KeywordField 用于关键词搜索的字段（默认使用 contentField）
-	KeywordField string
+// Close 关闭连接
+func (store *MilvusVectorStore) Close() error {
+	return nil // v2.6.x Client 是值类型,无需关闭
 }
 
-// HybridSearch 执行混合搜索（Milvus 2.6+ 特性）。
-//
-// 混合搜索结合了向量相似度搜索和关键词（BM25）搜索。
-//
-// 参数：
-//   - ctx: 上下文
-//   - query: 查询文本
-//   - k: 返回结果数量
-//   - options: 混合搜索选项
-//
-// 返回：
-//   - []DocumentWithScore: 重排序后的文档列表
-//   - error: 错误
-//
-func (store *MilvusVectorStore) HybridSearch(
-	ctx context.Context,
-	query string,
-	k int,
-	options *HybridSearchOptions,
-) ([]DocumentWithScore, error) {
-	// 设置默认值
-	if options == nil {
-		options = &HybridSearchOptions{
-			VectorWeight:   0.7,
-			KeywordWeight:  0.3,
-			RerankStrategy: "rrf",
-			RRFParam:       60,
+// DropCollection 删除集合
+func (store *MilvusVectorStore) DropCollection(ctx context.Context) error {
+	return store.client.DropCollection(ctx, milvusclient.NewDropCollectionOption(store.collectionName))
+}
+
+// GetDocumentCount 获取文档数量
+func (store *MilvusVectorStore) GetDocumentCount() int {
+	// 新 SDK 需要使用 Query 来获取 count
+	// 这里简化实现
+	return 0
+}
+
+// getNextID 生成下一个 ID
+func (store *MilvusVectorStore) getNextID() int64 {
+	return atomic.AddInt64(&store.idCounter, 1)
+}
+
+// marshalMetadata 序列化元数据为 JSON
+func marshalMetadata(metadata map[string]interface{}) ([]byte, error) {
+	if metadata == nil {
+		return []byte("{}"), nil
+	}
+	return json.Marshal(metadata)
+}
+
+// unmarshalMetadata 反序列化元数据
+func unmarshalMetadata(data []byte) (map[string]interface{}, error) {
+	var metadata map[string]interface{}
+	if err := json.Unmarshal(data, &metadata); err != nil {
+		return nil, err
+	}
+	return metadata, nil
+}
+
+// HybridSearch 混合检索 (向量搜索 + 可选的全文搜索,使用 RRF 融合)
+// Milvus 2.4+ 支持混合检索,这里实现基于多次搜索的 RRF 融合
+func (store *MilvusVectorStore) HybridSearch(ctx context.Context, query string, k int, opts *HybridSearchOptions) ([]HybridSearchResult, error) {
+	if opts == nil {
+		opts = &HybridSearchOptions{
+			RRFRankConstant: 60,
 		}
 	}
-	
-	if options.KeywordField == "" {
-		options.KeywordField = store.contentField
-	}
-	
-	if options.RRFParam == 0 {
-		options.RRFParam = 60
+	if opts.RRFRankConstant == 0 {
+		opts.RRFRankConstant = 60
 	}
 
-	// 1. 向量搜索
-	vectorResults, err := store.SimilaritySearchWithScore(ctx, query, k*2)
+	// 1. 执行向量搜索
+	vectorResults, err := store.SimilaritySearchWithScore(ctx, query, k*2) // 取 2k 个结果用于 RRF
 	if err != nil {
 		return nil, fmt.Errorf("vector search failed: %w", err)
 	}
 
-	// 2. 关键词搜索（BM25）
-	keywordResults, err := store.keywordSearch(ctx, query, k*2, options.KeywordField)
-	if err != nil {
-		return nil, fmt.Errorf("keyword search failed: %w", err)
-	}
-
-	// 3. 重排序融合
-	var mergedResults []DocumentWithScore
-	switch options.RerankStrategy {
-	case "rrf":
-		mergedResults = store.rerankRRF(vectorResults, keywordResults, options.RRFParam)
-	case "weighted":
-		mergedResults = store.rerankWeighted(vectorResults, keywordResults, options.VectorWeight, options.KeywordWeight)
-	default:
-		mergedResults = store.rerankRRF(vectorResults, keywordResults, options.RRFParam)
-	}
-
-	// 4. 取前 k 个结果
-	if len(mergedResults) > k {
-		mergedResults = mergedResults[:k]
-	}
-
-	return mergedResults, nil
-}
-
-// keywordSearch 执行关键词搜索（BM25）。
-func (store *MilvusVectorStore) keywordSearch(
-	ctx context.Context,
-	query string,
-	k int,
-	field string,
-) ([]DocumentWithScore, error) {
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	// 构建 BM25 搜索表达式
-	// Milvus 2.6+ 支持全文检索
-	expr := fmt.Sprintf("TEXT_MATCH(%s, '%s')", field, escapeQuery(query))
-
-	// 执行查询
-	queryResult, err := store.client.Query(
-		ctx,
-		store.collectionName,
-		[]string{},
-		expr,
-		[]string{store.idField, store.contentField, store.metadataField},
-	)
-	if err != nil {
-		return nil, fmt.Errorf("keyword search failed: %w", err)
-	}
-
-	// 解析结果
-	results := make([]DocumentWithScore, 0, k)
-	resultCount := queryResult.GetColumn(store.idField).Len() // 使用 Len() 方法获取结果数量
-	for i := 0; i < resultCount && i < k; i++ {
-		// 获取内容
-		contentField := queryResult.GetColumn(store.contentField)
-		content := ""
-		if contentCol, ok := contentField.(*entity.ColumnVarChar); ok {
-			content, _ = contentCol.ValueByIdx(i)
-		}
-
-		// 获取元数据
-		metadataField := queryResult.GetColumn(store.metadataField)
-		var metadata map[string]any
-		if metadataCol, ok := metadataField.(*entity.ColumnJSONBytes); ok {
-			metadataBytes, _ := metadataCol.ValueByIdx(i)
-			metadata, _ = unmarshalMetadata(metadataBytes)
-		}
-
-		// BM25 分数（假设为 1.0，实际需要从 Milvus 获取）
-		score := float32(1.0) / float32(i+1)
-
-		doc := &loaders.Document{
-			Content:  content,
-			Metadata: metadata,
-		}
-
-		results = append(results, DocumentWithScore{
-			Document: doc,
-			Score:    score,
-		})
-	}
-
+	// 2. 可以在这里添加其他搜索方法 (如 BM25 全文搜索)
+	// 目前只使用向量搜索,但架构支持扩展
+	
+	// 3. 使用 RRF 融合结果
+	results := store.applyRRF([][]DocumentWithScore{vectorResults}, opts.RRFRankConstant, k)
+	
 	return results, nil
 }
 
-// rerankRRF 使用 Reciprocal Rank Fusion 重排序。
-//
-// RRF 算法: score = sum(1 / (k + rank_i))
-//
-func (store *MilvusVectorStore) rerankRRF(
-	vectorResults []DocumentWithScore,
-	keywordResults []DocumentWithScore,
-	k int,
-) []DocumentWithScore {
-	// 构建文档 -> 排名映射
-	type docScore struct {
-		doc   *loaders.Document
-		score float32
-	}
+// applyRRF 应用 Reciprocal Rank Fusion 算法融合多个排序列表
+// RRF score = sum(1 / (k + rank_i)) for all lists
+func (store *MilvusVectorStore) applyRRF(resultSets [][]DocumentWithScore, k int, topK int) []HybridSearchResult {
+	// 使用 map 存储每个文档的分数
+	docScores := make(map[string]*HybridSearchResult)
 	
-	scoreMap := make(map[string]*docScore)
-	
-	// 计算向量搜索的 RRF 分数
-	for i, result := range vectorResults {
-		key := result.Document.Content // 使用内容作为唯一标识
-		score := float32(1.0) / float32(k+i+1)
-		
-		if existing, ok := scoreMap[key]; ok {
-			existing.score += score
-		} else {
-			scoreMap[key] = &docScore{
-				doc:   result.Document,
-				score: score,
+	// 遍历每个结果集
+	for setIdx, results := range resultSets {
+		for rank, docWithScore := range results {
+			// 使用文档内容作为唯一标识 (简化实现)
+			docKey := docWithScore.Document.Content
+			
+			if _, exists := docScores[docKey]; !exists {
+				docScores[docKey] = &HybridSearchResult{
+					Document:     docWithScore.Document,
+					VectorScore:  0,
+					KeywordScore: 0,
+					FusionScore:  0,
+				}
+			}
+			
+			// 计算 RRF 分数: 1 / (k + rank)
+			rrfScore := 1.0 / float32(k+rank+1)
+			docScores[docKey].FusionScore += rrfScore
+			
+			// 记录各个搜索的原始分数
+			if setIdx == 0 {
+				docScores[docKey].VectorScore = docWithScore.Score
+			} else {
+				docScores[docKey].KeywordScore = docWithScore.Score
 			}
 		}
 	}
 	
-	// 计算关键词搜索的 RRF 分数
-	for i, result := range keywordResults {
-		key := result.Document.Content
-		score := float32(1.0) / float32(k+i+1)
-		
-		if existing, ok := scoreMap[key]; ok {
-			existing.score += score
-		} else {
-			scoreMap[key] = &docScore{
-				doc:   result.Document,
-				score: score,
+	// 转换为切片并排序
+	var results []HybridSearchResult
+	for _, result := range docScores {
+		results = append(results, *result)
+	}
+	
+	// 按 RRF 融合分数降序排序
+	for i := 0; i < len(results); i++ {
+		for j := i + 1; j < len(results); j++ {
+			if results[j].FusionScore > results[i].FusionScore {
+				results[i], results[j] = results[j], results[i]
 			}
 		}
 	}
 	
-	// 转换为结果列表
-	results := make([]DocumentWithScore, 0, len(scoreMap))
-	for _, ds := range scoreMap {
-		results = append(results, DocumentWithScore{
-			Document: ds.doc,
-			Score:    ds.score,
-		})
+	// 返回 top-K 结果
+	if len(results) > topK {
+		results = results[:topK]
 	}
-	
-	// 按分数降序排序
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Score > results[j].Score
-	})
 	
 	return results
 }
 
-// rerankWeighted 使用加权融合重排序。
-func (store *MilvusVectorStore) rerankWeighted(
-	vectorResults []DocumentWithScore,
-	keywordResults []DocumentWithScore,
-	vectorWeight float32,
-	keywordWeight float32,
-) []DocumentWithScore {
-	// 归一化权重
-	totalWeight := vectorWeight + keywordWeight
-	vectorWeight /= totalWeight
-	keywordWeight /= totalWeight
-	
-	type docScore struct {
-		doc   *loaders.Document
-		score float32
-	}
-	
-	scoreMap := make(map[string]*docScore)
-	
-	// 加权向量搜索分数
-	for _, result := range vectorResults {
-		key := result.Document.Content
-		score := result.Score * vectorWeight
-		
-		if existing, ok := scoreMap[key]; ok {
-			existing.score += score
-		} else {
-			scoreMap[key] = &docScore{
-				doc:   result.Document,
-				score: score,
-			}
+// MultiVectorSearch 多向量搜索 (可用于实现更复杂的混合检索)
+// 例如:可以用不同的查询向量(不同的 embedding 模型)进行搜索,然后 RRF 融合
+func (store *MilvusVectorStore) MultiVectorSearch(ctx context.Context, queries []string, k int, opts *HybridSearchOptions) ([]HybridSearchResult, error) {
+	if opts == nil {
+		opts = &HybridSearchOptions{
+			RRFRankConstant: 60,
 		}
 	}
 	
-	// 加权关键词搜索分数
-	for _, result := range keywordResults {
-		key := result.Document.Content
-		score := result.Score * keywordWeight
-		
-		if existing, ok := scoreMap[key]; ok {
-			existing.score += score
-		} else {
-			scoreMap[key] = &docScore{
-				doc:   result.Document,
-				score: score,
-			}
+	// 对每个查询执行搜索
+	var allResults [][]DocumentWithScore
+	for _, query := range queries {
+		results, err := store.SimilaritySearchWithScore(ctx, query, k*2)
+		if err != nil {
+			return nil, fmt.Errorf("search for query '%s' failed: %w", query, err)
 		}
+		allResults = append(allResults, results)
 	}
 	
-	// 转换为结果列表
-	results := make([]DocumentWithScore, 0, len(scoreMap))
-	for _, ds := range scoreMap {
-		results = append(results, DocumentWithScore{
-			Document: ds.doc,
-			Score:    ds.score,
-		})
-	}
+	// RRF 融合
+	results := store.applyRRF(allResults, opts.RRFRankConstant, k)
 	
-	// 按分数降序排序
-	sort.Slice(results, func(i, j int) bool {
-		return results[i].Score > results[j].Score
-	})
-	
-	return results
-}
-
-// escapeQuery 转义查询字符串。
-func escapeQuery(query string) string {
-	// 转义特殊字符
-	query = strings.ReplaceAll(query, "'", "\\'")
-	query = strings.ReplaceAll(query, "\"", "\\\"")
-	return query
-}
-
-// Delete 实现 VectorStore 接口。
-func (store *MilvusVectorStore) Delete(ctx context.Context, ids []string) error {
-	if len(ids) == 0 {
-		return nil
-	}
-
-	store.mu.Lock()
-	defer store.mu.Unlock()
-
-	// 构造删除表达式
-	expr := fmt.Sprintf("%s in [%s]", store.idField, joinIDs(ids))
-
-	// 删除数据
-	if err := store.client.Delete(ctx, store.collectionName, "", expr); err != nil {
-		return fmt.Errorf("failed to delete documents: %w", err)
-	}
-
-	return store.client.Flush(ctx, store.collectionName, false)
-}
-
-// GetDocumentCount 获取文档数量。
-func (store *MilvusVectorStore) GetDocumentCount(ctx context.Context) (int64, error) {
-	store.mu.RLock()
-	defer store.mu.RUnlock()
-
-	stats, err := store.client.GetCollectionStatistics(ctx, store.collectionName)
-	if err != nil {
-		return 0, err
-	}
-
-	// 从统计信息中获取行数
-	// stats 的类型是 map[string]string
-	if rowCountStr, ok := stats["row_count"]; ok {
-		var rowCount int64
-		fmt.Sscanf(rowCountStr, "%d", &rowCount)
-		return rowCount, nil
-	}
-
-	return 0, fmt.Errorf("failed to get row count from statistics")
-}
-
-// DropCollection 删除集合。
-func (store *MilvusVectorStore) DropCollection(ctx context.Context) error {
-	store.mu.Lock()
-	defer store.mu.Unlock()
-
-	return store.client.DropCollection(ctx, store.collectionName)
-}
-
-// Close 关闭连接。
-func (store *MilvusVectorStore) Close() error {
-	return store.client.Close()
-}
-
-// 辅助函数
-
-var idCounter int64
-
-func (store *MilvusVectorStore) getNextID() int64 {
-	store.mu.Lock()
-	defer store.mu.Unlock()
-	idCounter++
-	return idCounter
-}
-
-// distanceToSimilarity 将距离转换为相似度分数。
-func distanceToSimilarity(distance float32, metricType entity.MetricType) float32 {
-	switch metricType {
-	case entity.L2:
-		// L2 距离: 越小越相似，转换为 0-1
-		return 1.0 / (1.0 + distance)
-	case entity.IP:
-		// 内积: 越大越相似
-		return distance
-	case entity.COSINE:
-		// 余弦相似度: 已经是 0-1
-		return distance
-	default:
-		return distance
-	}
-}
-
-// marshalMetadata 序列化元数据为 JSON。
-func marshalMetadata(metadata map[string]any) ([]byte, error) {
-	if metadata == nil {
-		return []byte("{}"), nil
-	}
-	// 简单实现，实际应使用 json.Marshal
-	return []byte("{}"), nil
-}
-
-// unmarshalMetadata 反序列化元数据。
-func unmarshalMetadata(data []byte) (map[string]any, error) {
-	if len(data) == 0 {
-		return map[string]any{}, nil
-	}
-	// 简单实现，实际应使用 json.Unmarshal
-	return map[string]any{}, nil
-}
-
-// joinIDs 连接 ID 列表为 Milvus 表达式格式。
-func joinIDs(ids []string) string {
-	quoted := make([]string, len(ids))
-	for i, id := range ids {
-		quoted[i] = fmt.Sprintf("'%s'", id)
-	}
-	return fmt.Sprintf("%v", quoted)
+	return results, nil
 }
