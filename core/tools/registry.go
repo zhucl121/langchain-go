@@ -23,6 +23,10 @@ package tools
 //   - StringLength (字符串长度)
 //   - StringSplit (字符串分割)
 //   - StringJoin (字符串连接)
+//   - RandomNumber (随机数生成)
+//   - UUIDGenerator (UUID 生成)
+//   - Base64Encode (Base64 编码)
+//   - Base64Decode (Base64 解码)
 //
 // 示例：
 //
@@ -53,6 +57,12 @@ func GetBuiltinTools() []Tool {
 		NewStringLengthTool(),
 		NewStringSplitTool(),
 		NewStringJoinTool(),
+		
+		// 实用工具
+		NewRandomNumberTool(),
+		NewUUIDGeneratorTool(),
+		NewBase64EncodeTool(),
+		NewBase64DecodeTool(),
 	}
 }
 
@@ -137,6 +147,20 @@ func GetStringTools() []Tool {
 	}
 }
 
+// GetUtilityTools 返回所有实用工具。
+//
+// 返回：
+//   - []Tool: 实用工具列表
+//
+func GetUtilityTools() []Tool {
+	return []Tool{
+		NewRandomNumberTool(),
+		NewUUIDGeneratorTool(),
+		NewBase64EncodeTool(),
+		NewBase64DecodeTool(),
+	}
+}
+
 // GetSearchTools 返回所有搜索工具。
 //
 // 返回：
@@ -177,6 +201,9 @@ const (
 	// CategoryString 字符串工具
 	CategoryString ToolCategory = "string"
 	
+	// CategoryUtility 实用工具
+	CategoryUtility ToolCategory = "utility"
+	
 	// CategorySearch 搜索工具
 	CategorySearch ToolCategory = "search"
 	
@@ -212,6 +239,8 @@ func GetToolsByCategory(category ToolCategory) []Tool {
 		return GetJSONTools()
 	case CategoryString:
 		return GetStringTools()
+	case CategoryUtility:
+		return GetUtilityTools()
 	case CategorySearch:
 		return GetSearchTools()
 	default:
