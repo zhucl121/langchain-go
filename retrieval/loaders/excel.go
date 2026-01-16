@@ -226,14 +226,15 @@ func (loader *ExcelLoader) LoadAndSplit(
 	return SplitDocuments(docs, splitter)
 }
 
-// CSVLoader loads CSV files (similar to Excel but simpler)
-// Note: This is a convenience wrapper around ExcelLoader
-type CSVLoader struct {
+// ExcelCSVLoader loads CSV files using Excel loader (for compatibility)
+// Note: This is a convenience wrapper around ExcelLoader for CSV files
+// For pure CSV loading, use CSVLoader from structured.go instead
+type ExcelCSVLoader struct {
 	*ExcelLoader
 }
 
-// CSVLoaderOptions contains configuration options for CSV loader
-type CSVLoaderOptions struct {
+// ExcelCSVLoaderOptions contains configuration options for Excel CSV loader
+type ExcelCSVLoaderOptions struct {
 	// Path is the file path to load
 	Path string
 
@@ -250,8 +251,8 @@ type CSVLoaderOptions struct {
 	Metadata map[string]any
 }
 
-// NewCSVLoader creates a new CSV loader
-func NewCSVLoader(options CSVLoaderOptions) *CSVLoader {
+// NewExcelCSVLoader creates a new Excel CSV loader
+func NewExcelCSVLoader(options ExcelCSVLoaderOptions) *ExcelCSVLoader {
 	excelOptions := ExcelLoaderOptions{
 		Path:           options.Path,
 		IncludeHeaders: options.IncludeHeaders,
@@ -260,7 +261,7 @@ func NewCSVLoader(options CSVLoaderOptions) *CSVLoader {
 		Metadata:       options.Metadata,
 	}
 
-	return &CSVLoader{
+	return &ExcelCSVLoader{
 		ExcelLoader: NewExcelLoader(excelOptions),
 	}
 }
