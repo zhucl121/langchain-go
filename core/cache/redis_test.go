@@ -15,6 +15,7 @@ import (
 func TestRedisCache(t *testing.T) {
 	// 跳过测试如果没有 Redis 可用
 	config := DefaultRedisCacheConfig()
+	config.Password = "redis123" // 设置密码
 	cache, err := NewRedisCache(config)
 	if err != nil {
 		t.Skip("Redis not available:", err)
@@ -208,6 +209,7 @@ func TestRedisCache(t *testing.T) {
 func TestRedisCache_WithLLMCache(t *testing.T) {
 	// 跳过测试如果没有 Redis 可用
 	config := DefaultRedisCacheConfig()
+	config.Password = "redis123" // 设置密码
 	redisCache, err := NewRedisCache(config)
 	if err != nil {
 		t.Skip("Redis not available:", err)
@@ -252,6 +254,7 @@ func TestRedisCache_WithLLMCache(t *testing.T) {
 func TestRedisCache_WithToolCache(t *testing.T) {
 	// 跳过测试如果没有 Redis 可用
 	redisConfig := DefaultRedisCacheConfig()
+	redisConfig.Password = "redis123" // 设置密码
 	redisCache, err := NewRedisCache(redisConfig)
 	if err != nil {
 		t.Skip("Redis not available:", err)
@@ -295,6 +298,7 @@ func TestRedisCache_WithToolCache(t *testing.T) {
 
 func BenchmarkRedisCache_Set(b *testing.B) {
 	config := DefaultRedisCacheConfig()
+	config.Password = "redis123" // 设置密码
 	cache, err := NewRedisCache(config)
 	if err != nil {
 		b.Skip("Redis not available:", err)
@@ -313,6 +317,7 @@ func BenchmarkRedisCache_Set(b *testing.B) {
 
 func BenchmarkRedisCache_Get(b *testing.B) {
 	config := DefaultRedisCacheConfig()
+	config.Password = "redis123" // 设置密码
 	cache, err := NewRedisCache(config)
 	if err != nil {
 		b.Skip("Redis not available:", err)
@@ -331,6 +336,7 @@ func BenchmarkRedisCache_Get(b *testing.B) {
 
 func BenchmarkRedisCache_SetGet(b *testing.B) {
 	config := DefaultRedisCacheConfig()
+	config.Password = "redis123" // 设置密码
 	cache, err := NewRedisCache(config)
 	if err != nil {
 		b.Skip("Redis not available:", err)
