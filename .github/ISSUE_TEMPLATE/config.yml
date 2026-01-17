@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/zhucl121/langchain-go#readme
+    about: 查看完整的项目文档
+  - name: 💬 Discussions
+    url: https://github.com/zhucl121/langchain-go/discussions
+    about: 提问、讨论想法和分享经验
+  - name: 🐛 Security Issue
+    url: https://github.com/zhucl121/langchain-go/security/advisories/new
+    about: 报告安全漏洞（私密）

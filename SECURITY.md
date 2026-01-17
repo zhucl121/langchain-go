@@ -1,218 +1,74 @@
-# Security Policy
+## 项目安全政策
 
-## Supported Versions
+### 支持的版本
 
-We release patches for security vulnerabilities. Which versions are eligible for receiving such patches depends on the severity of the vulnerability and the version's age.
+当前支持安全更新的版本：
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.3.x   | :white_check_mark: |
-| 1.2.x   | :white_check_mark: |
-| 1.1.x   | :white_check_mark: |
-| 1.0.x   | :white_check_mark: |
-| < 1.0   | :x:                |
+| 版本 | 支持状态 |
+| --- | --- |
+| 0.1.x | ✅ |
+| < 0.1.0 | ❌ |
 
-## Reporting a Vulnerability
+### 报告安全漏洞
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+如果你发现了安全漏洞，请**不要**公开提交 issue。
 
-Instead, please report them via email to [security@example.com]. You should receive a response within 48 hours. If for some reason you do not, please follow up via email to ensure we received your original message.
+请通过以下方式私密报告：
 
-Please include the following information (as much as you can provide) to help us better understand and resolve the issue:
+1. **GitHub Security Advisory**: 
+   - 访问 https://github.com/zhucl121/langchain-go/security/advisories/new
+   - 填写漏洞详情
 
-* Type of issue (e.g., buffer overflow, SQL injection, cross-site scripting, etc.)
-* Full paths of source file(s) related to the manifestation of the issue
-* The location of the affected source code (tag/branch/commit or direct URL)
-* Any special configuration required to reproduce the issue
-* Step-by-step instructions to reproduce the issue
-* Proof-of-concept or exploit code (if possible)
-* Impact of the issue, including how an attacker might exploit the issue
+2. **邮件报告**: 
+   - 发送邮件至项目维护者（如果有提供）
+   - 邮件标题: `[SECURITY] 项目名 - 漏洞简述`
 
-This information will help us triage your report more quickly.
+### 报告内容应包括
 
-## Disclosure Policy
+- 漏洞类型
+- 受影响的版本
+- 重现步骤
+- 潜在影响
+- 建议的修复方案（如有）
 
-When we receive a security bug report, we will:
+### 响应时间
 
-1. Confirm the problem and determine the affected versions
-2. Audit code to find any similar problems
-3. Prepare fixes for all affected versions still under maintenance
-4. Release security advisories and new versions
+- **确认**: 我们将在 48 小时内确认收到报告
+- **评估**: 7 天内完成漏洞评估
+- **修复**: 根据严重程度，在 14-30 天内发布修复
 
-## Comments on this Policy
+### 披露政策
 
-If you have suggestions on how this process could be improved, please submit a pull request or open an issue to discuss.
+- 我们遵循负责任的披露原则
+- 漏洞修复后，将在适当时间公开披露
+- 我们会在发布说明中感谢报告者（除非你选择匿名）
 
-## Security Best Practices
+### 安全最佳实践
 
-When using LangChain-Go in your applications:
+使用本项目时的安全建议：
 
-### API Keys and Secrets
+1. **密钥管理**
+   - 不要在代码中硬编码 API 密钥
+   - 使用环境变量存储敏感信息
+   - 定期轮换 API 密钥
 
-* **Never commit API keys or secrets to version control**
-* Use environment variables or secret management services
-* Rotate API keys regularly
-* Use read-only or limited-scope API keys where possible
+2. **依赖管理**
+   - 定期更新依赖到最新版本
+   - 使用 `go mod tidy` 清理不需要的依赖
+   - 关注安全公告
 
-```go
-// ❌ Bad
-config := openai.Config{
-    APIKey: "sk-1234567890abcdef",
-}
+3. **输入验证**
+   - 验证所有用户输入
+   - 对 LLM 输出进行安全检查
+   - 避免直接执行未经验证的代码
 
-// ✅ Good
-config := openai.Config{
-    APIKey: os.Getenv("OPENAI_API_KEY"),
-}
-```
+4. **网络安全**
+   - 使用 HTTPS 进行 API 调用
+   - 验证 TLS 证书
+   - 实施速率限制
 
-### Input Validation
+### 安全更新通知
 
-* Always validate and sanitize user input
-* Use appropriate input limits to prevent resource exhaustion
-* Be cautious with user-provided tool inputs
-
-```go
-// Validate input length
-if len(userInput) > maxInputLength {
-    return errors.New("input too long")
-}
-
-// Sanitize for specific use cases
-sanitized := sanitizeInput(userInput)
-```
-
-### Tool Security
-
-* Carefully review tool permissions before use
-* Use whitelist-based tool access control
-* Implement rate limiting for tool calls
-* Monitor tool usage for anomalies
-
-```go
-// Example: Safe tool configuration
-tool := tools.NewHTTPTool(tools.HTTPConfig{
-    AllowedDomains: []string{"api.example.com"},
-    MaxRequestSize: 1024 * 1024, // 1MB
-    Timeout:        30 * time.Second,
-})
-```
-
-### Database Security
-
-* Use parameterized queries to prevent SQL injection
-* Limit database permissions
-* Encrypt sensitive data at rest
-* Use connection pooling with appropriate limits
-
-```go
-// Example: Safe checkpoint usage
-checkpointer, err := postgres.NewSaver(
-    connectionString,
-    postgres.WithMaxConnections(10),
-    postgres.WithSSL(true),
-)
-```
-
-### Error Handling
-
-* Don't expose sensitive information in error messages
-* Log errors appropriately without leaking secrets
-* Handle panics gracefully
-
-```go
-// ❌ Bad - exposes API key
-return fmt.Errorf("failed to call API with key %s", apiKey)
-
-// ✅ Good - generic error
-return fmt.Errorf("failed to call API: %w", err)
-```
-
-### Rate Limiting
-
-* Implement rate limiting for API calls
-* Use backoff strategies for retries
-* Monitor usage to detect abuse
-
-```go
-// Example: Rate-limited client
-client := openai.New(openai.Config{
-    APIKey:      os.Getenv("OPENAI_API_KEY"),
-    MaxRetries:  3,
-    RetryDelay:  time.Second,
-})
-```
-
-### Dependencies
-
-* Keep dependencies up to date
-* Review security advisories for dependencies
-* Use `go mod verify` to check module authenticity
-
-```bash
-# Check for known vulnerabilities
-go list -json -m all | nancy sleuth
-
-# Update dependencies
-go get -u ./...
-go mod tidy
-```
-
-### Logging
-
-* Don't log sensitive information (API keys, passwords, PII)
-* Use structured logging
-* Implement log rotation and retention policies
-
-```go
-// ❌ Bad - logs API key
-log.Printf("Using API key: %s", apiKey)
-
-// ✅ Good - logs without sensitive data
-log.Printf("Initializing OpenAI client")
-```
-
-## Known Security Considerations
-
-### LLM-Specific Risks
-
-1. **Prompt Injection**: User input might manipulate the LLM's behavior
-   - Solution: Use system prompts and input validation
-
-2. **Data Leakage**: LLMs might inadvertently expose training data
-   - Solution: Use appropriate models and review outputs
-
-3. **Excessive Resource Use**: Complex queries can consume significant resources
-   - Solution: Implement timeouts and resource limits
-
-4. **Unreliable Output**: LLMs can produce incorrect or biased information
-   - Solution: Implement verification and human review where critical
-
-### Vector Store Security
-
-1. **Data Privacy**: Vector stores contain embedded documents
-   - Solution: Encrypt at rest, use access controls
-
-2. **Injection Attacks**: Malicious documents could poison the search
-   - Solution: Validate and sanitize document inputs
-
-3. **Resource Exhaustion**: Large-scale searches can be expensive
-   - Solution: Implement query limits and caching
-
-## Security Updates
-
-Subscribe to security advisories:
-
-* Watch this repository for security notifications
-* Follow us on [Twitter/X](https://twitter.com/yourhandle)
-* Check the [GitHub Security Advisories](https://github.com/yourusername/langchain-go/security/advisories) page
-
-## Hall of Fame
-
-We recognize and thank security researchers who responsibly disclose vulnerabilities:
-
-<!-- Will be populated as we receive reports -->
-
----
-
-Thank you for helping keep LangChain-Go and our community safe!
+订阅安全更新：
+- Watch 此仓库并选择 "Security alerts"
+- 关注 GitHub Security Advisories

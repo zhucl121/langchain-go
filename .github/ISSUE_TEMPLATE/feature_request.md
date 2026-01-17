@@ -1,32 +1,58 @@
+---
 name: Feature Request
-about: Suggest an idea for this project
+about: 为这个项目提出一个新功能
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
-
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## 💡 功能描述
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+简要描述你想要的功能。
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+## 🎯 问题背景
 
-**Use Case**
-Describe how this feature would be used in practice. Include code examples if possible.
+这个功能解决什么问题？为什么需要它？
+
+**当前行为**：
+描述现在的情况。
+
+**期望行为**：
+描述你希望如何工作。
+
+## 💭 建议的解决方案
+
+描述你希望如何实现这个功能。
+
+## 🔄 替代方案
+
+描述你考虑过的其他替代解决方案或功能。
+
+## 📝 示例代码
+
+如果可能，提供你期望的 API 使用示例：
 
 ```go
-// Example of how the feature would be used
-store.NewFeature(ctx, params)
+// 期望的使用方式
+package main
+
+func main() {
+    // your example here
+}
 ```
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+## 📊 优先级
 
-**Would you be willing to contribute this feature?**
-- [ ] Yes, I can submit a PR
-- [ ] No, but I can help with testing
-- [ ] No, just requesting
+- [ ] 低优先级 - 改进体验
+- [ ] 中优先级 - 重要但不紧急
+- [ ] 高优先级 - 阻碍使用
+
+## 🔗 相关 Issue
+
+是否与其他 issue 相关？请列出来。
+
+## 🤝 贡献意愿
+
+- [ ] 我愿意提交 PR 来实现这个功能
+- [ ] 我可以帮助测试这个功能
+- [ ] 我只是提出建议

@@ -1,44 +1,54 @@
-# .github/ISSUE_TEMPLATE/bug_report.md
+---
 name: Bug Report
-about: Create a report to help us improve
+about: 报告一个 bug 来帮助我们改进
 title: '[BUG] '
 labels: bug
 assignees: ''
-
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## 🐛 Bug 描述
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Import package '...'
-2. Call function '...'
-3. Observe error '...'
+简要描述这个问题。
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+## 📋 复现步骤
 
-**Code Example**
+1. 执行 '...'
+2. 调用 '...'
+3. 传入参数 '...'
+4. 看到错误
+
+## 🎯 期望行为
+
+描述你期望发生什么。
+
+## 🔴 实际行为
+
+描述实际发生了什么。
+
+## 💻 环境信息
+
+- **OS**: [e.g. macOS 14.0, Ubuntu 22.04]
+- **Go 版本**: [e.g. 1.21.5]
+- **LangChain-Go 版本**: [e.g. v0.1.0]
+- **相关依赖版本**: 
+
+## 📝 代码示例
+
 ```go
-// Minimal reproducible example
+// 请提供能复现问题的最小代码示例
 package main
 
 func main() {
-    // Your code here
+    // your code here
 }
 ```
 
-**Error Output**
+## 📊 错误日志
+
 ```
-Paste error output here
+粘贴相关的错误日志
 ```
 
-**Environment:**
- - Go version: [e.g. 1.22.0]
- - LangChain-Go version: [e.g. 1.3.0]
- - OS: [e.g. macOS 14.0, Ubuntu 22.04]
- - Architecture: [e.g. amd64, arm64]
+## 🔍 附加信息
 
-**Additional context**
-Add any other context about the problem here (logs, screenshots, etc.)
+添加任何其他有助于解决问题的信息、截图等。

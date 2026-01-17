@@ -40,3 +40,16 @@ build/
 # OS
 Thumbs.db
 .directory
+
+# Test environment backup
+.repo_update_backup_*
+
+# Local development
+.env
+.env.local
+*.pem
+*.key
+
+# Documentation build
+docs/_build/
+site/
