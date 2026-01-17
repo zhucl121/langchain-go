@@ -1,7 +1,7 @@
 module langchain-go
 
-// 按照 Milvus 依赖要求设置 Go 版本
-go 1.24.11
+// Go 版本
+go 1.21
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0

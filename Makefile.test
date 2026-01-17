@@ -1,0 +1,70 @@
+# LangChain-Go 测试 Makefile
+# 提供便捷的测试命令
+
+# 使用新版 Go
+export PATH := /usr/local/go/bin:$(PATH)
+
+.PHONY: help test-env-up test-env-down test-env-status test test-redis test-milvus test-all test-verbose test-coverage
+
+# 默认目标
+help:
+	@echo "LangChain-Go 测试命令"
+	@echo ""
+	@echo "环境管理:"
+	@echo "  make test-env-up       - 启动测试环境 (Redis + Milvus)"
+	@echo "  make test-env-down     - 停止测试环境"
+	@echo "  make test-env-status   - 查看测试环境状态"
+	@echo ""
+	@echo "运行测试:"
+	@echo "  make test              - 运行所有测试"
+	@echo "  make test-redis        - 仅运行 Redis 测试"
+	@echo "  make test-milvus       - 仅运行 Milvus 测试"
+	@echo "  make test-verbose      - 运行所有测试 (详细输出)"
+	@echo "  make test-coverage     - 运行测试并生成覆盖率报告"
+	@echo ""
+	@echo "示例:"
+	@echo "  make test-env-up       # 首次使用，先启动环境"
+	@echo "  make test              # 运行测试"
+	@echo "  make test-env-down     # 测试完成后停止环境"
+
+# 启动测试环境
+test-env-up:
+	@bash scripts/test-env-setup.sh
+
+# 停止测试环境
+test-env-down:
+	@bash scripts/test-env-stop.sh
+
+# 查看环境状态
+test-env-status:
+	@echo "测试环境状态:"
+	@echo ""
+	@docker ps --filter "name=langchain-go-" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "无运行中的容器"
+
+# 运行所有测试（排除 examples）
+test:
+	@go test $$(go list ./... | grep -v '/examples') -short
+
+# 运行所有测试 (详细输出)
+test-verbose:
+	@go test $$(go list ./... | grep -v '/examples') -short -v
+
+# 仅运行 Redis 测试
+test-redis:
+	@bash scripts/run-tests.sh ./core/cache -v -run Redis
+
+# 仅运行 Milvus 测试
+test-milvus:
+	@bash scripts/run-tests.sh ./retrieval/vectorstores -v -run Milvus
+
+# 运行测试并生成覆盖率
+test-coverage:
+	@echo "生成测试覆盖率报告..."
+	@go test $$(go list ./... | grep -v '/examples') -short -coverprofile=coverage.out
+	@go tool cover -html=coverage.out -o coverage.html
+	@echo "覆盖率报告已生成: coverage.html"
+	@open coverage.html 2>/dev/null || true
+
+# 运行所有测试 (完整模式，包括慢速测试)
+test-all:
+	@go test $$(go list ./... | grep -v '/examples')
