@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // HTTPGetTool HTTP GET 请求工具。

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // RunnableLambda 将普通函数包装为 Runnable。

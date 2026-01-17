@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"langchain-go/core/cache"
-	"langchain-go/core/chat"
-	"langchain-go/core/chat/providers/openai"
+	"github.com/zhucl121/langchain-go/core/cache"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/chat/providers/openai"
 )
 
 // RedisCache 使用示例

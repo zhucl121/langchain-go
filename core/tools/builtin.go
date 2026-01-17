@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // HTTPRequestTool 是 HTTP 请求工具。

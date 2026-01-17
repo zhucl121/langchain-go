@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 	
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // SearchEngine 定义搜索引擎类型

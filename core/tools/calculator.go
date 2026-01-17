@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // CalculatorTool 是计算器工具。

@@ -6,9 +6,9 @@ import (
 	"regexp"
 	"strings"
 	
-	"langchain-go/core/chat"
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // SelfAskAgent 是 Self-Ask Agent。

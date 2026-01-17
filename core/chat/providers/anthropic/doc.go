@@ -10,7 +10,7 @@
 //
 // 基本用法：
 //
-//	import "langchain-go/core/chat/providers/anthropic"
+//	import "github.com/zhucl121/langchain-go/core/chat/providers/anthropic"
 //
 //	model, err := anthropic.New(anthropic.Config{
 //	    APIKey: "sk-ant-...",

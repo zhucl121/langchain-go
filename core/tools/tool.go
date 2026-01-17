@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // 常见错误

@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // FileOperation 定义文件操作类型

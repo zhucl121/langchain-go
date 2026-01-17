@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"testing"
 
-	"langchain-go/core/chat"
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // MockChatModel 是用于测试的模拟聊天模型。

@@ -15,8 +15,8 @@
 //
 //	import (
 //	    "context"
-//	    "langchain-go/core/tools"
-//	    "langchain-go/pkg/types"
+//	    "github.com/zhucl121/langchain-go/core/tools"
+//	    "github.com/zhucl121/langchain-go/pkg/types"
 //	)
 //
 //	// 创建自定义工具

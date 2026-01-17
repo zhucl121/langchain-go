@@ -3,8 +3,8 @@ package chat
 import (
 	"fmt"
 
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // ChatModel 是聊天模型的核心接口。

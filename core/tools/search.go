@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strings"
 	
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // WikipediaSearchTool 是 Wikipedia 搜索工具。

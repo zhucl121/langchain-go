@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 	
-	"langchain-go/core/middleware"
-	"langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/core/middleware"
+	"github.com/zhucl121/langchain-go/core/tools"
 )
 
 // Executor 是 Agent 执行器。

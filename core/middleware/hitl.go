@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	
-	"langchain-go/graph/hitl"
+	"github.com/zhucl121/langchain-go/graph/hitl"
 )
 
 // HITLMiddleware 是 Human-in-the-Loop 中间件。

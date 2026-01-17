@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // TestMMROptions 测试 MMR 选项。

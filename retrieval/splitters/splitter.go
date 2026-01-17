@@ -19,7 +19,7 @@ package splitters
 import (
 	"strings"
 	
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // TextSplitter 是文本分割器接口。

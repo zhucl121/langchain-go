@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 	
-	"langchain-go/core/chat"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // EntityMemory 是实体记忆实现。

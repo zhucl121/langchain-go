@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	
-	"langchain-go/retrieval/embeddings"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // TestNewInMemoryVectorStore

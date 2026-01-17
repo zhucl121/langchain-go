@@ -21,8 +21,8 @@ import (
 	"sort"
 	"sync"
 	
-	"langchain-go/retrieval/embeddings"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // VectorStore 是向量存储接口。

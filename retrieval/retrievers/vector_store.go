@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-go/retrieval/loaders"
-	"langchain-go/retrieval/vectorstores"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/vectorstores"
 )
 
 // VectorStoreRetriever 向量存储检索器

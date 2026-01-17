@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 	
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // ReActAgent 是 ReAct (Reasoning + Acting) Agent。

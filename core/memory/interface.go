@@ -3,7 +3,7 @@ package memory
 import (
 	"context"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // Memory 是记忆系统的核心接口。

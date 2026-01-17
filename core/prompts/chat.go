@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // MessagePromptTemplate 是单个消息的模板接口。

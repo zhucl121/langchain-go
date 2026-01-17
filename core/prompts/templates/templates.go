@@ -9,7 +9,7 @@
 //
 package templates
 
-import "langchain-go/core/prompts"
+import "github.com/zhucl121/langchain-go/core/prompts"
 
 // ==================== RAG Templates ====================
 

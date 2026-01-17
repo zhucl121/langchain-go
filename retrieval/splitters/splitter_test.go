@@ -5,7 +5,7 @@ import (
 	
 	"github.com/stretchr/testify/assert"
 	
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // TestCharacterTextSplitter

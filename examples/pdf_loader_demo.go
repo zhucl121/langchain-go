@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 func main() {

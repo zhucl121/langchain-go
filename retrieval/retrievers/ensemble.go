@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // EnsembleRetriever 集成检索器

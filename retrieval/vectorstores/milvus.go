@@ -12,8 +12,8 @@ import (
 	"github.com/milvus-io/milvus/client/v2/index"
 	"github.com/milvus-io/milvus/client/v2/milvusclient"
 
-	"langchain-go/retrieval/embeddings"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // MilvusVectorStore 是 Milvus 向量存储实现 (使用 SDK v2.6.x)

@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/core/runnable"
 )
 
 // JSONParser 是 JSON 输出解析器。

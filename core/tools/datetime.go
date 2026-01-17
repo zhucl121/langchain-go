@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // GetTimeTool 返回当前时间工具。

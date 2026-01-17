@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // MMROptions 是 MMR 搜索的配置选项。

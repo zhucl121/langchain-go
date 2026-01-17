@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 	
-	"langchain-go/core/runnable"
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // TestPlannerCreatePlan 测试 Planner 创建计划

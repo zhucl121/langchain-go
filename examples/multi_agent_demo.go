@@ -9,10 +9,10 @@ import (
 	"log"
 	"time"
 
-	"langchain-go/core/agents"
-	"langchain-go/core/chat/providers/openai"
-	"langchain-go/core/tools"
-	"langchain-go/core/tools/search"
+	"github.com/zhucl121/langchain-go/core/agents"
+	"github.com/zhucl121/langchain-go/core/chat/providers/openai"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/core/tools/search"
 )
 
 // createSearchTool 创建搜索工具

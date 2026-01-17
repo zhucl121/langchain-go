@@ -10,7 +10,7 @@
 //
 // 基本用法：
 //
-//	import "langchain-go/core/chat/providers/openai"
+//	import "github.com/zhucl121/langchain-go/core/chat/providers/openai"
 //
 //	model, err := openai.New(openai.Config{
 //	    APIKey: "sk-...",

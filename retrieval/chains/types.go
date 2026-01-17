@@ -19,9 +19,9 @@ import (
 	"context"
 	"time"
 
-	"langchain-go/core/chat"
-	"langchain-go/core/prompts"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/prompts"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // Retriever 检索器接口

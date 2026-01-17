@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // StructuredParser 是类型安全的结构化输出解析器。

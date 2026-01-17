@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 	
-	"langchain-go/core/agents"
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/agents"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // mockSlowTool 是一个模拟的慢速工具（用于测试并行执行）。

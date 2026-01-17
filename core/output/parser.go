@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // OutputParser 是输出解析器的核心接口。

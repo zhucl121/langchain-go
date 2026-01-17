@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // MessageConverter 提供消息格式转换的工具函数。

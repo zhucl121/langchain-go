@@ -15,7 +15,7 @@
 //
 //	import (
 //	    "context"
-//	    "langchain-go/core/output"
+//	    "github.com/zhucl121/langchain-go/core/output"
 //	)
 //
 //	// 创建 JSON 解析器

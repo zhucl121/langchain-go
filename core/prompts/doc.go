@@ -16,7 +16,7 @@
 //
 //	import (
 //	    "context"
-//	    "langchain-go/core/prompts"
+//	    "github.com/zhucl121/langchain-go/core/prompts"
 //	)
 //
 //	// 创建简单模板

@@ -15,8 +15,8 @@
 //
 //	import (
 //	    "context"
-//	    "langchain-go/core/chat/providers/openai"
-//	    "langchain-go/pkg/types"
+//	    "github.com/zhucl121/langchain-go/core/chat/providers/openai"
+//	    "github.com/zhucl121/langchain-go/pkg/types"
 //	)
 //
 //	// 创建 OpenAI 模型

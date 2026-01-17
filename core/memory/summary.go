@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // ChatModel 是 LLM 的简化接口（用于避免循环依赖）。

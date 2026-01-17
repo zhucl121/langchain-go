@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // RandomNumberTool 随机数生成工具。

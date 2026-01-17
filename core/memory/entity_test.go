@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 	
-	"langchain-go/core/chat"
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // MockChatModelForEntity 用于 EntityMemory 测试的 Mock

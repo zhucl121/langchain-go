@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 	
-	"langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/core/tools"
 )
 
 // MockMultiAgent 模拟的 MultiAgent

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 	
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // DatabaseType 定义数据库类型

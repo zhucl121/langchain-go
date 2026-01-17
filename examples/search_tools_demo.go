@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 	
-	"langchain-go/core/tools/search"
+	"github.com/zhucl121/langchain-go/core/tools/search"
 )
 
 func main() {

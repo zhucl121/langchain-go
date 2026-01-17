@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 	
-	"langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/core/tools"
 )
 
 // RetryConfig 重试配置。

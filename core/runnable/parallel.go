@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // RunnableParallel 表示并行执行的 Runnable 集合。

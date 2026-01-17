@@ -15,8 +15,8 @@
 //
 //	import (
 //	    "context"
-//	    "langchain-go/core/memory"
-//	    "langchain-go/pkg/types"
+//	    "github.com/zhucl121/langchain-go/core/memory"
+//	    "github.com/zhucl121/langchain-go/pkg/types"
 //	)
 //
 //	// 创建缓冲记忆

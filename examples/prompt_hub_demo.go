@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log"
 	
-	"langchain-go/core/prompts"
+	"github.com/zhucl121/langchain-go/core/prompts"
 )
 
 func main() {

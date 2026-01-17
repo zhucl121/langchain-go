@@ -22,7 +22,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // Retriever 检索器接口

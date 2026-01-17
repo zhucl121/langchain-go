@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	
-	"langchain-go/core/chat"
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // OpenAIFunctionsAgent 是专门针对 OpenAI Functions API 优化的 Agent。

@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"langchain-go/core/chat"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // MultiAgent 扩展了基础 Agent，支持协作能力

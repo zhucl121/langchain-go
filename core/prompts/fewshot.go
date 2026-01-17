@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // FewShotPromptTemplate 是 Few-shot 学习的提示词模板。

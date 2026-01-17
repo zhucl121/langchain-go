@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"langchain-go/core/chat"
-	"langchain-go/core/prompts"
-	"langchain-go/pkg/types"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/prompts"
+	"github.com/zhucl121/langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // NewRAGChain 创建 RAG Chain
@@ -550,5 +550,5 @@ var DefaultRAGPrompt = &prompts.PromptTemplate{
 }
 
 // 注意: 可以使用 core/prompts/templates.DefaultRAGPrompt 替代
-// import "langchain-go/core/prompts/templates"
+// import "github.com/zhucl121/langchain-go/core/prompts/templates"
 // var DefaultRAGPrompt = templates.DefaultRAGPrompt

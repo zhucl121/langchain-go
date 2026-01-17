@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"langchain-go/core/chat"
-	"langchain-go/core/prompts"
-	"langchain-go/pkg/types"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/prompts"
+	"github.com/zhucl121/langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // MultiQueryRetriever 多查询检索器

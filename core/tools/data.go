@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 	
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 	
 	"gopkg.in/yaml.v3"
 )

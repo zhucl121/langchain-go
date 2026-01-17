@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"langchain-go/core/chat"
-	"langchain-go/pkg/types"
-	"langchain-go/retrieval/loaders"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // LLMReranker 是基于 LLM 的重排序器。

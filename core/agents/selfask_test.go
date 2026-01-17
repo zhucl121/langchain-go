@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 	
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // MockSearchTool 是用于测试的模拟搜索工具。

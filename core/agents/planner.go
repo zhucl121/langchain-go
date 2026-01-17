@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 	
-	"langchain-go/core/chat"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // Planner 是任务规划器。

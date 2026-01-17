@@ -3,9 +3,9 @@ package agents
 import (
 	"context"
 	
-	"langchain-go/core/chat"
-	"langchain-go/core/prompts/templates"
-	"langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/prompts/templates"
+	"github.com/zhucl121/langchain-go/core/tools"
 )
 
 // CreateReActAgent 创建 ReAct Agent (简化工厂函数)。

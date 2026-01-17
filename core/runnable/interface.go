@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // Runnable 是所有可执行组件的核心接口。

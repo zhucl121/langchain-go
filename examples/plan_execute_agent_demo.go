@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"strings"
 	
-	"langchain-go/core/agents"
-	"langchain-go/core/chat"
-	"langchain-go/core/runnable"
-	"langchain-go/core/tools"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/agents"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/core/tools"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // 创建一个简单的 Mock ChatModel 用于演示

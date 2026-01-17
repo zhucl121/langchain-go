@@ -3,9 +3,9 @@ package agents
 import (
 	"context"
 	
-	"langchain-go/core/chat"
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/chat"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // MockChatModel 是一个用于测试的mock ChatModel

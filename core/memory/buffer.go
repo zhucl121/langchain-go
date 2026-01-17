@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // BufferMemory 是简单的缓冲记忆实现。

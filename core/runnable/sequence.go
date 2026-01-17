@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // RunnableSequence 表示串联执行的 Runnable 序列。

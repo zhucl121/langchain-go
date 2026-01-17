@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // RetryRunnable 为 Runnable 添加重试逻辑。

@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"langchain-go/core/runnable"
-	"langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/core/runnable"
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // PromptTemplate 是一个简单的字符串模板，支持变量替换。
