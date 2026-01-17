@@ -366,6 +366,106 @@ func (m *ChatModel) GetType() string {
 	return "ollama"
 }
 
+// Batch implements Runnable interface for batch execution.
+func (m *ChatModel) Batch(ctx context.Context, inputs [][]types.Message, opts ...runnable.Option) ([]types.Message, error) {
+	if len(inputs) == 0 {
+		return []types.Message{}, nil
+	}
+
+	results := make([]types.Message, len(inputs))
+	errs := make([]error, len(inputs))
+
+	// Use channel for parallel execution
+	type result struct {
+		index int
+		msg   types.Message
+		err   error
+	}
+
+	resultChan := make(chan result, len(inputs))
+
+	// Execute all requests in parallel
+	for i, messages := range inputs {
+		go func(idx int, msgs []types.Message) {
+			msg, err := m.Invoke(ctx, msgs, opts...)
+			resultChan <- result{index: idx, msg: msg, err: err}
+		}(i, messages)
+	}
+
+	// Collect results
+	for i := 0; i < len(inputs); i++ {
+		res := <-resultChan
+		results[res.index] = res.msg
+		errs[res.index] = res.err
+	}
+
+	// Check for errors
+	for i, err := range errs {
+		if err != nil {
+			return nil, fmt.Errorf("batch request %d failed: %w", i, err)
+		}
+	}
+
+	return results, nil
+}
+
+// BindTools binds tools to the model (returns a new instance).
+func (m *ChatModel) BindTools(tools []types.Tool) chat.ChatModel {
+	// Create new instance
+	newModel := &ChatModel{
+		BaseChatModel: chat.NewBaseChatModel(m.config.Model, "ollama"),
+		config:        m.config,
+		client:        m.client,
+	}
+
+	// Set tools
+	newModel.SetBoundTools(tools)
+
+	return newModel
+}
+
+// WithStructuredOutput configures the model to return structured output.
+func (m *ChatModel) WithStructuredOutput(schema types.Schema) chat.ChatModel {
+	// Create new instance
+	newModel := &ChatModel{
+		BaseChatModel: chat.NewBaseChatModel(m.config.Model, "ollama"),
+		config:        m.config,
+		client:        m.client,
+	}
+
+	// Set format to JSON for structured output
+	newConfig := m.config
+	newConfig.Format = "json"
+	newModel.config = newConfig
+
+	return newModel
+}
+
+// WithConfig implements Runnable interface.
+func (m *ChatModel) WithConfig(config *types.Config) runnable.Runnable[[]types.Message, types.Message] {
+	newModel := &ChatModel{
+		BaseChatModel: chat.NewBaseChatModel(m.config.Model, "ollama"),
+		config:        m.config,
+		client:        m.client,
+	}
+	newModel.SetConfig(config)
+	newModel.SetBoundTools(m.GetBoundTools())
+	if schema := m.GetOutputSchema(); schema != nil {
+		newModel.SetOutputSchema(*schema)
+	}
+	return newModel
+}
+
+// WithFallbacks implements Runnable interface.
+func (m *ChatModel) WithFallbacks(fallbacks ...runnable.Runnable[[]types.Message, types.Message]) runnable.Runnable[[]types.Message, types.Message] {
+	return runnable.NewFallbackRunnable[[]types.Message, types.Message](m, fallbacks)
+}
+
+// WithRetry implements Runnable interface.
+func (m *ChatModel) WithRetry(policy types.RetryPolicy) runnable.Runnable[[]types.Message, types.Message] {
+	return runnable.NewRetryRunnable[[]types.Message, types.Message](m, policy)
+}
+
 // Request/Response types
 
 type ollamaRequest struct {
