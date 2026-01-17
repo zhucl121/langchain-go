@@ -26,6 +26,28 @@ LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [Lan
 go get github.com/zhucl121/langchain-go
 ```
 
+### 支持的 LLM 提供商
+
+LangChain-Go 支持多种 LLM 提供商，开箱即用：
+
+- ✅ **OpenAI** - GPT-3.5, GPT-4, GPT-4 Turbo, GPT-4o
+- ✅ **Anthropic** - Claude 3 (Opus, Sonnet, Haiku)
+- ✅ **Ollama** - 本地运行开源模型（Llama 2, Mistral, CodeLlama 等）⭐ NEW!
+
+```go
+// OpenAI
+import "github.com/zhucl121/langchain-go/core/chat/providers/openai"
+model := openai.New(openai.Config{APIKey: "...", Model: "gpt-4"})
+
+// Claude
+import "github.com/zhucl121/langchain-go/core/chat/providers/anthropic"
+model := anthropic.New(anthropic.Config{APIKey: "...", Model: "claude-3-sonnet-20240229"})
+
+// Ollama (本地模型)
+import "github.com/zhucl121/langchain-go/core/chat/providers/ollama"
+model := ollama.New(ollama.Config{Model: "llama2", BaseURL: "http://localhost:11434"})
+```
+
 ### 30秒上手
 
 #### 1. 简单的RAG应用（3行代码）
