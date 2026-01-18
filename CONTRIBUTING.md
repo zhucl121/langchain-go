@@ -394,7 +394,7 @@ Describe the tests you ran and how to reproduce them.
 
 - **GitHub Discussions**: Ask questions and discuss ideas
 - **GitHub Issues**: Report bugs and request features
-- **Documentation**: Check our [docs](./docs) folder
+- **Documentation**: Check our [docs](./docs) folder and [QUICK_START.md](./QUICK_START.md)
 
 ### Recognition
 

@@ -20,14 +20,14 @@
 ## 🚀 推荐学习顺序
 
 ### 第一步：安装（5分钟）
-从[安装指南](./installation.md)开始，设置开发环境。
+从[快速开始](../../QUICK_START.md)开始，设置开发环境。
 
 ```bash
-go get github.com/yourusername/langchain-go
+go get github.com/zhucl121/langchain-go
 ```
 
 ### 第二步：基础使用（10分钟）
-跟随[快速开始](./quickstart.md)，学习基本概念：
+跟随[快速开始](../../QUICK_START.md)，学习基本概念：
 - 调用 LLM
 - 使用提示词模板
 - 解析 LLM 输出
@@ -102,9 +102,9 @@ result, _ := app.Invoke(ctx, initialState)
 
 ## 🆘 遇到问题？
 
-- 查看 [常见问题](../reference/faq.md)
-- 搜索 [GitHub Issues](https://github.com/yourusername/langchain-go/issues)
-- 提问 [Discussions](https://github.com/yourusername/langchain-go/discussions)
+- 查看根目录 [QUICK_START.md](../../QUICK_START.md)
+- 搜索 [GitHub Issues](https://github.com/zhucl121/langchain-go/issues)
+- 提问 [Discussions](https://github.com/zhucl121/langchain-go/discussions)
 
 ---
 

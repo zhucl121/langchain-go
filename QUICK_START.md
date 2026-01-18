@@ -1,78 +1,40 @@
-# LangChain-Go 快速开始指南
+# LangChain-Go 快速开始
 
-> 更新时间: 2026-01-16  
-> 版本: v0.1.0 (修复完成版)
-
----
-
-## 🚀 快速开始
-
-### 1. 验证安装
-
-```bash
-cd langchain-go
-./verify.sh
-```
-
-**预期输出**: 
-- ✅ 编译通过
-- ✅ 测试通过
-- ✅ 示例程序大部分可用
+欢迎使用 LangChain-Go! 本指南将在 5 分钟内帮助您上手使用。
 
 ---
 
-## 📚 常用命令
-
-### 编译和测试
+## 📦 安装
 
 ```bash
-# 编译所有包
-go build $(go list ./... | grep -v '/examples')
-
-# 运行所有测试
-go test $(go list ./... | grep -v '/examples')
-
-# 编译单个示例
-go build examples/agent_simple_demo.go
-
-# 运行示例
-go run examples/agent_simple_demo.go
+go get github.com/zhucl121/langchain-go
 ```
 
-### 代码质量检查
-
-```bash
-# 运行 go vet
-go vet ./...
-
-# 格式化代码
-go fmt ./...
-
-# 检查依赖
-go mod tidy
-```
+**系统要求**:
+- Go 1.21 或更高版本
+- (可选) Docker Desktop - 用于运行测试
 
 ---
 
-## 🎯 核心功能使用
+## 🚀 30秒上手
 
-### 1. 创建简单 Agent
+### 1. 最简单的示例 - 调用 LLM
 
 ```go
 package main
 
 import (
     "context"
+    "fmt"
     "log"
     
-    "langchain-go/core/agents"
-    "langchain-go/core/chat/providers/openai"
-    "langchain-go/core/tools"
+    "github.com/zhucl121/langchain-go/core/chat/providers/openai"
+    "github.com/zhucl121/langchain-go/pkg/types"
 )
 
 func main() {
-    // 1. 创建 LLM
-    llm, err := openai.New(openai.Config{
+    // 创建 OpenAI 客户端
+    model, err := openai.New(openai.Config{
         APIKey: "your-api-key",
         Model:  "gpt-3.5-turbo",
     })
@@ -80,270 +42,398 @@ func main() {
         log.Fatal(err)
     }
     
-    // 2. 创建工具
-    tools := []tools.Tool{
-        tools.NewCalculatorTool(),
+    // 发送消息
+    response, err := model.Invoke(context.Background(), []types.Message{
+        types.NewUserMessage("你好,请介绍一下你自己"),
+    })
+    if err != nil {
+        log.Fatal(err)
     }
     
-    // 3. 创建 Agent
-    agent := agents.CreateReActAgent(llm, tools)
-    
-    // 4. 运行
-    executor := agents.NewSimplifiedAgentExecutor(agent, tools)
-    result, _ := executor.Run(context.Background(), "计算 25 * 4")
-    
-    log.Println(result)
+    fmt.Println(response.Content)
 }
 ```
 
-### 2. 使用工具
+### 2. 使用本地模型 - Ollama
 
 ```go
-// 获取内置工具
-basicTools := tools.GetBasicTools()
-timeTools := tools.GetTimeTools()
-allTools := tools.GetBuiltinTools()
+import "github.com/zhucl121/langchain-go/core/chat/providers/ollama"
 
-// 创建自定义工具
-customTool := tools.NewFunctionTool(tools.FunctionToolConfig{
-    Name:        "my_tool",
-    Description: "My custom tool",
-    Fn: func(ctx context.Context, input map[string]any) (any, error) {
-        return "result", nil
-    },
+// 使用本地 Ollama 模型
+model := ollama.New(ollama.Config{
+    Model:   "llama2",
+    BaseURL: "http://localhost:11434",
 })
 ```
 
-### 3. 搜索工具
+### 3. 创建简单 Agent
 
 ```go
-import "langchain-go/core/tools/search"
+import (
+    "github.com/zhucl121/langchain-go/core/agents"
+    "github.com/zhucl121/langchain-go/core/tools"
+)
 
-// 创建搜索工具
-provider := search.NewDuckDuckGoProvider(search.DuckDuckGoConfig{})
-searchTool, _ := search.NewSearchTool(provider, search.SearchOptions{
-    MaxResults: 5,
-})
+// 创建工具
+calculator := tools.NewCalculatorTool()
+search := tools.NewDuckDuckGoSearchTool(nil)
+
+// 一行代码创建 Agent
+agent := agents.CreateReActAgent(llm, []tools.Tool{calculator, search})
+
+// 执行任务
+result, _ := agent.Run(context.Background(), 
+    "搜索今天的天气,然后计算25的平方根")
+fmt.Println(result)
 ```
 
-### 4. Multi-Agent 系统
+### 4. 3行代码实现 RAG
 
 ```go
-// 创建协调器
+import (
+    "github.com/zhucl121/langchain-go/retrieval/chains"
+    "github.com/zhucl121/langchain-go/retrieval/retrievers"
+)
+
+retriever := retrievers.NewVectorStoreRetriever(vectorStore)
+ragChain := chains.NewRAGChain(retriever, llm)
+result, _ := ragChain.Run(context.Background(), "What is LangChain?")
+```
+
+---
+
+## 🎯 核心功能快速导航
+
+### Agent 系统
+
+LangChain-Go 提供 7 种 Agent 类型:
+
+```go
+// 1. ReAct Agent - 推理和行动
+agent := agents.CreateReActAgent(llm, tools)
+
+// 2. Tool Calling Agent - 函数调用
+agent := agents.CreateToolCallingAgent(llm, tools)
+
+// 3. OpenAI Functions Agent
+agent := agents.CreateOpenAIFunctionsAgent(llm, tools)
+
+// 4. Plan-Execute Agent - 计划执行
+agent := agents.CreatePlanExecuteAgent(llm, tools)
+
+// 5. Self-Ask Agent - 自问自答
+agent := agents.CreateSelfAskAgent(llm, tools)
+
+// 6. Structured Chat Agent - 结构化对话
+agent := agents.CreateStructuredChatAgent(llm, tools)
+
+// 7. Conversational Agent - 对话型
+agent := agents.CreateConversationalAgent(llm, tools, memory)
+```
+
+### Multi-Agent 协作
+
+创建多 Agent 系统处理复杂任务:
+
+```go
+// 创建协调策略
+strategy := agents.NewSequentialStrategy(llm)
 coordinator := agents.NewCoordinatorAgent("coordinator", llm, strategy)
 
-// 创建系统
-system := agents.NewMultiAgentSystem(coordinator, config)
+// 创建多 Agent 系统
+system := agents.NewMultiAgentSystem(coordinator, nil)
 
 // 添加专用 Agent
 researcher := agents.NewResearcherAgent("researcher", llm, searchTool)
+writer := agents.NewWriterAgent("writer", llm, nil)
+
 system.AddAgent("researcher", researcher)
+system.AddAgent("writer", writer)
+
+// 执行复杂任务
+result, _ := system.Run(context.Background(), 
+    "研究Go语言的最新特性,然后写一篇技术文章")
 ```
 
----
+### 工具生态
 
-## 📖 可用示例
-
-### 成功运行的示例 (9个)
-
-1. **agent_simple_demo.go** - 基础 Agent 使用
-2. **advanced_search_demo.go** - 高级搜索功能
-3. **multi_agent_demo.go** - Multi-Agent 系统
-4. **multimodal_demo.go** - 多模态工具
-5. **pdf_loader_demo.go** - PDF 加载
-6. **prompt_hub_demo.go** - Prompt 管理
-7. **search_tools_demo.go** - 搜索工具
-8. **selfask_agent_demo.go** - Self-Ask Agent
-9. **structured_chat_demo.go** - 结构化对话
-
-### 运行示例
-
-```bash
-# 简单 Agent
-go run examples/agent_simple_demo.go
-
-# 搜索工具
-go run examples/search_tools_demo.go
-
-# Multi-Agent
-go run examples/multi_agent_demo.go
-```
-
----
-
-## 🔧 常见问题
-
-### Q: 编译错误 "package not found"
-```bash
-go mod tidy
-go mod download
-```
-
-### Q: 测试失败
-```bash
-# 清理缓存
-go clean -testcache
-go test ./...
-```
-
-### Q: 示例程序需要 API Key
-```bash
-# 设置环境变量
-export OPENAI_API_KEY="your-key"
-export ANTHROPIC_API_KEY="your-key"
-```
-
----
-
-## 📝 API 变更说明
-
-### OpenAI Client
+38 个内置工具,开箱即用:
 
 ```go
-// ❌ 旧版本
-llm := openai.NewChatOpenAI("gpt-3.5-turbo")
-
-// ✅ 新版本
-llm, err := openai.New(openai.Config{
-    APIKey: "your-api-key",
-    Model:  "gpt-3.5-turbo",
-})
-```
-
-### 工具调用
-
-```go
-// ❌ 旧版本
-tools.NewCalculator()
-
-// ✅ 新版本
+// 基础工具
 tools.NewCalculatorTool()
+tools.NewGetTimeTool()
+tools.NewGetDateTool()
+
+// 搜索工具
+tools.NewDuckDuckGoSearchTool(nil)
+tools.NewGoogleSearchTool(&googleConfig)
+
+// 文件工具
+tools.NewReadFileTool()
+tools.NewWriteFileTool()
+
+// 多模态工具
+tools.NewImageAnalysisTool(config)
+tools.NewSpeechToTextTool(config)
+tools.NewTextToSpeechTool(config)
+
+// 获取所有工具
+allTools := tools.GetBuiltinTools()
 ```
 
-### FunctionTool
+### RAG 能力
+
+完整的 RAG 工作流:
 
 ```go
-// ❌ 旧版本
-tools.NewFunctionTool("name", "desc", fn)
+// 1. 加载文档
+loader := loaders.NewPDFLoader("document.pdf")
+documents, _ := loader.Load()
 
-// ✅ 新版本
-tools.NewFunctionTool(tools.FunctionToolConfig{
-    Name:        "name",
-    Description: "desc",
-    Fn:          fn,
-})
-```
+// 2. 分割文本
+splitter := splitters.NewCharacterSplitter(1000, 200)
+chunks := splitter.SplitDocuments(documents)
 
-### Memory
+// 3. 创建向量存储
+embeddings := embeddings.NewOpenAIEmbeddings(config)
+vectorStore := vectorstores.NewMilvusVectorStore(config, embeddings)
+vectorStore.AddDocuments(chunks)
 
-```go
-// ❌ 旧版本
-memory.NewBufferMemory(10)
+// 4. 创建 RAG Chain
+retriever := retrievers.NewVectorStoreRetriever(vectorStore)
+ragChain := chains.NewRAGChain(retriever, llm)
 
-// ✅ 新版本
-memory.NewBufferMemory()
+// 5. 查询
+answer, _ := ragChain.Run(context.Background(), "你的问题")
 ```
 
 ---
 
 ## 🎓 学习路径
 
-### 初学者
-1. 阅读 `examples/agent_simple_demo.go`
-2. 运行基础示例
-3. 尝试修改参数
+### 初学者 (30分钟)
 
-### 进阶
-1. 学习 Multi-Agent 系统
-2. 创建自定义工具
-3. 集成搜索功能
+1. **安装和配置** (5分钟)
+   - 安装 LangChain-Go
+   - 获取 API Key (OpenAI/Anthropic)
 
-### 高级
-1. 实现自定义 Agent 类型
-2. 扩展 Provider 支持
-3. 性能优化
+2. **第一个 Agent** (10分钟)
+   - 运行 `examples/agent_simple_demo.go`
+   - 理解 Agent 工作原理
+
+3. **使用工具** (15分钟)
+   - 运行 `examples/search_tools_demo.go`
+   - 尝试不同的内置工具
+
+### 进阶用户 (2小时)
+
+1. **Multi-Agent 系统** (45分钟)
+   - 运行 `examples/multi_agent_demo.go`
+   - 创建自定义 Agent
+
+2. **RAG 应用** (45分钟)
+   - 运行 `examples/pdf_loader_demo.go`
+   - 实现文档问答系统
+
+3. **多模态应用** (30分钟)
+   - 运行 `examples/multimodal_demo.go`
+   - 处理图像、音频
+
+### 高级用户
+
+1. **深入文档**
+   - 阅读 [使用指南](docs/guides/)
+   - 学习 [LangGraph](docs/guides/langgraph/)
+
+2. **生产部署**
+   - 配置 [Redis 缓存](docs/guides/redis-cache.md)
+   - 集成 [可观测性](docs/advanced/performance.md)
+
+3. **贡献代码**
+   - 查看 [贡献指南](CONTRIBUTING.md)
+   - 提交 Pull Request
 
 ---
 
-## 📚 文档资源
+## 📖 示例程序
 
-### 项目文档
-- `COMPLETION_SUMMARY.md` - 详细修复过程
-- `FINAL_REPORT.md` - 完整报告
-- `REMAINING_ISSUES.md` - 已知问题
-- `README.md` - 项目说明
+项目包含 11 个完整示例:
 
-### 在线资源
-- 代码示例: `examples/` 目录
-- 测试用例: `*_test.go` 文件
-- API 文档: Go doc 注释
-
----
-
-## 🤝 贡献指南
-
-### 报告问题
-1. 运行 `./verify.sh` 检查状态
-2. 收集错误信息
-3. 提供复现步骤
-
-### 提交代码
-1. Fork 项目
-2. 创建特性分支
-3. 编写测试
-4. 提交 Pull Request
-
-### 代码规范
 ```bash
-# 格式化
-go fmt ./...
+cd examples
 
-# 检查
-go vet ./...
+# 1. 简单 Agent
+go run agent_simple_demo.go
 
-# 测试
-go test ./...
+# 2. Multi-Agent 协作
+go run multi_agent_demo.go
+
+# 3. 多模态处理
+go run multimodal_demo.go
+
+# 4. 计划执行 Agent
+go run plan_execute_agent_demo.go
+
+# 5. 搜索工具
+go run search_tools_demo.go
+
+# 6. Self-Ask Agent
+go run selfask_agent_demo.go
+
+# 7. 结构化对话
+go run structured_chat_demo.go
+
+# 8. PDF 文档加载
+go run pdf_loader_demo.go
+
+# 9. Prompt Hub
+go run prompt_hub_demo.go
+
+# 10. Redis 缓存
+go run redis_cache_demo.go
+
+# 11. 高级搜索
+go run advanced_search_demo.go
 ```
+
+**注意**: 运行示例前需要设置环境变量:
+
+```bash
+export OPENAI_API_KEY="your-key"
+export ANTHROPIC_API_KEY="your-key"  # 可选
+```
+
+---
+
+## 🔧 常见任务
+
+### 更换 LLM 提供商
+
+```go
+// OpenAI
+import "github.com/zhucl121/langchain-go/core/chat/providers/openai"
+model := openai.New(openai.Config{APIKey: "...", Model: "gpt-4"})
+
+// Claude
+import "github.com/zhucl121/langchain-go/core/chat/providers/anthropic"
+model := anthropic.New(anthropic.Config{APIKey: "...", Model: "claude-3-sonnet-20240229"})
+
+// Ollama (本地)
+import "github.com/zhucl121/langchain-go/core/chat/providers/ollama"
+model := ollama.New(ollama.Config{Model: "llama2", BaseURL: "http://localhost:11434"})
+```
+
+### 自定义工具
+
+```go
+import "github.com/zhucl121/langchain-go/core/tools"
+
+customTool := tools.NewFunctionTool(tools.FunctionToolConfig{
+    Name:        "my_custom_tool",
+    Description: "这是我的自定义工具",
+    Fn: func(ctx context.Context, input map[string]any) (any, error) {
+        // 你的工具逻辑
+        return "result", nil
+    },
+})
+```
+
+### 添加记忆
+
+```go
+import "github.com/zhucl121/langchain-go/core/memory"
+
+// 创建记忆
+memory := memory.NewBufferMemory()
+
+// 在 Agent 中使用
+agent := agents.CreateConversationalAgent(llm, tools, memory)
+```
+
+### 启用缓存
+
+```go
+import "github.com/zhucl121/langchain-go/core/cache"
+
+// 配置 Redis 缓存
+config := cache.DefaultRedisCacheConfig()
+config.Password = "your-password"
+redisCache, _ := cache.NewRedisCache(config)
+
+// 创建 LLM 缓存
+llmCache := cache.NewLLMCache(redisCache)
+
+// 在 LLM 调用中使用缓存可节省 50-90% 成本
+```
+
+---
+
+## 💡 使用技巧
+
+### 1. 流式输出
+
+```go
+// Agent 支持流式输出
+executor := agents.NewSimplifiedAgentExecutor(agent, tools)
+executor.Stream = true
+
+result, _ := executor.Run(ctx, "your task")
+```
+
+### 2. 并行工具执行
+
+```go
+// 工具会自动并行执行,提升 3x 性能
+executor := tools.NewToolExecutor(tools, nil)
+executor.MaxParallel = 5  // 最多并行 5 个工具
+```
+
+### 3. 错误处理和重试
+
+```go
+// 自动重试配置
+import "github.com/zhucl121/langchain-go/pkg/types"
+
+retryPolicy := types.RetryPolicy{
+    MaxRetries: 3,
+    Backoff:    types.ExponentialBackoff,
+}
+
+// Agent 会自动使用重试策略
+```
+
+---
+
+## 📚 更多资源
+
+- 📘 [完整文档](docs/) - 详细使用指南
+- 📗 [API 参考](https://pkg.go.dev/github.com/zhucl121/langchain-go) - GoDoc 文档
+- 📕 [示例代码](examples/) - 11 个完整示例
+- 📙 [变更日志](CHANGELOG.md) - 版本更新记录
+- 💡 [贡献指南](CONTRIBUTING.md) - 如何贡献
+
+---
+
+## ❓ 遇到问题?
+
+1. **查看文档**: [docs/](docs/)
+2. **运行示例**: [examples/](examples/)
+3. **查看测试**: 测试文件是最好的使用示例
+4. **提交 Issue**: [GitHub Issues](https://github.com/zhucl121/langchain-go/issues)
+5. **加入讨论**: [GitHub Discussions](https://github.com/zhucl121/langchain-go/discussions)
 
 ---
 
 ## 🎯 下一步
 
-### 立即可用
-- ✅ 开发新功能
-- ✅ 集成到项目
-- ✅ 学习和实验
-
-### 后续改进
-- [ ] 实现 Ollama Provider
-- [ ] 完善 BaseChatModel
-- [ ] 提升测试覆盖率
+- ✅ 运行几个示例程序,熟悉基本用法
+- ✅ 阅读 [使用指南](docs/guides/),深入了解核心功能
+- ✅ 构建你的第一个 AI 应用
+- ✅ 给项目一个 ⭐ Star,支持开发!
 
 ---
 
-## 💡 小贴士
+**祝使用愉快! 🚀**
 
-1. **使用验证脚本**: `./verify.sh` 快速检查项目状态
-2. **查看示例**: `examples/` 目录有完整的使用示例
-3. **阅读测试**: 测试文件是最好的 API 文档
-4. **渐进学习**: 从简单示例开始,逐步深入
-
----
-
-## 📞 获取帮助
-
-### 项目状态
-```bash
-./verify.sh
-```
-
-### 详细文档
-- 修复过程: `COMPLETION_SUMMARY.md`
-- 完整报告: `FINAL_REPORT.md`
-- 已知问题: `REMAINING_ISSUES.md`
-
----
-
-**祝使用愉快!** 🚀
-
-如有问题,请参考文档或提交 Issue。
+如有问题,欢迎随时提问或查阅文档。

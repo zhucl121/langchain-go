@@ -43,23 +43,14 @@
 - [StateGraph 状态图](./guides/langgraph/stategraph.md) - 工作流编排
 - [Checkpoint 检查点](./guides/langgraph/checkpoint.md) - 状态持久化
 - [Durability 持久性](./guides/langgraph/durability.md) - 故障恢复
-- [HITL 人机协作](./guides/langgraph/hitl.md) - Human-in-the-Loop
 
 #### Agent 系统
 - [Agent 概述](./guides/agents/overview.md) - Agent 系统介绍
-- [ReAct Agent](./guides/agents/react-agent.md) - 推理和行动
 - [Plan-Execute Agent](./guides/agents/plan-execute.md) - 计划执行
-- [自定义 Agent](./guides/agents/custom-agent.md) - 创建自定义 Agent
 
 #### RAG 系统
 - [RAG 概述](./guides/rag/overview.md) - RAG 系统介绍
-- [文档加载器](./guides/rag/document-loaders.md) - 多格式文档加载
-- [文本分割器](./guides/rag/text-splitters.md) - 智能文本分割
-- [嵌入模型](./guides/rag/embeddings.md) - Embedding 集成
-- [向量存储](./guides/rag/vector-stores.md) - 向量数据库
 - [Milvus](./guides/rag/milvus.md) - Milvus 使用和 Hybrid Search
-- [Chroma](./guides/rag/chroma.md) - Chroma 向量数据库
-- [Pinecone](./guides/rag/pinecone.md) - Pinecone 云服务
 - [MMR 搜索](./guides/rag/mmr.md) - 最大边际相关性
 - [LLM Reranking](./guides/rag/reranking.md) - 智能重排序
 - [PDF 加载器](./guides/rag/pdf-loader.md) - PDF 文档处理
@@ -67,23 +58,13 @@
 ### 🔬 高级主题
 生产级功能和最佳实践
 
-- [可观测性概述](./advanced/observability.md) - 监控和追踪
-- [OpenTelemetry 集成](./advanced/opentelemetry.md) - 分布式追踪
-- [Prometheus 监控](./advanced/prometheus.md) - 指标收集
-- [图可视化](./advanced/visualization.md) - 工作流可视化
 - [搜索工具](./advanced/search-tools.md) - Google、Bing、DuckDuckGo
-- [文件和数据库工具](./advanced/file-database-tools.md) - 文件系统和 SQL
-- [EntityMemory](./advanced/entity-memory.md) - 实体识别和管理
 - [性能优化](./advanced/performance.md) - 性能调优指南
 
 ### 💡 示例
 实用代码示例和最佳实践
 
 - [示例索引](./examples/) - 所有示例列表
-- [ChatModel 示例](./examples/chat-examples.md) - 对话模型示例
-- [Prompts 示例](./examples/prompts-examples.md) - 提示词示例
-- [OutputParser 示例](./examples/output-examples.md) - 输出解析示例
-- [Tools 示例](./examples/tools-examples.md) - 工具使用示例
 
 ### 📚 API 文档
 完整的 API 参考文档
@@ -96,21 +77,12 @@
 ### 🛠️ 开发文档
 为贡献者准备的开发指南
 
-- [架构设计](./development/architecture.md) - 系统架构
-- [项目结构](./development/project-structure.md) - 代码组织
-- [贡献指南](./development/contributing.md) - 如何贡献
-- [测试指南](./development/testing.md) - 测试规范
-- [发布流程](./development/release-process.md) - 版本发布
 - [项目进度](./development/project-progress.md) - 开发进度
 
 ### 📋 参考资料
 路线图、FAQ 和其他参考信息
 
-- [项目路线图](./reference/roadmap.md) - 功能规划
 - [扩展功能清单](./reference/enhancements.md) - 增强功能
-- [迁移指南](./reference/migration-guide.md) - 版本迁移
-- [常见问题](./reference/faq.md) - FAQ
-- [简化实现说明](./reference/simplified-implementations.md) - 简化功能列表
 
 ---
 
@@ -123,17 +95,14 @@
 4. [Prompts 快速开始](./getting-started/quickstart-prompts.md)
 
 ### 进阶路径
-1. [Runnable 系统详解](./guides/core/runnable.md)
-2. [StateGraph 工作流](./guides/langgraph/stategraph.md)
-3. [Agent 系统](./guides/agents/overview.md)
-4. [RAG 系统](./guides/rag/overview.md)
+1. [StateGraph 工作流](./guides/langgraph/stategraph.md)
+2. [Agent 系统](./guides/agents/overview.md)
+3. [RAG 系统](./guides/rag/overview.md)
 
 ### 生产部署路径
 1. [Checkpoint 持久化](./guides/langgraph/checkpoint.md)
 2. [Durability 故障恢复](./guides/langgraph/durability.md)
-3. [OpenTelemetry 追踪](./advanced/opentelemetry.md)
-4. [Prometheus 监控](./advanced/prometheus.md)
-5. [性能优化](./advanced/performance.md)
+3. [性能优化](./advanced/performance.md)
 
 ---
 
@@ -141,14 +110,11 @@
 
 ### 我想...
 
-- **开始使用 LangChain-Go** → [快速开始](./getting-started/quickstart.md)
-- **调用 LLM** → [ChatModel 指南](./guides/core/chat-models.md)
-- **创建工作流** → [StateGraph 指南](./guides/langgraph/stategraph.md)
+- **开始使用 LangChain-Go** → [快速开始](../QUICK_START.md)
 - **构建 Agent** → [Agent 指南](./guides/agents/overview.md)
 - **实现 RAG** → [RAG 指南](./guides/rag/overview.md)
-- **添加监控** → [可观测性指南](./advanced/observability.md)
-- **贡献代码** → [贡献指南](./development/contributing.md)
-- **查看 API** → [GoDoc](https://pkg.go.dev/langchain-go)
+- **贡献代码** → [贡献指南](../CONTRIBUTING.md)
+- **查看 API** → [GoDoc](https://pkg.go.dev/github.com/zhucl121/langchain-go)
 
 ---
 
@@ -180,10 +146,10 @@ response, _ := model.Invoke(ctx, []types.Message{
 
 ## 🆘 获取帮助
 
-- **文档问题**: [提交 Issue](https://github.com/yourusername/langchain-go/issues)
-- **功能请求**: [Feature Request](https://github.com/yourusername/langchain-go/issues/new?template=feature_request.md)
-- **Bug 报告**: [Bug Report](https://github.com/yourusername/langchain-go/issues/new?template=bug_report.md)
-- **讨论交流**: [Discussions](https://github.com/yourusername/langchain-go/discussions)
+- **文档问题**: [提交 Issue](https://github.com/zhucl121/langchain-go/issues)
+- **功能请求**: [Feature Request](https://github.com/zhucl121/langchain-go/issues/new?template=feature_request.md)
+- **Bug 报告**: [Bug Report](https://github.com/zhucl121/langchain-go/issues/new?template=bug_report.md)
+- **讨论交流**: [Discussions](https://github.com/zhucl121/langchain-go/discussions)
 
 ---
 

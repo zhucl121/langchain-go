@@ -214,12 +214,12 @@ func main() {
 
 ## 📖 文档
 
-- 📘 [快速开始](docs/getting-started/quickstart.md)
-- 📗 [Agent指南](docs/guides/agents.md)
-- 📕 [Multi-Agent系统](docs/getting-started/multi-agent-quickstart.md)
-- 📙 [多模态工具](docs/guides/multimodal.md)
-- 📚 [API参考](docs/reference/)
-- 💡 [示例代码](examples/)
+- 📘 [快速开始](QUICK_START.md) - 5分钟快速上手
+- 📗 [完整文档](docs/README.md) - 详细使用指南
+- 📕 [Agent 指南](docs/guides/agents/README.md) - Agent 系统文档
+- 📙 [Multi-Agent 系统](docs/guides/multi-agent-guide.md) - 多Agent协作
+- 📚 [RAG 指南](docs/guides/rag/README.md) - RAG 系统文档
+- 💡 [示例代码](examples/) - 11个完整示例
 
 ## 🔧 示例程序
 
@@ -290,6 +290,23 @@ langchain-go/
 - **Agent类型**：7种 + 6个专用Agent
 - **文档页面**：50+
 - **示例程序**：11个
+
+## 🧪 测试
+
+```bash
+# 启动测试环境 (Redis + Milvus)
+make -f Makefile.test test-env-up
+
+# 运行所有测试
+make -f Makefile.test test
+
+# 停止测试环境
+make -f Makefile.test test-env-down
+```
+
+详见 [测试指南](TESTING.md)
+
+---
 
 ## 🤝 贡献
 
