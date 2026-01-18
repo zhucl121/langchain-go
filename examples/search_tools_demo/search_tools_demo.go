@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== 搜索工具集成演示 ===\n")
+	fmt.Println("=== 搜索工具集成演示 ===")
 
 	// 演示 1: DuckDuckGo 搜索（无需 API Key）
 	fmt.Println("--- 演示 1: DuckDuckGo 搜索 ---")
@@ -105,7 +105,7 @@ func demoMultipleEngines() {
 		},
 	}
 
-	fmt.Println("检查搜索引擎可用性:\n")
+	fmt.Println("检查搜索引擎可用性:")
 
 	availableCount := 0
 	for _, engine := range engines {

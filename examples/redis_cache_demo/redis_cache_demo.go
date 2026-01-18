@@ -14,7 +14,7 @@ import (
 // RedisCache 使用示例
 
 func main() {
-	fmt.Println("=== Redis Cache 使用示例 ===\n")
+	fmt.Println("=== Redis Cache 使用示例 ===")
 
 	// 1. 基础使用
 	basicUsage()
@@ -367,7 +367,7 @@ func advancedFeatures() {
 
 // 生产环境配置建议
 func productionConfig() {
-	fmt.Println("=== 生产环境配置建议 ===\n")
+	fmt.Println("=== 生产环境配置建议 ===")
 
 	// 推荐配置
 	config := cache.RedisCacheConfig{

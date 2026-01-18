@@ -41,7 +41,7 @@ func main() {
 
 // exampleSimpleAgent 示例1：创建最简单的 Agent。
 func exampleSimpleAgent() {
-	fmt.Println("\n=== 示例1：简单 Agent ===\n")
+	fmt.Println("\n=== 示例1：简单 Agent ===")
 
 	ctx := context.Background()
 
@@ -77,7 +77,7 @@ func exampleSimpleAgent() {
 
 // exampleAgentWithBasicTools 示例2：使用基础工具的 Agent。
 func exampleAgentWithBasicTools() {
-	fmt.Println("\n=== 示例2：带基础工具的 Agent ===\n")
+	fmt.Println("\n=== 示例2：带基础工具的 Agent ===")
 
 	ctx := context.Background()
 
@@ -129,7 +129,7 @@ func exampleAgentWithBasicTools() {
 
 // exampleAgentWithAllTools 示例3：使用所有内置工具的 Agent。
 func exampleAgentWithAllTools() {
-	fmt.Println("\n=== 示例3：带所有内置工具的 Agent ===\n")
+	fmt.Println("\n=== 示例3：带所有内置工具的 Agent ===")
 
 	ctx := context.Background()
 
@@ -177,7 +177,7 @@ func exampleAgentWithAllTools() {
 	task := "Get the current date and tell me what day of the week it is"
 
 	fmt.Printf("📝 Task: %s\n", task)
-	fmt.Println("---\n")
+	fmt.Println("---")
 
 	result, err := executor.Run(ctx, task)
 	if err != nil {
@@ -190,7 +190,7 @@ func exampleAgentWithAllTools() {
 
 // exampleStreamingAgent 示例4：流式执行 Agent。
 func exampleStreamingAgent() {
-	fmt.Println("\n=== 示例4：流式 Agent ===\n")
+	fmt.Println("\n=== 示例4：流式 Agent ===")
 
 	ctx := context.Background()
 
@@ -243,7 +243,7 @@ func exampleStreamingAgent() {
 
 // exampleToolCallingAgent 示例5：使用 Tool Calling Agent。
 func exampleToolCallingAgent() {
-	fmt.Println("\n=== 示例5：Tool Calling Agent ===\n")
+	fmt.Println("\n=== 示例5：Tool Calling Agent ===")
 
 	ctx := context.Background()
 
@@ -285,7 +285,7 @@ func exampleToolCallingAgent() {
 
 // exampleCustomTools 示例6：使用自定义工具。
 func exampleCustomTools() {
-	fmt.Println("\n=== 示例6：自定义工具 Agent ===\n")
+	fmt.Println("\n=== 示例6：自定义工具 Agent ===")
 
 	ctx := context.Background()
 

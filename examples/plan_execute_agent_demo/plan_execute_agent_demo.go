@@ -115,7 +115,7 @@ func (d *DemoChatModel) WithFallbacks(fallbacks ...runnable.Runnable[[]types.Mes
 }
 
 func main() {
-	fmt.Println("=== Plan-and-Execute Agent Demo ===\n")
+	fmt.Println("=== Plan-and-Execute Agent Demo ===")
 
 	// 1. 创建 Mock LLM
 	llm := &DemoChatModel{
@@ -169,11 +169,11 @@ func main() {
 	task := "Search for the population of Tokyo and calculate what 10% of it is"
 
 	fmt.Printf("📋 Task: %s\n\n", task)
-	fmt.Println("--- Execution Started ---\n")
+	fmt.Println("--- Execution Started ---")
 
 	result, err := executor.Execute(ctx, task)
 
-	fmt.Println("\n--- Execution Completed ---\n")
+	fmt.Println("\n--- Execution Completed ---")
 
 	// 6. 处理结果
 	if err != nil {

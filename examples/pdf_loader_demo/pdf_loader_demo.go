@@ -14,7 +14,7 @@ func main() {
 	// 测试 PDF 文件路径
 	pdfPath := "retrieval/loaders/testdata/数据治理全景解析与实践-蚂蚁数科.pdf"
 
-	fmt.Println("=== PDF 加载器演示 ===\n")
+	fmt.Println("=== PDF 加载器演示 ===")
 
 	// 1. 获取 PDF 信息
 	fmt.Println("1. 获取 PDF 基本信息")

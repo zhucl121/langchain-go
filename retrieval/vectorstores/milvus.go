@@ -18,7 +18,7 @@ import (
 
 // MilvusVectorStore 是 Milvus 向量存储实现 (使用 SDK v2.6.x)
 type MilvusVectorStore struct {
-	client         milvusclient.Client
+	client         *milvusclient.Client
 	collectionName string
 	embeddings     embeddings.Embeddings
 	dimension      int
@@ -42,10 +42,10 @@ type HybridSearchOptions struct {
 
 // HybridSearchResult 混合检索结果
 type HybridSearchResult struct {
-	Document      *loaders.Document
-	VectorScore   float32 // 向量检索分数
-	KeywordScore  float32 // 关键词检索分数 (如果支持)
-	FusionScore   float32 // RRF 融合后的分数
+	Document     *loaders.Document
+	VectorScore  float32 // 向量检索分数
+	KeywordScore float32 // 关键词检索分数 (如果支持)
+	FusionScore  float32 // RRF 融合后的分数
 }
 
 // MilvusConfig 是 Milvus 配置
@@ -95,7 +95,7 @@ func NewMilvusVectorStore(config MilvusConfig, emb embeddings.Embeddings) (*Milv
 	}
 
 	store := &MilvusVectorStore{
-		client:         *cli, // 解引用
+		client:         cli,
 		collectionName: config.CollectionName,
 		embeddings:     emb,
 		dimension:      dimension,
@@ -207,7 +207,7 @@ func (store *MilvusVectorStore) AddDocuments(ctx context.Context, docs []*loader
 
 	// 插入数据 (使用新 SDK v2.6.x API)
 	jsonColumn := column.NewColumnJSONBytes(store.metadataField, metadataColumn)
-	
+
 	insertOption := milvusclient.NewColumnBasedInsertOption(store.collectionName).
 		WithVarcharColumn(store.idField, idColumn).
 		WithFloatVectorColumn(store.vectorField, store.dimension, vectorColumn).
@@ -269,17 +269,17 @@ func (store *MilvusVectorStore) SimilaritySearchWithScore(ctx context.Context, q
 	var results []DocumentWithScore
 	if len(searchResults) > 0 {
 		resultSet := searchResults[0]
-		
+
 		// 获取内容列
 		contentColumn := resultSet.GetColumn(store.contentField)
 		metadataColumn := resultSet.GetColumn(store.metadataField)
-		
+
 		for i := 0; i < resultSet.ResultCount; i++ {
 			doc := &loaders.Document{
 				Content:  "",
 				Metadata: make(map[string]interface{}),
 			}
-			
+
 			// 获取内容
 			if contentColumn != nil && i < contentColumn.Len() {
 				if varcharCol, ok := contentColumn.(*column.ColumnVarChar); ok {
@@ -291,7 +291,7 @@ func (store *MilvusVectorStore) SimilaritySearchWithScore(ctx context.Context, q
 					}
 				}
 			}
-			
+
 			// 获取元数据
 			if metadataColumn != nil && i < metadataColumn.Len() {
 				if jsonCol, ok := metadataColumn.(*column.ColumnJSONBytes); ok {
@@ -303,13 +303,13 @@ func (store *MilvusVectorStore) SimilaritySearchWithScore(ctx context.Context, q
 					}
 				}
 			}
-			
+
 			// 获取分数
 			score := float32(0)
 			if i < len(resultSet.Scores) {
 				score = resultSet.Scores[i]
 			}
-			
+
 			results = append(results, DocumentWithScore{
 				Document: doc,
 				Score:    score,
@@ -379,10 +379,10 @@ func (store *MilvusVectorStore) HybridSearch(ctx context.Context, query string, 
 
 	// 2. 可以在这里添加其他搜索方法 (如 BM25 全文搜索)
 	// 目前只使用向量搜索,但架构支持扩展
-	
+
 	// 3. 使用 RRF 融合结果
 	results := store.applyRRF([][]DocumentWithScore{vectorResults}, opts.RRFRankConstant, k)
-	
+
 	return results, nil
 }
 
@@ -391,13 +391,13 @@ func (store *MilvusVectorStore) HybridSearch(ctx context.Context, query string, 
 func (store *MilvusVectorStore) applyRRF(resultSets [][]DocumentWithScore, k int, topK int) []HybridSearchResult {
 	// 使用 map 存储每个文档的分数
 	docScores := make(map[string]*HybridSearchResult)
-	
+
 	// 遍历每个结果集
 	for setIdx, results := range resultSets {
 		for rank, docWithScore := range results {
 			// 使用文档内容作为唯一标识 (简化实现)
 			docKey := docWithScore.Document.Content
-			
+
 			if _, exists := docScores[docKey]; !exists {
 				docScores[docKey] = &HybridSearchResult{
 					Document:     docWithScore.Document,
@@ -406,11 +406,11 @@ func (store *MilvusVectorStore) applyRRF(resultSets [][]DocumentWithScore, k int
 					FusionScore:  0,
 				}
 			}
-			
+
 			// 计算 RRF 分数: 1 / (k + rank)
 			rrfScore := 1.0 / float32(k+rank+1)
 			docScores[docKey].FusionScore += rrfScore
-			
+
 			// 记录各个搜索的原始分数
 			if setIdx == 0 {
 				docScores[docKey].VectorScore = docWithScore.Score
@@ -419,13 +419,13 @@ func (store *MilvusVectorStore) applyRRF(resultSets [][]DocumentWithScore, k int
 			}
 		}
 	}
-	
+
 	// 转换为切片并排序
 	var results []HybridSearchResult
 	for _, result := range docScores {
 		results = append(results, *result)
 	}
-	
+
 	// 按 RRF 融合分数降序排序
 	for i := 0; i < len(results); i++ {
 		for j := i + 1; j < len(results); j++ {
@@ -434,12 +434,12 @@ func (store *MilvusVectorStore) applyRRF(resultSets [][]DocumentWithScore, k int
 			}
 		}
 	}
-	
+
 	// 返回 top-K 结果
 	if len(results) > topK {
 		results = results[:topK]
 	}
-	
+
 	return results
 }
 
@@ -451,7 +451,7 @@ func (store *MilvusVectorStore) MultiVectorSearch(ctx context.Context, queries [
 			RRFRankConstant: 60,
 		}
 	}
-	
+
 	// 对每个查询执行搜索
 	var allResults [][]DocumentWithScore
 	for _, query := range queries {
@@ -461,9 +461,9 @@ func (store *MilvusVectorStore) MultiVectorSearch(ctx context.Context, queries [
 		}
 		allResults = append(allResults, results)
 	}
-	
+
 	// RRF 融合
 	results := store.applyRRF(allResults, opts.RRFRankConstant, k)
-	
+
 	return results, nil
 }
