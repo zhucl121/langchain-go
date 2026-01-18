@@ -5,6 +5,7 @@ go 1.24.11
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
+	github.com/go-sql-driver/mysql v1.9.3
 	github.com/ledongthuc/pdf v0.0.0-20250511090121-5959a4027728
 	github.com/lib/pq v1.10.9
 	github.com/mattn/go-sqlite3 v1.14.33
@@ -23,6 +24,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
