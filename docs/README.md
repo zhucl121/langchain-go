@@ -14,9 +14,9 @@
 
 ---
 
-## 🎉 最新更新 (v1.10.0 - 2026-01-19)
+## 🎉 最新更新 (v0.1.1 - 2026-01-19)
 
-**重大更新：15个核心功能全部完成！项目100%完工！**
+**重大更新：15个核心功能全部完成！**
 
 - ✅ 4个新向量存储 (Chroma, Qdrant, Weaviate, Redis)
 - ✅ 3个新LLM提供商 (Gemini, Bedrock, Azure)
@@ -24,7 +24,8 @@
 - ✅ 4个高级RAG技术 (Multi-Query, HyDE, Parent Document, Self-Query)
 - ✅ LCEL等效语法实现
 
-**详细报告**: [COMPLETION_REPORT.md](./COMPLETION_REPORT.md)
+**详细报告**: [COMPLETION_REPORT.md](./COMPLETION_REPORT.md)  
+**使用指南**: [高级 RAG 检索技术](./guides/rag/advanced-retrievers.md)
 
 ---
 
