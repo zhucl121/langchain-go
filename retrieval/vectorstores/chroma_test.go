@@ -24,11 +24,19 @@ func (m *MockChromaEmbedder) EmbedQuery(ctx context.Context, text string) ([]flo
 	return []float32{0.1, 0.2, 0.3, 0.4}, nil
 }
 
+func (m *MockChromaEmbedder) GetDimension() int {
+	return 4
+}
+
+func (m *MockChromaEmbedder) EmbedQuery(ctx context.Context, text string) ([]float32, error) {
+	return []float32{0.1, 0.2, 0.3, 0.4}, nil
+}
+
 func TestChromaVectorStore_NewChromaVectorStore(t *testing.T) {
 	tests := []struct {
 		name      string
 		config    ChromaConfig
-		embedder  Embedder
+		embedder  embeddings.Embeddings
 		wantError bool
 	}{
 		{
@@ -156,8 +164,8 @@ func TestChromaVectorStore_ConvertDistance(t *testing.T) {
 }
 
 func TestChromaVectorStore_GenerateID(t *testing.T) {
-	id1 := generateID()
-	id2 := generateID()
+	id1 := generateChromaID()
+	id2 := generateChromaID()
 
 	if id1 == "" {
 		t.Error("expected non-empty ID")

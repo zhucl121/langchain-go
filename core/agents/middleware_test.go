@@ -313,7 +313,11 @@ func TestLoggingAgentMiddleware(t *testing.T) {
 	_, _ = logging.OnError(ctx, state, testErr)
 
 	// OnComplete
-	result := &AgentResult{IsFinish: true, Steps: 5}
+	result := &AgentResult{
+		IsFinish:   true,
+		Steps:      []AgentStep{},
+		TotalSteps: 5,
+	}
 	err = logging.OnComplete(ctx, result)
 	if err != nil {
 		t.Errorf("OnComplete failed: %v", err)

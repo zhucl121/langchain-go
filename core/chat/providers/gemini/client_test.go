@@ -1,7 +1,6 @@
 package gemini
 
 import (
-	"context"
 	"testing"
 
 	"github.com/zhucl121/langchain-go/pkg/types"
