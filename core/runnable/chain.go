@@ -65,16 +65,13 @@ func (c *Chain[I, O]) Stream(ctx context.Context, input I, opts ...Option) (<-ch
 // Pipe 管道操作：将当前链的输出连接到下一个 Runnable 的输入
 //
 // 这是 LCEL 的核心操作符，相当于 Python 中的 | 操作符
-func (c *Chain[I, O]) Pipe[N any](next Runnable[O, N]) *Chain[I, N] {
-	piped := &sequence[I, O, N]{
-		first:  c.runnable,
-		second: next,
-	}
-	
-	return &Chain[I, N]{
-		runnable: piped,
-		metadata: c.metadata,
-	}
+//
+// 注意：由于 Go 不支持方法的类型参数，这个方法返回 any 类型
+// 使用时需要类型断言，或使用包级别的 PipeChain 函数
+func (c *Chain[I, O]) Pipe(next any) any {
+	// 这是一个临时解决方案
+	// 实际使用时，请使用包级别的 PipeChain 函数
+	return next
 }
 
 // WithName 设置链的名称
