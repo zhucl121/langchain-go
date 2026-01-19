@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
 	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
@@ -12,12 +13,12 @@ type MockChromaEmbedder struct{}
 
 func (m *MockChromaEmbedder) EmbedDocuments(ctx context.Context, texts []string) ([][]float32, error) {
 	// 返回模拟的嵌入向量
-	embeddings := make([][]float32, len(texts))
+	embeds := make([][]float32, len(texts))
 	for i := range texts {
 		// 简单的模拟向量
-		embeddings[i] = []float32{0.1, 0.2, 0.3, 0.4}
+		embeds[i] = []float32{0.1, 0.2, 0.3, 0.4}
 	}
-	return embeddings, nil
+	return embeds, nil
 }
 
 func (m *MockChromaEmbedder) EmbedQuery(ctx context.Context, text string) ([]float32, error) {
@@ -26,10 +27,6 @@ func (m *MockChromaEmbedder) EmbedQuery(ctx context.Context, text string) ([]flo
 
 func (m *MockChromaEmbedder) GetDimension() int {
 	return 4
-}
-
-func (m *MockChromaEmbedder) EmbedQuery(ctx context.Context, text string) ([]float32, error) {
-	return []float32{0.1, 0.2, 0.3, 0.4}, nil
 }
 
 func TestChromaVectorStore_NewChromaVectorStore(t *testing.T) {

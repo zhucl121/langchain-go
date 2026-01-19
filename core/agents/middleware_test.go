@@ -251,7 +251,7 @@ func TestCachingMiddleware(t *testing.T) {
 	t.Logf("Cache stats: hits=%d, misses=%d, hitRate=%.2f%%", hits, misses, hitRate)
 
 	// 测试 TTL
-	time.Sleep(1100 * time.Millisecond)
+	time.Sleep(1200 * time.Millisecond) // 增加等待时间确保缓存过期
 
 	// 缓存应该过期
 	newState3, err := cache.BeforeModel(ctx, state)
