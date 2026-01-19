@@ -15,6 +15,9 @@ LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [Lan
 - 🤝 **Multi-Agent协作** - 完整的多Agent协作系统，支持顺序、并行、层次化执行策略
 - 🛠️ **38个内置工具** - 计算、搜索、文件、数据、HTTP、多模态（图像、音频、视频）
 - 🚀 **3行代码RAG** - 简化的RAG Chain API，从150行代码降至3行
+- 🗄️ **5个向量存储** - Milvus, Chroma, Qdrant, Weaviate, Redis，支持混合搜索 ⭐ NEW!
+- 📚 **8个文档加载器** - 支持 GitHub, Confluence, PostgreSQL 等多种数据源 ⭐ NEW!
+- 🌐 **6个LLM提供商** - OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama ⭐ NEW!
 - 💾 **生产级特性** - Redis缓存、自动重试、状态持久化、可观测性、Prometheus指标
 - 📦 **完整文档** - 50+文档页面，中英文双语，含11个示例程序
 
@@ -28,20 +31,37 @@ go get github.com/zhucl121/langchain-go
 
 ### 支持的 LLM 提供商
 
-LangChain-Go 支持多种 LLM 提供商，开箱即用：
+LangChain-Go 支持主流 LLM 提供商，开箱即用：
 
 - ✅ **OpenAI** - GPT-3.5, GPT-4, GPT-4 Turbo, GPT-4o
 - ✅ **Anthropic** - Claude 3 (Opus, Sonnet, Haiku)
-- ✅ **Ollama** - 本地运行开源模型（Llama 2, Mistral, CodeLlama 等）⭐ NEW!
+- ✅ **Google Gemini** - Gemini Pro, Gemini 1.5 Pro/Flash（100万+ tokens上下文）⭐ NEW!
+- ✅ **AWS Bedrock** - Claude, Titan, Llama, Cohere（企业级托管）⭐ NEW!
+- ✅ **Azure OpenAI** - 企业级 GPT 模型（私有部署）⭐ NEW!
+- ✅ **Ollama** - 本地运行开源模型（Llama 2, Mistral, CodeLlama 等）
 
 ```go
 // OpenAI
 import "github.com/zhucl121/langchain-go/core/chat/providers/openai"
 model := openai.New(openai.Config{APIKey: "...", Model: "gpt-4"})
 
-// Claude
-import "github.com/zhucl121/langchain-go/core/chat/providers/anthropic"
-model := anthropic.New(anthropic.Config{APIKey: "...", Model: "claude-3-sonnet-20240229"})
+// Google Gemini
+import "github.com/zhucl121/langchain-go/core/chat/providers/gemini"
+model, _ := gemini.New(gemini.Config{APIKey: "...", Model: "gemini-pro"})
+
+// AWS Bedrock
+import "github.com/zhucl121/langchain-go/core/chat/providers/bedrock"
+model, _ := bedrock.New(bedrock.Config{
+    Region: "us-east-1", AccessKey: "...", SecretKey: "...",
+    Model: "anthropic.claude-v2",
+})
+
+// Azure OpenAI
+import "github.com/zhucl121/langchain-go/core/chat/providers/azure"
+model, _ := azure.New(azure.Config{
+    Endpoint: "https://your-resource.openai.azure.com",
+    APIKey: "...", Deployment: "gpt-35-turbo",
+})
 
 // Ollama (本地模型)
 import "github.com/zhucl121/langchain-go/core/chat/providers/ollama"
@@ -125,7 +145,67 @@ func main() {
 }
 ```
 
-#### 4. 多模态处理
+#### 4. 向量存储和文档加载 ⭐ NEW!
+
+```go
+package main
+
+import (
+    "context"
+    "github.com/zhucl121/langchain-go/retrieval/vectorstores"
+    "github.com/zhucl121/langchain-go/retrieval/loaders"
+)
+
+func main() {
+    // Chroma 向量存储
+    chromaConfig := vectorstores.ChromaConfig{
+        URL:            "http://localhost:8000",
+        CollectionName: "docs",
+    }
+    chromaStore := vectorstores.NewChromaVectorStore(chromaConfig, embedder)
+    
+    // Qdrant 向量存储（高性能）
+    qdrantConfig := vectorstores.QdrantConfig{
+        URL:            "http://localhost:6333",
+        CollectionName: "docs",
+        VectorSize:     384,
+    }
+    qdrantStore := vectorstores.NewQdrantVectorStore(qdrantConfig, embedder)
+    
+    // GitHub 文档加载器
+    githubConfig := loaders.GitHubLoaderConfig{
+        Owner:  "langchain-ai",
+        Repo:   "langchain",
+        Branch: "main",
+        FileExtensions: []string{".md"},
+    }
+    githubLoader, _ := loaders.NewGitHubLoader(githubConfig)
+    docs, _ := githubLoader.LoadDirectory(context.Background(), "docs")
+    
+    // Confluence 文档加载器
+    confluenceConfig := loaders.ConfluenceLoaderConfig{
+        URL:      "https://your-domain.atlassian.net/wiki",
+        Username: "user@example.com",
+        APIToken: "your-api-token",
+    }
+    confluenceLoader, _ := loaders.NewConfluenceLoader(confluenceConfig)
+    docs, _ = confluenceLoader.LoadSpace(context.Background(), "SPACE_KEY")
+    
+    // PostgreSQL 数据库加载器
+    pgConfig := loaders.PostgreSQLLoaderConfig{
+        Host:     "localhost",
+        Port:     5432,
+        Database: "mydb",
+        User:     "postgres",
+        Password: "password",
+    }
+    pgLoader, _ := loaders.NewPostgreSQLLoader(pgConfig)
+    defer pgLoader.Close()
+    docs, _ = pgLoader.LoadTable(context.Background(), "documents", "content", "title")
+}
+```
+
+#### 5. 多模态处理
 
 ```go
 package main
@@ -200,9 +280,10 @@ func main() {
 
 - **3行代码**实现完整RAG
 - **多种Retriever**，灵活选择
-- **向量存储集成**，支持Milvus等
-- **文档加载器**，支持PDF、Word、Excel等
+- **5个主流向量存储**：Milvus, Chroma, Qdrant, Weaviate, Redis ⭐ NEW!
+- **8个文档加载器**：PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL ⭐ NEW!
 - **文本分割器**，智能分块
+- **混合搜索**，向量 + BM25
 
 ### 5. 生产特性
 
@@ -283,9 +364,12 @@ langchain-go/
 
 ## 📈 技术指标
 
-- **代码量**：18,200+ 行
-- **测试覆盖**：90%+
-- **测试用例**：500+
+- **代码量**：25,000+ 行（新增 6600+ 行）⭐
+- **测试覆盖**：85%+
+- **测试用例**：600+
+- **LLM 提供商**：6个（OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama）⭐
+- **向量存储**：5个（Milvus, Chroma, Qdrant, Weaviate, Redis）⭐
+- **文档加载器**：8个（PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL）⭐
 - **内置工具**：38个
 - **Agent类型**：7种 + 6个专用Agent
 - **文档页面**：50+
