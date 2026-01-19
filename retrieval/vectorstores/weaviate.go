@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
 	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
@@ -34,7 +35,7 @@ import (
 //
 type WeaviateVectorStore struct {
 	config     WeaviateConfig
-	embedder   Embedder
+	embedder   embeddings.Embeddings
 	httpClient *http.Client
 }
 
@@ -88,7 +89,7 @@ func DefaultWeaviateConfig() WeaviateConfig {
 }
 
 // NewWeaviateVectorStore 创建 Weaviate 向量存储实例
-func NewWeaviateVectorStore(config WeaviateConfig, embedder Embedder) (*WeaviateVectorStore, error) {
+func NewWeaviateVectorStore(config WeaviateConfig, embedder embeddings.Embeddings) (*WeaviateVectorStore, error) {
 	if config.URL == "" {
 		return nil, fmt.Errorf("weaviate: URL is required")
 	}
@@ -167,7 +168,7 @@ func (w *WeaviateVectorStore) AddDocuments(ctx context.Context, docs []*loaders.
 		if id, ok := doc.Metadata["id"].(string); ok {
 			ids[i] = id
 		} else {
-			ids[i] = generateID()
+			ids[i] = generateID(i)
 		}
 		
 		// 准备属性

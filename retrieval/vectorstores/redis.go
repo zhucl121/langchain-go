@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unsafe"
 
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
 	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
@@ -31,7 +33,7 @@ import (
 //
 type RedisVectorStore struct {
 	config   RedisConfig
-	embedder Embedder
+	embedder embeddings.Embeddings
 	client   RedisClient
 }
 
@@ -101,7 +103,7 @@ type RedisClient interface {
 // 注意：需要提供一个实现了 RedisClient 接口的 Redis 客户端
 // 推荐使用 github.com/redis/go-redis 或 github.com/gomodule/redigo
 //
-func NewRedisVectorStore(config RedisConfig, embedder Embedder, client RedisClient) (*RedisVectorStore, error) {
+func NewRedisVectorStore(config RedisConfig, embedder embeddings.Embeddings, client RedisClient) (*RedisVectorStore, error) {
 	if config.IndexName == "" {
 		return nil, fmt.Errorf("redis: index name is required")
 	}
@@ -179,7 +181,7 @@ func (r *RedisVectorStore) AddDocuments(ctx context.Context, docs []*loaders.Doc
 		if id, ok := doc.Metadata["id"].(string); ok {
 			ids[i] = id
 		} else {
-			ids[i] = generateID()
+			ids[i] = generateID(i)
 		}
 		
 		// 准备数据

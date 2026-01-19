@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
 	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
@@ -33,7 +34,7 @@ import (
 //
 type QdrantVectorStore struct {
 	config     QdrantConfig
-	embedder   Embedder
+	embedder   embeddings.Embeddings
 	httpClient *http.Client
 }
 
@@ -78,7 +79,7 @@ func DefaultQdrantConfig() QdrantConfig {
 }
 
 // NewQdrantVectorStore 创建 Qdrant 向量存储实例
-func NewQdrantVectorStore(config QdrantConfig, embedder Embedder) (*QdrantVectorStore, error) {
+func NewQdrantVectorStore(config QdrantConfig, embedder embeddings.Embeddings) (*QdrantVectorStore, error) {
 	if config.URL == "" {
 		return nil, fmt.Errorf("qdrant: URL is required")
 	}
@@ -161,7 +162,7 @@ func (q *QdrantVectorStore) AddDocuments(ctx context.Context, docs []*loaders.Do
 		if id, ok := doc.Metadata["id"].(string); ok {
 			ids[i] = id
 		} else {
-			ids[i] = generateID()
+			ids[i] = generateID(i)
 		}
 		
 		// 准备有效载荷

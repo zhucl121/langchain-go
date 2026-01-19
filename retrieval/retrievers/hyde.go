@@ -34,7 +34,7 @@ import (
 //
 type HyDERetriever struct {
 	llm         chat.ChatModel
-	embedder    embeddings.Embedder
+	embedder    embeddings.Embeddings
 	vectorStore VectorStore
 	config      HyDEConfig
 }
@@ -75,7 +75,7 @@ func DefaultHyDEConfig() HyDEConfig {
 }
 
 // NewHyDERetriever 创建新的 HyDE 检索器
-func NewHyDERetriever(llm chat.ChatModel, embedder embeddings.Embedder, vectorStore VectorStore, opts ...HyDEOption) *HyDERetriever {
+func NewHyDERetriever(llm chat.ChatModel, embedder embeddings.Embeddings, vectorStore VectorStore, opts ...HyDEOption) *HyDERetriever {
 	config := DefaultHyDEConfig()
 	
 	for _, opt := range opts {
@@ -199,12 +199,14 @@ func (r *HyDERetriever) searchWithFirst(ctx context.Context, query string, hypot
 			return nil, fmt.Errorf("hyde: failed to embed query: %w", err)
 		}
 		
-		embedding = r.weightedAverage([][]float64{embedding, queryEmbedding}, 
+		embedding64 := r.weightedAverage(
+			[][]float64{float32ToFloat64(embedding), float32ToFloat64(queryEmbedding)}, 
 			[]float64{1 - r.config.QueryWeight, r.config.QueryWeight})
+		embedding = float64ToFloat32(embedding64)
 	}
 	
 	// 使用嵌入搜索
-	docs, err := r.vectorStore.SimilaritySearchByVector(ctx, embedding, r.config.TopK)
+	docs, err := r.vectorStore.SimilaritySearchByVector(ctx, float32ToFloat64(embedding), r.config.TopK)
 	if err != nil {
 		return nil, fmt.Errorf("hyde: failed to search: %w", err)
 	}
@@ -227,7 +229,7 @@ func (r *HyDERetriever) searchWithAverage(ctx context.Context, query string, hyp
 		if err != nil {
 			continue
 		}
-		embeddings = append(embeddings, embedding)
+		embeddings = append(embeddings, float32ToFloat64(embedding))
 		weights = append(weights, 1.0)
 	}
 	
@@ -242,7 +244,7 @@ func (r *HyDERetriever) searchWithAverage(ctx context.Context, query string, hyp
 			return nil, fmt.Errorf("hyde: failed to embed query: %w", err)
 		}
 		
-		embeddings = append(embeddings, queryEmbedding)
+		embeddings = append(embeddings, float32ToFloat64(queryEmbedding))
 		weights = append(weights, r.config.QueryWeight*float64(len(hypotheticalDocs)))
 	}
 	
@@ -274,7 +276,7 @@ func (r *HyDERetriever) searchSeparately(ctx context.Context, query string, hypo
 			continue
 		}
 		
-		docs, err := r.vectorStore.SimilaritySearchByVector(ctx, embedding, r.config.TopK)
+		docs, err := r.vectorStore.SimilaritySearchByVector(ctx, float32ToFloat64(embedding), r.config.TopK)
 		if err != nil {
 			continue
 		}
@@ -337,7 +339,7 @@ func (r *HyDERetriever) weightedAverage(embeddings [][]float64, weights []float6
 
 // getDocumentKey 获取文档的唯一键
 func (r *HyDERetriever) getDocumentKey(doc types.Document) string {
-	content := doc.PageContent
+	content := doc.Content
 	if len(content) > 100 {
 		content = content[:100]
 	}
@@ -375,6 +377,24 @@ func WithTopK(k int) HyDEOption {
 	return func(c *HyDEConfig) {
 		c.TopK = k
 	}
+}
+
+// float32ToFloat64 转换 float32 slice 为 float64 slice
+func float32ToFloat64(v []float32) []float64 {
+	result := make([]float64, len(v))
+	for i, val := range v {
+		result[i] = float64(val)
+	}
+	return result
+}
+
+// float64ToFloat32 转换 float64 slice 为 float32 slice  
+func float64ToFloat32(v []float64) []float32 {
+	result := make([]float32, len(v))
+	for i, val := range v {
+		result[i] = float32(val)
+	}
+	return result
 }
 
 // WithQueryEmbedding 设置是否包含查询嵌入

@@ -7,6 +7,7 @@ import (
 
 	"github.com/zhucl121/langchain-go/core/chat"
 	"github.com/zhucl121/langchain-go/pkg/types"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
 // MultiQueryRetriever 多查询生成检索器
@@ -100,7 +101,7 @@ func (r *MultiQueryRetriever) GetRelevantDocuments(ctx context.Context, query st
 	}
 	
 	// 对每个查询执行检索
-	allDocs := make([][]types.Document, 0, len(queries))
+	allDocs := make([][]*loaders.Document, 0, len(queries))
 	for _, q := range queries {
 		docs, err := r.baseRetriever.GetRelevantDocuments(ctx, q)
 		if err != nil {
@@ -114,8 +115,17 @@ func (r *MultiQueryRetriever) GetRelevantDocuments(ctx context.Context, query st
 		return nil, fmt.Errorf("multi-query retriever: no results from any query")
 	}
 	
+	// 转换类型：[][]*loaders.Document -> [][]types.Document
+	convertedDocs := make([][]types.Document, len(allDocs))
+	for i, docs := range allDocs {
+		convertedDocs[i] = make([]types.Document, len(docs))
+		for j, doc := range docs {
+			convertedDocs[i][j] = *doc
+		}
+	}
+	
 	// 合并结果
-	mergedDocs := r.mergeResults(allDocs)
+	mergedDocs := r.mergeResults(convertedDocs)
 	
 	// 去重
 	if r.config.DeduplicateResults {
@@ -377,7 +387,7 @@ func (r *MultiQueryRetriever) containsDocument(docs []types.Document, doc types.
 // getDocumentKey 获取文档的唯一键
 func (r *MultiQueryRetriever) getDocumentKey(doc types.Document) string {
 	// 使用内容前100个字符作为键
-	content := doc.PageContent
+	content := doc.Content
 	if len(content) > 100 {
 		content = content[:100]
 	}

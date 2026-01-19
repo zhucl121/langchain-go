@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
 	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
@@ -32,7 +33,7 @@ import (
 //
 type ChromaVectorStore struct {
 	config    ChromaConfig
-	embedder  Embedder
+	embedder  embeddings.Embeddings
 	httpClient *http.Client
 	
 	// 集合信息缓存
@@ -81,7 +82,7 @@ func DefaultChromaConfig() ChromaConfig {
 //   - *ChromaVectorStore: Chroma 向量存储实例
 //   - error: 错误
 //
-func NewChromaVectorStore(config ChromaConfig, embedder Embedder) (*ChromaVectorStore, error) {
+func NewChromaVectorStore(config ChromaConfig, embedder embeddings.Embeddings) (*ChromaVectorStore, error) {
 	if config.URL == "" {
 		return nil, fmt.Errorf("chroma: URL is required")
 	}
@@ -178,7 +179,7 @@ func (c *ChromaVectorStore) AddDocuments(ctx context.Context, docs []*loaders.Do
 		if id, ok := doc.Metadata["id"].(string); ok {
 			ids[i] = id
 		} else {
-			ids[i] = generateID()
+		ids[i] = generateChromaID()
 		}
 		
 		// 准备元数据
@@ -603,7 +604,7 @@ type ChromaQueryResult struct {
 	Metadatas []map[string]interface{} `json:"metadatas"`
 }
 
-// generateID 生成唯一 ID
-func generateID() string {
+// generateChromaID 生成唯一 ID
+func generateChromaID() string {
 	return fmt.Sprintf("doc_%d", time.Now().UnixNano())
 }

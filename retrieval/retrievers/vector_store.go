@@ -70,8 +70,8 @@ func WithSearchType(searchType SearchType) VectorStoreOption {
 	}
 }
 
-// WithTopK 设置返回文档数量
-func WithTopK(k int) VectorStoreOption {
+// WithVectorStoreTopK 设置返回文档数量
+func WithVectorStoreTopK(k int) VectorStoreOption {
 	return func(r *VectorStoreRetriever) {
 		r.k = k
 	}

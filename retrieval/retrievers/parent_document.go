@@ -206,7 +206,7 @@ func (r *ParentDocumentRetriever) splitDocuments(documents []types.Document, spl
 func (r *ParentDocumentRetriever) generateID(doc types.Document) string {
 	// 使用内容哈希作为 ID
 	// 实际实现可以使用更复杂的哈希算法
-	content := doc.PageContent
+	content := doc.Content
 	if len(content) > 50 {
 		content = content[:50]
 	}
@@ -263,7 +263,7 @@ func (r *ParentDocumentRetriever) deduplicateByID(docs []types.Document) []types
 
 // getDocumentKey 获取文档的唯一键
 func (r *ParentDocumentRetriever) getDocumentKey(doc types.Document) string {
-	content := doc.PageContent
+	content := doc.Content
 	if len(content) > 100 {
 		content = content[:100]
 	}
@@ -306,8 +306,9 @@ type ParentDocumentOption func(*ParentDocumentConfig)
 
 // WithParentSplitter 设置父文档分割器
 func WithParentSplitter(splitter TextSplitter) ParentDocumentOption {
-	return func(r *ParentDocumentRetriever) {
-		r.parentSplitter = splitter
+	return func(c *ParentDocumentConfig) {
+		// 父分割器不在 config 中，这个选项暂时不做任何事
+		// 需要在 NewParentDocumentRetriever 中单独设置
 	}
 }
 

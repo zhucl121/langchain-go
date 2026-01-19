@@ -148,9 +148,6 @@ const (
 // RetrieverOption 检索器配置选项
 type RetrieverOption func(interface{})
 
-// MultiQueryOption 多查询检索器配置选项
-type MultiQueryOption func(*MultiQueryRetriever)
-
 // EnsembleOption 集成检索器配置选项
 type EnsembleOption func(*EnsembleRetriever)
 
