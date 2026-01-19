@@ -3,6 +3,8 @@ package runnable
 import (
 	"context"
 	"fmt"
+
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
 
 // Chain 表示一个可执行链
@@ -88,99 +90,10 @@ func (c *Chain[I, O]) WithMetadata(key string, value interface{}) *Chain[I, O] {
 
 // ==================== 辅助函数 ====================
 
-// Parallel 并行执行多个 Runnable
-//
-// 使用示例:
-//
-//	chain := Parallel(
-//	    prompt1.Pipe(llm1),
-//	    prompt2.Pipe(llm2),
-//	    prompt3.Pipe(llm3),
-//	)
-//
-func Parallel[I, O any](runnables ...Runnable[I, O]) Runnable[I, []O] {
-	return &parallel[I, O]{
-		runnables: runnables,
-	}
-}
-
-// ParallelMap 并行执行并返回 map
-//
-// 使用示例:
-//
-//	chain := ParallelMap(map[string]Runnable[Input, Output]{
-//	    "result1": runnable1,
-//	    "result2": runnable2,
-//	})
-//
-func ParallelMap[I, O any](runnables map[string]Runnable[I, O]) Runnable[I, map[string]O] {
-	return &parallelMap[I, O]{
-		runnables: runnables,
-	}
-}
-
-// Route 条件路由
-//
-// 根据条件函数选择不同的执行路径
-//
-// 使用示例:
-//
-//	chain := Route(
-//	    func(input string) string {
-//	        if containsQuestion(input) {
-//	            return "qa"
-//	        }
-//	        return "chat"
-//	    },
-//	    map[string]Runnable[string, string]{
-//	        "qa":   qaChain,
-//	        "chat": chatChain,
-//	    },
-//	)
-//
-func Route[I, O any, K comparable](
-	selector func(I) K,
-	routes map[K]Runnable[I, O],
-) Runnable[I, O] {
-	return &router[I, O, K]{
-		selector: selector,
-		routes:   routes,
-	}
-}
-
-// Fallback 失败回退
-//
-// 如果主 Runnable 失败，尝试备用 Runnable
-//
-// 使用示例:
-//
-//	chain := Fallback(
-//	    primaryLLM,
-//	    fallbackLLM,
-//	    localLLM,
-//	)
-//
-func Fallback[I, O any](runnables ...Runnable[I, O]) Runnable[I, O] {
-	return &fallback[I, O]{
-		runnables: runnables,
-	}
-}
-
-// Retry 重试包装器
-//
-// 为 Runnable 添加重试逻辑
-//
-// 使用示例:
-//
-//	chain := Retry(llm, 3, time.Second)
-//
-func Retry[I, O any](r Runnable[I, O], maxRetries int, delay interface{}) Runnable[I, O] {
-	return &retry[I, O]{
-		runnable:   r,
-		maxRetries: maxRetries,
-		delay:      delay,
-	}
-}
+// 注意：Parallel, ParallelMap, Route, Fallback, Retry 等函数在各自的文件中定义
+// - Parallel: parallel.go
+// - Route, Fallback: 在本文件的下方定义
+// - Retry: retry.go
 
 // Map 转换函数
 //
@@ -264,6 +177,22 @@ func (r *router[I, O, K]) Stream(ctx context.Context, input I, opts ...Option) (
 	return runnable.Stream(ctx, input, opts...)
 }
 
+func (r *router[I, O, K]) GetName() string {
+	return "Router"
+}
+
+func (r *router[I, O, K]) WithConfig(config *types.Config) Runnable[I, O] {
+	return r
+}
+
+func (r *router[I, O, K]) WithRetry(policy types.RetryPolicy) Runnable[I, O] {
+	return NewRetryRunnable(r, policy)
+}
+
+func (r *router[I, O, K]) WithFallbacks(fallbacks ...Runnable[I, O]) Runnable[I, O] {
+	return NewFallbackRunnable(r, fallbacks)
+}
+
 // fallback 回退实现
 type fallback[I, O any] struct {
 	runnables []Runnable[I, O]
@@ -313,6 +242,24 @@ func (f *fallback[I, O]) Stream(ctx context.Context, input I, opts ...Option) (<
 	return ch, nil
 }
 
+func (f *fallback[I, O]) GetName() string {
+	return "Fallback"
+}
+
+func (f *fallback[I, O]) WithConfig(config *types.Config) Runnable[I, O] {
+	return f
+}
+
+func (f *fallback[I, O]) WithRetry(policy types.RetryPolicy) Runnable[I, O] {
+	return NewRetryRunnable(f, policy)
+}
+
+func (f *fallback[I, O]) WithFallbacks(fallbacks ...Runnable[I, O]) Runnable[I, O] {
+	// 合并 fallbacks
+	allFallbacks := append(f.runnables, fallbacks...)
+	return &fallback[I, O]{runnables: allFallbacks}
+}
+
 // mapper 映射函数实现
 type mapper[I, O any] struct {
 	fn func(context.Context, I) (O, error)
@@ -354,6 +301,22 @@ func (m *mapper[I, O]) Stream(ctx context.Context, input I, opts ...Option) (<-c
 	return ch, nil
 }
 
+func (m *mapper[I, O]) GetName() string {
+	return "Mapper"
+}
+
+func (m *mapper[I, O]) WithConfig(config *types.Config) Runnable[I, O] {
+	return m
+}
+
+func (m *mapper[I, O]) WithRetry(policy types.RetryPolicy) Runnable[I, O] {
+	return NewRetryRunnable(m, policy)
+}
+
+func (m *mapper[I, O]) WithFallbacks(fallbacks ...Runnable[I, O]) Runnable[I, O] {
+	return NewFallbackRunnable(m, fallbacks)
+}
+
 // filter 过滤器实现
 type filter[I any] struct {
 	predicate func(I) bool
@@ -393,6 +356,22 @@ func (f *filter[I]) Stream(ctx context.Context, input I, opts ...Option) (<-chan
 	}()
 	
 	return ch, nil
+}
+
+func (f *filter[I]) GetName() string {
+	return "Filter"
+}
+
+func (f *filter[I]) WithConfig(config *types.Config) Runnable[I, I] {
+	return f
+}
+
+func (f *filter[I]) WithRetry(policy types.RetryPolicy) Runnable[I, I] {
+	return NewRetryRunnable(f, policy)
+}
+
+func (f *filter[I]) WithFallbacks(fallbacks ...Runnable[I, I]) Runnable[I, I] {
+	return NewFallbackRunnable(f, fallbacks)
 }
 
 // parallelMap 并行 map 实现
@@ -460,4 +439,20 @@ func (p *parallelMap[I, O]) Stream(ctx context.Context, input I, opts ...Option)
 	}()
 	
 	return ch, nil
+}
+
+func (p *parallelMap[I, O]) GetName() string {
+	return "ParallelMap"
+}
+
+func (p *parallelMap[I, O]) WithConfig(config *types.Config) Runnable[I, map[string]O] {
+	return p
+}
+
+func (p *parallelMap[I, O]) WithRetry(policy types.RetryPolicy) Runnable[I, map[string]O] {
+	return NewRetryRunnable(p, policy)
+}
+
+func (p *parallelMap[I, O]) WithFallbacks(fallbacks ...Runnable[I, map[string]O]) Runnable[I, map[string]O] {
+	return NewFallbackRunnable(p, fallbacks)
 }

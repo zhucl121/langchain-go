@@ -17,8 +17,14 @@ type AgentState struct {
 	// Input 输入问题
 	Input string
 
-	// History 执行历史
+	// Steps 执行步骤（别名为 History）
+	Steps []AgentStep
+
+	// History 执行历史（指向 Steps，用于向后兼容）
 	History []AgentStep
+
+	// Extra 额外数据
+	Extra map[string]any
 
 	// Context 上下文数据
 	Context map[string]any

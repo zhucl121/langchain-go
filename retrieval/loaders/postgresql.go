@@ -243,7 +243,7 @@ func (l *PostgreSQLLoader) LoadQuery(ctx context.Context, query, contentColumn s
 		}
 		
 		documents = append(documents, types.Document{
-			PageContent: content,
+			Content: content,
 			Metadata:    metadata,
 		})
 	}

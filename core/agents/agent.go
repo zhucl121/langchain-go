@@ -135,6 +135,9 @@ type AgentResult struct {
 
 	// Success 是否成功
 	Success bool
+	
+	// IsFinish 是否完成（别名为 Success）
+	IsFinish bool
 
 	// Error 错误
 	Error error

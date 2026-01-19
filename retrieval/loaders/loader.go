@@ -21,39 +21,23 @@ package loaders
 
 import (
 	"context"
+
+	"github.com/zhucl121/langchain-go/pkg/types"
 )
+
+// Document 是 types.Document 的别名，用于向后兼容
+type Document = types.Document
+
+// NewDocument 创建文档（委托给 types.NewDocument）
+func NewDocument(content string, metadata map[string]any) *Document {
+	return types.NewDocument(content, metadata)
+}
 
 // TextSplitter 是文本分割器接口(从 splitters 包引用)
 // 为了避免循环依赖,这里定义接口
 type TextSplitter interface {
 	SplitText(text string) []string
 	SplitDocuments(docs []*Document) []*Document
-}
-
-// Document 表示一个文档。
-//
-// Document 是 RAG 系统中的基本单元，包含内容和元数据。
-//
-type Document struct {
-	// Content 文档内容
-	Content string
-	
-	// Metadata 文档元数据
-	Metadata map[string]any
-	
-	// Source 文档来源
-	Source string
-}
-
-// NewDocument 创建文档。
-func NewDocument(content string, metadata map[string]any) *Document {
-	if metadata == nil {
-		metadata = make(map[string]any)
-	}
-	return &Document{
-		Content:  content,
-		Metadata: metadata,
-	}
 }
 
 // DocumentLoader 是文档加载器接口。

@@ -78,7 +78,11 @@ func (r *RetryMiddleware) OnError(ctx context.Context, state *AgentState, err er
 	r.retryCount[stepKey] = currentRetries + 1
 
 	// 计算延迟时间（指数退避）
-	delay := time.Duration(float64(r.delay) * (1 << uint(currentRetries)) * r.backoff)
+	multiplier := 1.0
+	for i := 0; i < currentRetries; i++ {
+		multiplier *= r.backoff
+	}
+	delay := time.Duration(float64(r.delay) * multiplier)
 
 	// 等待
 	select {

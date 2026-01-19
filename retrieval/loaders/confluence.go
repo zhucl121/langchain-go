@@ -114,7 +114,7 @@ func (l *ConfluenceLoader) LoadPage(ctx context.Context, pageID string) (types.D
 	content := l.extractContent(page)
 	
 	return types.Document{
-		PageContent: content,
+		Content: content,
 		Metadata: map[string]interface{}{
 			"source":     page.Links.WebUI,
 			"page_id":    page.ID,

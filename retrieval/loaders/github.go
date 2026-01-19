@@ -112,7 +112,7 @@ func (l *GitHubLoader) LoadFile(ctx context.Context, path string) (types.Documen
 		l.config.Owner, l.config.Repo, l.config.Branch, path)
 	
 	return types.Document{
-		PageContent: content,
+		Content: content,
 		Metadata: map[string]interface{}{
 			"source":  url,
 			"path":    path,
@@ -211,7 +211,7 @@ func (l *GitHubLoader) LoadIssues(ctx context.Context, state string, limit int) 
 		content := fmt.Sprintf("# %s\n\n%s", issue.Title, issue.Body)
 		
 		documents = append(documents, types.Document{
-			PageContent: content,
+			Content: content,
 			Metadata: map[string]interface{}{
 				"source":     issue.HTMLURL,
 				"type":       "issue",
@@ -258,7 +258,7 @@ func (l *GitHubLoader) LoadPullRequests(ctx context.Context, state string, limit
 		content := fmt.Sprintf("# %s\n\n%s", pr.Title, pr.Body)
 		
 		documents = append(documents, types.Document{
-			PageContent: content,
+			Content: content,
 			Metadata: map[string]interface{}{
 				"source":     pr.HTMLURL,
 				"type":       "pull_request",
