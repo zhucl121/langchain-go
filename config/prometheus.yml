@@ -1,0 +1,37 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'langchain-go'
+    environment: 'development'
+
+# Alertmanager 配置（可选）
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# 规则文件（可选）
+rule_files:
+  # - "alert_rules.yml"
+
+# 抓取配置
+scrape_configs:
+  # LangChain-Go 应用指标
+  - job_name: 'langchain-go'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+          - 'host.docker.internal:9090'  # 应用的 metrics 端点
+        labels:
+          service: 'langchain-go'
+          component: 'quantization'
+  
+  # Prometheus 自身指标
+  - job_name: 'prometheus'
+    static_configs:
+      - targets:
+          - 'localhost:9090'
+        labels:
+          service: 'prometheus'

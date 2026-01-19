@@ -1,0 +1,244 @@
+{
+  "dashboard": {
+    "title": "LangChain-Go 向量量化监控",
+    "description": "监控向量量化器的性能和健康状态",
+    "tags": ["langchain-go", "quantization", "vector"],
+    "timezone": "browser",
+    "editable": true,
+    "graphTooltip": 1,
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "量化操作 QPS",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(langchain_quantization_encoding_total[5m])",
+            "legendFormat": "编码 - {{type}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(langchain_quantization_decoding_total[5m])",
+            "legendFormat": "解码 - {{type}}",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(langchain_quantization_distance_computation_total[5m])",
+            "legendFormat": "距离计算 - {{type}}",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "QPS"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "操作延迟 (P99)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.99, rate(langchain_quantization_encoding_duration_seconds_bucket[5m]))",
+            "legendFormat": "编码 P99 - {{type}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(langchain_quantization_decoding_duration_seconds_bucket[5m]))",
+            "legendFormat": "解码 P99 - {{type}}",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(langchain_quantization_distance_computation_duration_seconds_bucket[5m]))",
+            "legendFormat": "距离 P99 - {{type}}",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "延迟"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "错误率",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "rate(langchain_quantization_encoding_errors_total[5m])",
+            "legendFormat": "编码错误 - {{type}}",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(langchain_quantization_decoding_errors_total[5m])",
+            "legendFormat": "解码错误 - {{type}}",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(langchain_quantization_distance_computation_errors_total[5m])",
+            "legendFormat": "距离错误 - {{type}}",
+            "refId": "C"
+          },
+          {
+            "expr": "rate(langchain_quantization_training_errors_total[5m])",
+            "legendFormat": "训练错误 - {{type}}",
+            "refId": "D"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "错误/秒"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "压缩比",
+        "type": "stat",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "langchain_quantization_compression_ratio",
+            "legendFormat": "{{type}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "area"
+        }
+      },
+      {
+        "id": 5,
+        "title": "训练操作",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 14, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "rate(langchain_quantization_training_total[5m])",
+            "legendFormat": "训练 - {{type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "训练次数/秒"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 6,
+        "title": "训练时长 (P95)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 14, "w": 12, "h": 6},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(langchain_quantization_training_duration_seconds_bucket[5m]))",
+            "legendFormat": "训练 P95 - {{type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "s", "label": "时长"},
+          {"format": "short"}
+        ]
+      },
+      {
+        "id": 7,
+        "title": "操作分布 (过去1小时)",
+        "type": "piechart",
+        "gridPos": {"x": 0, "y": 20, "w": 8, "h": 8},
+        "targets": [
+          {
+            "expr": "sum(increase(langchain_quantization_encoding_total[1h]))",
+            "legendFormat": "编码",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(increase(langchain_quantization_decoding_total[1h]))",
+            "legendFormat": "解码",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(increase(langchain_quantization_distance_computation_total[1h]))",
+            "legendFormat": "距离计算",
+            "refId": "C"
+          },
+          {
+            "expr": "sum(increase(langchain_quantization_training_total[1h]))",
+            "legendFormat": "训练",
+            "refId": "D"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "成功率",
+        "type": "stat",
+        "gridPos": {"x": 8, "y": 20, "w": 8, "h": 8},
+        "targets": [
+          {
+            "expr": "sum(rate(langchain_quantization_encoding_total{status=\"success\"}[5m])) / sum(rate(langchain_quantization_encoding_total[5m])) * 100",
+            "legendFormat": "编码成功率",
+            "refId": "A"
+          },
+          {
+            "expr": "sum(rate(langchain_quantization_decoding_total{status=\"success\"}[5m])) / sum(rate(langchain_quantization_decoding_total[5m])) * 100",
+            "legendFormat": "解码成功率",
+            "refId": "B"
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          },
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"value": 0, "color": "red"},
+              {"value": 95, "color": "yellow"},
+              {"value": 99, "color": "green"}
+            ]
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "量化类型使用量",
+        "type": "bargauge",
+        "gridPos": {"x": 16, "y": 20, "w": 8, "h": 8},
+        "targets": [
+          {
+            "expr": "sum by (type) (increase(langchain_quantization_encoding_total[1h]))",
+            "legendFormat": "{{type}}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient",
+          "showUnfilled": true
+        }
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 27,
+    "version": 1
+  },
+  "overwrite": true
+}
