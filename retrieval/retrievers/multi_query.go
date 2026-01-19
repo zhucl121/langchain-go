@@ -6,328 +6,427 @@ import (
 	"strings"
 
 	"github.com/zhucl121/langchain-go/core/chat"
-	"github.com/zhucl121/langchain-go/core/prompts"
 	"github.com/zhucl121/langchain-go/pkg/types"
-	"github.com/zhucl121/langchain-go/retrieval/loaders"
 )
 
-// MultiQueryRetriever 多查询检索器
+// MultiQueryRetriever 多查询生成检索器
 //
-// 使用 LLM 生成多个查询变体，从不同角度检索文档，提高召回率。
+// 为单个用户查询生成多个变体，然后合并所有查询的结果。
+// 这种技术可以提高检索的召回率，捕获查询的不同方面。
 //
 // 工作原理：
 //  1. 使用 LLM 为原始查询生成多个变体
-//  2. 对每个查询变体执行检索
+//  2. 对每个变体查询独立执行检索
 //  3. 合并和去重所有结果
+//  4. 按相关性重新排序
 //
-type MultiQueryRetriever struct {
-	*BaseRetriever
-	baseRetriever   Retriever
-	llm             chat.ChatModel
-	prompt          *prompts.PromptTemplate
-	includeOriginal bool
-	numQueries      int
-}
-
-// NewMultiQueryRetriever 创建多查询检索器
+// 使用示例:
 //
-// 参数：
-//   - baseRetriever: 基础检索器
-//   - llm: 聊天模型，用于生成查询变体
-//   - opts: 可选配置项
-//
-// 返回：
-//   - *MultiQueryRetriever: 检索器实例
-//
-// 使用示例：
-//
-//	retriever := retrievers.NewMultiQueryRetriever(
+//	baseRetriever := retrievers.NewVectorStoreRetriever(vectorStore)
+//	multiQueryRetriever := retrievers.NewMultiQueryRetriever(
 //	    baseRetriever,
 //	    llm,
 //	    retrievers.WithNumQueries(3),
-//	    retrievers.WithIncludeOriginal(true),
 //	)
+//	docs, _ := multiQueryRetriever.GetRelevantDocuments(ctx, "What is LangChain?")
 //
-func NewMultiQueryRetriever(
-	baseRetriever Retriever,
-	llm chat.ChatModel,
-	opts ...MultiQueryOption,
-) *MultiQueryRetriever {
-	r := &MultiQueryRetriever{
-		BaseRetriever:   NewBaseRetriever(),
-		baseRetriever:   baseRetriever,
-		llm:             llm,
-		prompt:          DefaultMultiQueryPrompt,
-		includeOriginal: true,
-		numQueries:      3,
-	}
+type MultiQueryRetriever struct {
+	baseRetriever Retriever
+	llm           chat.ChatModel
+	config        MultiQueryConfig
+}
 
+// MultiQueryConfig 多查询检索器配置
+type MultiQueryConfig struct {
+	// NumQueries 要生成的查询变体数量（默认 3）
+	NumQueries int
+	
+	// IncludeOriginal 是否包含原始查询（默认 true）
+	IncludeOriginal bool
+	
+	// CustomPrompt 自定义查询生成提示词
+	CustomPrompt string
+	
+	// MergeStrategy 结果合并策略
+	// "union": 取并集（默认）
+	// "intersection": 取交集
+	// "ranked": 按相关性排序
+	MergeStrategy string
+	
+	// MaxResults 最大返回结果数（0 表示不限制）
+	MaxResults int
+	
+	// DeduplicateResults 是否去重（默认 true）
+	DeduplicateResults bool
+}
+
+// DefaultMultiQueryConfig 返回默认配置
+func DefaultMultiQueryConfig() MultiQueryConfig {
+	return MultiQueryConfig{
+		NumQueries:         3,
+		IncludeOriginal:    true,
+		MergeStrategy:      "union",
+		MaxResults:         0,
+		DeduplicateResults: true,
+	}
+}
+
+// NewMultiQueryRetriever 创建新的多查询检索器
+func NewMultiQueryRetriever(baseRetriever Retriever, llm chat.ChatModel, opts ...MultiQueryOption) *MultiQueryRetriever {
+	config := DefaultMultiQueryConfig()
+	
 	for _, opt := range opts {
-		opt(r)
+		opt(&config)
 	}
-
-	return r
-}
-
-// 配置选项函数
-
-// WithIncludeOriginal 设置是否包含原始查询
-func WithIncludeOriginal(include bool) MultiQueryOption {
-	return func(r *MultiQueryRetriever) {
-		r.includeOriginal = include
+	
+	return &MultiQueryRetriever{
+		baseRetriever: baseRetriever,
+		llm:           llm,
+		config:        config,
 	}
 }
 
-// WithNumQueries 设置生成的查询数量
-func WithNumQueries(num int) MultiQueryOption {
-	return func(r *MultiQueryRetriever) {
-		r.numQueries = num
-	}
-}
-
-// WithMultiQueryPrompt 设置自定义 prompt
-func WithMultiQueryPrompt(prompt *prompts.PromptTemplate) MultiQueryOption {
-	return func(r *MultiQueryRetriever) {
-		r.prompt = prompt
-	}
-}
-
-// GetRelevantDocuments 实现 Retriever 接口
-func (r *MultiQueryRetriever) GetRelevantDocuments(ctx context.Context, query string) ([]*loaders.Document, error) {
-	// 触发开始回调
-	r.triggerStart(ctx, query)
-
-	// 1. 生成多个查询变体
+// GetRelevantDocuments 获取相关文档
+func (r *MultiQueryRetriever) GetRelevantDocuments(ctx context.Context, query string) ([]types.Document, error) {
+	// 生成查询变体
 	queries, err := r.generateQueries(ctx, query)
 	if err != nil {
-		r.triggerError(ctx, err)
-		return nil, fmt.Errorf("failed to generate queries: %w", err)
+		return nil, fmt.Errorf("multi-query retriever: failed to generate queries: %w", err)
 	}
-
-	// 包含原始查询
-	if r.includeOriginal {
+	
+	// 如果包含原始查询，添加到列表
+	if r.config.IncludeOriginal && !r.containsQuery(queries, query) {
 		queries = append([]string{query}, queries...)
 	}
-
-	// 2. 对每个查询检索，并去重
-	allDocs := make(map[string]*loaders.Document) // 使用内容哈希去重
-
+	
+	// 对每个查询执行检索
+	allDocs := make([][]types.Document, 0, len(queries))
 	for _, q := range queries {
 		docs, err := r.baseRetriever.GetRelevantDocuments(ctx, q)
 		if err != nil {
-			// 忽略单个查询的错误，继续处理
+			// 记录错误但继续处理其他查询
 			continue
 		}
-
-		for _, doc := range docs {
-			// 使用内容哈希作为 key 去重
-			key := hashContent(doc.Content)
-			if _, exists := allDocs[key]; !exists {
-				allDocs[key] = doc
-			}
-		}
+		allDocs = append(allDocs, docs)
 	}
-
-	// 3. 返回去重后的文档
-	result := make([]*loaders.Document, 0, len(allDocs))
-	for _, doc := range allDocs {
-		result = append(result, doc)
+	
+	if len(allDocs) == 0 {
+		return nil, fmt.Errorf("multi-query retriever: no results from any query")
 	}
-
-	// 触发结束回调
-	r.triggerEnd(ctx, result)
-
-	return result, nil
+	
+	// 合并结果
+	mergedDocs := r.mergeResults(allDocs)
+	
+	// 去重
+	if r.config.DeduplicateResults {
+		mergedDocs = r.deduplicate(mergedDocs)
+	}
+	
+	// 限制结果数量
+	if r.config.MaxResults > 0 && len(mergedDocs) > r.config.MaxResults {
+		mergedDocs = mergedDocs[:r.config.MaxResults]
+	}
+	
+	return mergedDocs, nil
 }
 
-// GetRelevantDocumentsWithScore 实现 Retriever 接口
-func (r *MultiQueryRetriever) GetRelevantDocumentsWithScore(ctx context.Context, query string) ([]DocumentWithScore, error) {
-	// 触发开始回调
-	r.triggerStart(ctx, query)
-
-	// 1. 生成多个查询变体
-	queries, err := r.generateQueries(ctx, query)
-	if err != nil {
-		r.triggerError(ctx, err)
-		return nil, fmt.Errorf("failed to generate queries: %w", err)
-	}
-
-	if r.includeOriginal {
-		queries = append([]string{query}, queries...)
-	}
-
-	// 2. 对每个查询检索带分数的结果
-	type docWithMaxScore struct {
-		doc      *loaders.Document
-		maxScore float32
-	}
-	allDocs := make(map[string]*docWithMaxScore) // 内容哈希 -> 文档和最高分数
-
-	for _, q := range queries {
-		docs, err := r.baseRetriever.GetRelevantDocumentsWithScore(ctx, q)
-		if err != nil {
-			continue
-		}
-
-		for _, docScore := range docs {
-			key := hashContent(docScore.Document.Content)
-
-			if existing, exists := allDocs[key]; exists {
-				// 保留最高分数
-				if docScore.Score > existing.maxScore {
-					existing.maxScore = docScore.Score
-				}
-			} else {
-				allDocs[key] = &docWithMaxScore{
-					doc:      docScore.Document,
-					maxScore: docScore.Score,
-				}
-			}
-		}
-	}
-
-	// 3. 转换为结果
-	result := make([]DocumentWithScore, 0, len(allDocs))
-	for _, item := range allDocs {
-		// 确保分数在元数据中
-		if item.doc.Metadata == nil {
-			item.doc.Metadata = make(map[string]interface{})
-		}
-		item.doc.Metadata["score"] = item.maxScore
-
-		result = append(result, DocumentWithScore{
-			Document: item.doc,
-			Score:    item.maxScore,
-		})
-	}
-
-	// 触发结束回调
-	plainDocs := make([]*loaders.Document, len(result))
-	for i, d := range result {
-		plainDocs[i] = d.Document
-	}
-	r.triggerEnd(ctx, plainDocs)
-
-	return result, nil
-}
-
-// generateQueries 使用 LLM 生成查询变体
+// generateQueries 生成查询变体
 func (r *MultiQueryRetriever) generateQueries(ctx context.Context, query string) ([]string, error) {
-	// 格式化 prompt
-	promptStr, err := r.prompt.Format(map[string]interface{}{
-		"question":    query,
-		"num_queries": r.numQueries,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("prompt formatting failed: %w", err)
+	// 构建提示词
+	prompt := r.buildPrompt(query)
+	
+	// 调用 LLM 生成查询
+	messages := []types.Message{
+		types.NewUserMessage(prompt),
 	}
-
-	// 调用 LLM
-	messages := []types.Message{types.NewUserMessage(promptStr)}
+	
 	response, err := r.llm.Invoke(ctx, messages)
 	if err != nil {
-		return nil, fmt.Errorf("LLM invocation failed: %w", err)
+		return nil, fmt.Errorf("failed to invoke LLM: %w", err)
 	}
-
-	// 解析生成的查询列表
-	queries := parseQueries(response.Content)
-
-	// 限制数量
-	if len(queries) > r.numQueries {
-		queries = queries[:r.numQueries]
-	}
-
+	
+	// 解析响应
+	queries := r.parseQueries(response.Content)
+	
 	return queries, nil
 }
 
-// parseQueries 解析 LLM 生成的查询列表
-//
-// 支持多种格式：
-//   - 编号列表: "1. 查询1\n2. 查询2"
-//   - 短横线列表: "- 查询1\n- 查询2"
-//   - 纯文本: "查询1\n查询2"
-//
-func parseQueries(content string) []string {
-	lines := strings.Split(content, "\n")
-	var queries []string
+// buildPrompt 构建查询生成提示词
+func (r *MultiQueryRetriever) buildPrompt(query string) string {
+	if r.config.CustomPrompt != "" {
+		return strings.ReplaceAll(r.config.CustomPrompt, "{query}", query)
+	}
+	
+	// 默认提示词
+	return fmt.Sprintf(`You are an AI assistant helping to generate alternative queries.
 
+Given the original query, generate %d alternative queries that:
+1. Capture different aspects or perspectives of the original query
+2. Use different wording and phrasing
+3. Maintain the same intent and topic
+
+Original Query: %s
+
+Generate %d alternative queries (one per line, without numbering):`, 
+		r.config.NumQueries, query, r.config.NumQueries)
+}
+
+// parseQueries 解析 LLM 响应中的查询列表
+func (r *MultiQueryRetriever) parseQueries(response string) []string {
+	lines := strings.Split(response, "\n")
+	queries := make([]string, 0, len(lines))
+	
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-
-		// 跳过空行和标题
-		if line == "" || strings.HasPrefix(line, "#") || strings.HasPrefix(line, "查询") {
+		
+		// 跳过空行
+		if line == "" {
 			continue
 		}
-
-		// 移除编号 (1. 2. 3. 或 1) 2) 3))
-		line = strings.TrimPrefix(line, "- ")
-		line = strings.TrimPrefix(line, "* ")
-
-		// 移除数字编号
-		for i := 1; i <= 20; i++ {
-			line = strings.TrimPrefix(line, fmt.Sprintf("%d. ", i))
-			line = strings.TrimPrefix(line, fmt.Sprintf("%d) ", i))
-			line = strings.TrimPrefix(line, fmt.Sprintf("%d）", i))
-		}
-
-		line = strings.TrimSpace(line)
-
-		// 添加非空查询
-		if line != "" && !strings.HasPrefix(line, "```") {
+		
+		// 移除编号（如果有）
+		line = r.removeNumbering(line)
+		
+		// 移除引号（如果有）
+		line = strings.Trim(line, `"'`)
+		
+		if line != "" {
 			queries = append(queries, line)
 		}
+		
+		// 达到所需数量后停止
+		if len(queries) >= r.config.NumQueries {
+			break
+		}
 	}
-
+	
 	return queries
 }
 
-// DefaultMultiQueryPrompt 默认多查询 prompt
-var DefaultMultiQueryPrompt, _ = prompts.NewPromptTemplate(prompts.PromptTemplateConfig{
-	Template: `你是一个 AI 助手，帮助生成多个搜索查询。
+// removeNumbering 移除行首的编号
+func (r *MultiQueryRetriever) removeNumbering(line string) string {
+	// 移除 "1. ", "1) ", "- " 等格式
+	line = strings.TrimSpace(line)
+	
+	// 尝试匹配常见的编号格式
+	for i := 0; i < 10; i++ {
+		prefixes := []string{
+			fmt.Sprintf("%d. ", i+1),
+			fmt.Sprintf("%d) ", i+1),
+			fmt.Sprintf("%d.", i+1),
+			"- ",
+			"* ",
+		}
+		
+		for _, prefix := range prefixes {
+			if strings.HasPrefix(line, prefix) {
+				line = strings.TrimPrefix(line, prefix)
+				line = strings.TrimSpace(line)
+				break
+			}
+		}
+	}
+	
+	return line
+}
 
-用户问题: {{.question}}
+// containsQuery 检查查询列表是否包含特定查询
+func (r *MultiQueryRetriever) containsQuery(queries []string, query string) bool {
+	query = strings.ToLower(strings.TrimSpace(query))
+	
+	for _, q := range queries {
+		if strings.ToLower(strings.TrimSpace(q)) == query {
+			return true
+		}
+	}
+	
+	return false
+}
 
-请生成 {{.num_queries}} 个相关但措辞不同的搜索查询，以便从不同角度检索相关信息。
-这些查询应该:
-1. 表达相同的核心意图
-2. 使用不同的措辞和表达方式
-3. 从不同角度提问
+// mergeResults 合并多个查询的结果
+func (r *MultiQueryRetriever) mergeResults(allDocs [][]types.Document) []types.Document {
+	switch r.config.MergeStrategy {
+	case "intersection":
+		return r.mergeIntersection(allDocs)
+	case "ranked":
+		return r.mergeRanked(allDocs)
+	default: // "union"
+		return r.mergeUnion(allDocs)
+	}
+}
 
-每个查询一行，不需要编号或其他格式。
+// mergeUnion 取所有结果的并集
+func (r *MultiQueryRetriever) mergeUnion(allDocs [][]types.Document) []types.Document {
+	var result []types.Document
+	
+	for _, docs := range allDocs {
+		result = append(result, docs...)
+	}
+	
+	return result
+}
 
-查询列表:
-`,
-	InputVariables: []string{"question", "num_queries"},
-})
+// mergeIntersection 取所有结果的交集
+func (r *MultiQueryRetriever) mergeIntersection(allDocs [][]types.Document) []types.Document {
+	if len(allDocs) == 0 {
+		return nil
+	}
+	
+	if len(allDocs) == 1 {
+		return allDocs[0]
+	}
+	
+	// 使用第一个查询的结果作为基础
+	result := make([]types.Document, 0)
+	
+	for _, doc := range allDocs[0] {
+		// 检查文档是否在所有其他结果中出现
+		inAll := true
+		for i := 1; i < len(allDocs); i++ {
+			if !r.containsDocument(allDocs[i], doc) {
+				inAll = false
+				break
+			}
+		}
+		
+		if inAll {
+			result = append(result, doc)
+		}
+	}
+	
+	return result
+}
 
-// ChineseMultiQueryPrompt 中文优化的多查询 prompt
-var ChineseMultiQueryPrompt, _ = prompts.NewPromptTemplate(prompts.PromptTemplateConfig{
-	Template: `请为以下问题生成 {{.num_queries}} 个相似但表达不同的搜索查询。
+// mergeRanked 按相关性排序合并
+func (r *MultiQueryRetriever) mergeRanked(allDocs [][]types.Document) []types.Document {
+	// 计算每个文档在多少个查询中出现
+	docCount := make(map[string]int)
+	docMap := make(map[string]types.Document)
+	
+	for _, docs := range allDocs {
+		for _, doc := range docs {
+			key := r.getDocumentKey(doc)
+			docCount[key]++
+			if _, exists := docMap[key]; !exists {
+				docMap[key] = doc
+			}
+		}
+	}
+	
+	// 按出现次数排序
+	type docScore struct {
+		doc   types.Document
+		score int
+	}
+	
+	scores := make([]docScore, 0, len(docMap))
+	for key, doc := range docMap {
+		scores = append(scores, docScore{
+			doc:   doc,
+			score: docCount[key],
+		})
+	}
+	
+	// 简单的冒泡排序（按分数降序）
+	for i := 0; i < len(scores); i++ {
+		for j := i + 1; j < len(scores); j++ {
+			if scores[j].score > scores[i].score {
+				scores[i], scores[j] = scores[j], scores[i]
+			}
+		}
+	}
+	
+	// 提取文档
+	result := make([]types.Document, len(scores))
+	for i, s := range scores {
+		result[i] = s.doc
+	}
+	
+	return result
+}
 
-原问题: {{.question}}
+// deduplicate 去重文档
+func (r *MultiQueryRetriever) deduplicate(docs []types.Document) []types.Document {
+	seen := make(map[string]bool)
+	result := make([]types.Document, 0, len(docs))
+	
+	for _, doc := range docs {
+		key := r.getDocumentKey(doc)
+		if !seen[key] {
+			seen[key] = true
+			result = append(result, doc)
+		}
+	}
+	
+	return result
+}
 
-要求:
-- 保持核心意图不变
-- 使用不同的词汇和句式
-- 从不同角度思考
+// containsDocument 检查文档列表是否包含特定文档
+func (r *MultiQueryRetriever) containsDocument(docs []types.Document, doc types.Document) bool {
+	key := r.getDocumentKey(doc)
+	
+	for _, d := range docs {
+		if r.getDocumentKey(d) == key {
+			return true
+		}
+	}
+	
+	return false
+}
 
-请直接列出查询，每行一个:
-`,
-	InputVariables: []string{"question", "num_queries"},
-})
+// getDocumentKey 获取文档的唯一键
+func (r *MultiQueryRetriever) getDocumentKey(doc types.Document) string {
+	// 使用内容前100个字符作为键
+	content := doc.PageContent
+	if len(content) > 100 {
+		content = content[:100]
+	}
+	return content
+}
 
-// EnglishMultiQueryPrompt 英文多查询 prompt
-var EnglishMultiQueryPrompt, _ = prompts.NewPromptTemplate(prompts.PromptTemplateConfig{
-	Template: `You are an AI assistant that helps generate multiple search queries.
+// ==================== 选项模式 ====================
 
-Original question: {{.question}}
+// MultiQueryOption 配置选项
+type MultiQueryOption func(*MultiQueryConfig)
 
-Please generate {{.num_queries}} alternative search queries that:
-1. Express the same core intent
-2. Use different wording and phrasing
-3. Approach the topic from different angles
+// WithNumQueries 设置生成的查询数量
+func WithNumQueries(num int) MultiQueryOption {
+	return func(c *MultiQueryConfig) {
+		c.NumQueries = num
+	}
+}
 
-List the queries, one per line:
-`,
-	InputVariables: []string{"question", "num_queries"},
-})
+// WithIncludeOriginal 设置是否包含原始查询
+func WithIncludeOriginal(include bool) MultiQueryOption {
+	return func(c *MultiQueryConfig) {
+		c.IncludeOriginal = include
+	}
+}
+
+// WithCustomPrompt 设置自定义提示词
+func WithCustomPrompt(prompt string) MultiQueryOption {
+	return func(c *MultiQueryConfig) {
+		c.CustomPrompt = prompt
+	}
+}
+
+// WithMergeStrategy 设置合并策略
+func WithMergeStrategy(strategy string) MultiQueryOption {
+	return func(c *MultiQueryConfig) {
+		c.MergeStrategy = strategy
+	}
+}
+
+// WithMaxResults 设置最大结果数
+func WithMaxResults(max int) MultiQueryOption {
+	return func(c *MultiQueryConfig) {
+		c.MaxResults = max
+	}
+}
+
+// WithDeduplication 设置是否去重
+func WithDeduplication(dedupe bool) MultiQueryOption {
+	return func(c *MultiQueryConfig) {
+		c.DeduplicateResults = dedupe
+	}
+}
