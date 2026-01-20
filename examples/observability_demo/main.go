@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 	
 	"github.com/zhucl121/langchain-go/pkg/observability"
