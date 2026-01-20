@@ -516,8 +516,21 @@ func (m *MultimodalMessage) ToMessage() *Message {
 		content = texts[0] // 取第一个文本
 	}
 	
+	// 将字符串角色转换为 Role 类型
+	role := RoleUser
+	switch m.Role {
+	case "user":
+		role = RoleUser
+	case "assistant":
+		role = RoleAssistant
+	case "system":
+		role = RoleSystem
+	case "function", "tool":
+		role = RoleTool
+	}
+	
 	return &Message{
-		Role:    m.Role,
+		Role:    role,
 		Content: content,
 	}
 }
