@@ -12,19 +12,19 @@ import (
 // 支持文本、图像、音频、视频等多种模态的向量嵌入。
 type MultimodalEmbedder interface {
 	// EmbedText 对文本进行向量化
-	EmbedText(ctx context.Context, text string) ([]float64, error)
+	EmbedText(ctx context.Context, text string) ([]float32, error)
 	
 	// EmbedImage 对图像进行向量化
-	EmbedImage(ctx context.Context, imageData []byte) ([]float64, error)
+	EmbedImage(ctx context.Context, imageData []byte) ([]float32, error)
 	
 	// EmbedAudio 对音频进行向量化
-	EmbedAudio(ctx context.Context, audioData []byte) ([]float64, error)
+	EmbedAudio(ctx context.Context, audioData []byte) ([]float32, error)
 	
 	// EmbedVideo 对视频进行向量化
-	EmbedVideo(ctx context.Context, videoData []byte) ([]float64, error)
+	EmbedVideo(ctx context.Context, videoData []byte) ([]float32, error)
 	
 	// EmbedMultimodal 对多模态内容进行向量化
-	EmbedMultimodal(ctx context.Context, content *types.MultimodalContent) ([]float64, error)
+	EmbedMultimodal(ctx context.Context, content *types.MultimodalContent) ([]float32, error)
 	
 	// GetDimension 返回嵌入向量的维度
 	GetDimension() int
@@ -39,10 +39,10 @@ type MultimodalEmbedder interface {
 // ImageEmbedder 图像嵌入器接口
 type ImageEmbedder interface {
 	// EmbedImage 对图像进行向量化
-	EmbedImage(ctx context.Context, imageData []byte) ([]float64, error)
+	EmbedImage(ctx context.Context, imageData []byte) ([]float32, error)
 	
 	// EmbedImageBatch 批量对图像进行向量化
-	EmbedImageBatch(ctx context.Context, images [][]byte) ([][]float64, error)
+	EmbedImageBatch(ctx context.Context, images [][]byte) ([][]float32, error)
 	
 	// GetDimension 返回嵌入向量的维度
 	GetDimension() int
@@ -54,10 +54,10 @@ type ImageEmbedder interface {
 // AudioEmbedder 音频嵌入器接口
 type AudioEmbedder interface {
 	// EmbedAudio 对音频进行向量化
-	EmbedAudio(ctx context.Context, audioData []byte) ([]float64, error)
+	EmbedAudio(ctx context.Context, audioData []byte) ([]float32, error)
 	
 	// EmbedAudioBatch 批量对音频进行向量化
-	EmbedAudioBatch(ctx context.Context, audios [][]byte) ([][]float64, error)
+	EmbedAudioBatch(ctx context.Context, audios [][]byte) ([][]float32, error)
 	
 	// GetDimension 返回嵌入向量的维度
 	GetDimension() int
@@ -69,10 +69,10 @@ type AudioEmbedder interface {
 // VideoEmbedder 视频嵌入器接口
 type VideoEmbedder interface {
 	// EmbedVideo 对视频进行向量化
-	EmbedVideo(ctx context.Context, videoData []byte) ([]float64, error)
+	EmbedVideo(ctx context.Context, videoData []byte) ([]float32, error)
 	
 	// EmbedVideoBatch 批量对视频进行向量化
-	EmbedVideoBatch(ctx context.Context, videos [][]byte) ([][]float64, error)
+	EmbedVideoBatch(ctx context.Context, videos [][]byte) ([][]float32, error)
 	
 	// GetDimension 返回嵌入向量的维度
 	GetDimension() int
@@ -114,35 +114,35 @@ func NewBaseMultimodalEmbedder(
 	}
 }
 
-func (e *BaseMultimodalEmbedder) EmbedText(ctx context.Context, text string) ([]float64, error) {
+func (e *BaseMultimodalEmbedder) EmbedText(ctx context.Context, text string) ([]float32, error) {
 	if e.textEmbedder == nil {
 		return nil, ErrUnsupportedModality("text")
 	}
 	return e.textEmbedder.EmbedQuery(ctx, text)
 }
 
-func (e *BaseMultimodalEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float64, error) {
+func (e *BaseMultimodalEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float32, error) {
 	if e.imageEmbedder == nil {
 		return nil, ErrUnsupportedModality("image")
 	}
 	return e.imageEmbedder.EmbedImage(ctx, imageData)
 }
 
-func (e *BaseMultimodalEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]float64, error) {
+func (e *BaseMultimodalEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]float32, error) {
 	if e.audioEmbedder == nil {
 		return nil, ErrUnsupportedModality("audio")
 	}
 	return e.audioEmbedder.EmbedAudio(ctx, audioData)
 }
 
-func (e *BaseMultimodalEmbedder) EmbedVideo(ctx context.Context, videoData []byte) ([]float64, error) {
+func (e *BaseMultimodalEmbedder) EmbedVideo(ctx context.Context, videoData []byte) ([]float32, error) {
 	if e.videoEmbedder == nil {
 		return nil, ErrUnsupportedModality("video")
 	}
 	return e.videoEmbedder.EmbedVideo(ctx, videoData)
 }
 
-func (e *BaseMultimodalEmbedder) EmbedMultimodal(ctx context.Context, content *types.MultimodalContent) ([]float64, error) {
+func (e *BaseMultimodalEmbedder) EmbedMultimodal(ctx context.Context, content *types.MultimodalContent) ([]float32, error) {
 	switch content.Type {
 	case types.ContentTypeText:
 		return e.EmbedText(ctx, content.Text)

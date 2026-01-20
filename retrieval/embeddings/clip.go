@@ -3,6 +3,7 @@ package embeddings
 import (
 	"context"
 	"errors"
+	"fmt"
 )
 
 // CLIPEmbedder CLIP 多模态嵌入器
@@ -39,14 +40,14 @@ func (e *CLIPEmbedder) GetName() string {
 	return e.name
 }
 
-func (e *CLIPEmbedder) EmbedText(ctx context.Context, text string) ([]float64, error) {
+func (e *CLIPEmbedder) EmbedText(ctx context.Context, text string) ([]float32, error) {
 	if e.textEmbedder == nil {
 		return nil, errors.New("text embedder not configured")
 	}
 	return e.textEmbedder.EmbedQuery(ctx, text)
 }
 
-func (e *CLIPEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float64, error) {
+func (e *CLIPEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float32, error) {
 	if e.imageEmbedder == nil {
 		return nil, errors.New("image embedder not configured")
 	}
@@ -56,7 +57,7 @@ func (e *CLIPEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]floa
 // ComputeSimilarity 计算文本和图像的相似度
 //
 // 返回值范围: [-1, 1]，值越大表示越相似
-func (e *CLIPEmbedder) ComputeSimilarity(ctx context.Context, text string, imageData []byte) (float64, error) {
+func (e *CLIPEmbedder) ComputeSimilarity(ctx context.Context, text string, imageData []byte) (float32, error) {
 	textEmbed, err := e.EmbedText(ctx, text)
 	if err != nil {
 		return 0, fmt.Errorf("failed to embed text: %w", err)
@@ -85,9 +86,9 @@ func (e *CLIPEmbedder) ComputeSimilarity(ctx context.Context, text string, image
 func (e *CLIPEmbedder) SearchImageByText(
 	ctx context.Context,
 	text string,
-	imageEmbeddings [][]float64,
+	imageEmbeddings [][]float32,
 	k int,
-) ([]int, []float64, error) {
+) ([]int, []float32, error) {
 	// 嵌入文本
 	textEmbed, err := e.EmbedText(ctx, text)
 	if err != nil {
@@ -97,7 +98,7 @@ func (e *CLIPEmbedder) SearchImageByText(
 	// 计算相似度
 	type scored struct {
 		index int
-		score float64
+		score float32
 	}
 	
 	scores := make([]scored, len(imageEmbeddings))
@@ -123,7 +124,7 @@ func (e *CLIPEmbedder) SearchImageByText(
 	}
 	
 	indices := make([]int, k)
-	similarities := make([]float64, k)
+	similarities := make([]float32, k)
 	for i := 0; i < k; i++ {
 		indices[i] = scores[i].index
 		similarities[i] = scores[i].score
@@ -136,9 +137,9 @@ func (e *CLIPEmbedder) SearchImageByText(
 func (e *CLIPEmbedder) SearchTextByImage(
 	ctx context.Context,
 	imageData []byte,
-	textEmbeddings [][]float64,
+	textEmbeddings [][]float32,
 	k int,
-) ([]int, []float64, error) {
+) ([]int, []float32, error) {
 	// 嵌入图像
 	imageEmbed, err := e.EmbedImage(ctx, imageData)
 	if err != nil {
@@ -148,7 +149,7 @@ func (e *CLIPEmbedder) SearchTextByImage(
 	// 计算相似度
 	type scored struct {
 		index int
-		score float64
+		score float32
 	}
 	
 	scores := make([]scored, len(textEmbeddings))
@@ -174,7 +175,7 @@ func (e *CLIPEmbedder) SearchTextByImage(
 	}
 	
 	indices := make([]int, k)
-	similarities := make([]float64, k)
+	similarities := make([]float32, k)
 	for i := 0; i < k; i++ {
 		indices[i] = scores[i].index
 		similarities[i] = scores[i].score
@@ -184,14 +185,14 @@ func (e *CLIPEmbedder) SearchTextByImage(
 }
 
 // cosineSimilarity 计算余弦相似度
-func cosineSimilarity(a, b []float64) float64 {
+func cosineSimilarity(a, b []float32) float32 {
 	if len(a) != len(b) {
 		return 0
 	}
 	
-	var dotProduct float64
-	var normA float64
-	var normB float64
+	var dotProduct float32
+	var normA float32
+	var normB float32
 	
 	for i := range a {
 		dotProduct += a[i] * b[i]

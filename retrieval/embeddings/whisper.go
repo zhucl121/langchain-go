@@ -141,7 +141,7 @@ func (e *WhisperEmbedder) Transcribe(ctx context.Context, audioData []byte) (str
 // EmbedAudio 对音频进行向量化
 //
 // 流程: 音频 -> Whisper 转录 -> 文本向量化
-func (e *WhisperEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]float64, error) {
+func (e *WhisperEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]float32, error) {
 	// 1. 转录音频
 	text, err := e.Transcribe(ctx, audioData)
 	if err != nil {
@@ -162,8 +162,8 @@ func (e *WhisperEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]f
 }
 
 // EmbedAudioBatch 批量对音频进行向量化
-func (e *WhisperEmbedder) EmbedAudioBatch(ctx context.Context, audios [][]byte) ([][]float64, error) {
-	embeddings := make([][]float64, len(audios))
+func (e *WhisperEmbedder) EmbedAudioBatch(ctx context.Context, audios [][]byte) ([][]float32, error) {
+	embeddings := make([][]float32, len(audios))
 	
 	// 逐个处理
 	for i, audio := range audios {
@@ -305,17 +305,17 @@ func (e *MockAudioEmbedder) GetName() string {
 	return "mock-audio-embedder"
 }
 
-func (e *MockAudioEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]float64, error) {
+func (e *MockAudioEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([]float32, error) {
 	// 生成确定性的假向量
-	embedding := make([]float64, e.dimension)
-	seed := float64(len(audioData))
+	embedding := make([]float32, e.dimension)
+	seed := float32(len(audioData))
 	
 	for i := 0; i < e.dimension; i++ {
-		embedding[i] = (seed + float64(i)) / float64(e.dimension*2)
+		embedding[i] = (seed + float32(i)) / float32(e.dimension*2)
 	}
 	
 	// 归一化
-	norm := 0.0
+	norm := float32(0.0)
 	for _, v := range embedding {
 		norm += v * v
 	}
@@ -328,8 +328,8 @@ func (e *MockAudioEmbedder) EmbedAudio(ctx context.Context, audioData []byte) ([
 	return embedding, nil
 }
 
-func (e *MockAudioEmbedder) EmbedAudioBatch(ctx context.Context, audios [][]byte) ([][]float64, error) {
-	embeddings := make([][]float64, len(audios))
+func (e *MockAudioEmbedder) EmbedAudioBatch(ctx context.Context, audios [][]byte) ([][]float32, error) {
+	embeddings := make([][]float32, len(audios))
 	for i, audio := range audios {
 		embedding, err := e.EmbedAudio(ctx, audio)
 		if err != nil {

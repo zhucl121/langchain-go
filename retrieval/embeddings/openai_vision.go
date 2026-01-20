@@ -67,7 +67,7 @@ func (e *OpenAIVisionEmbedder) GetName() string {
 }
 
 // EmbedImage 对图像进行向量化
-func (e *OpenAIVisionEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float64, error) {
+func (e *OpenAIVisionEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float32, error) {
 	// 注意: 这是一个简化实现
 	// 实际的 OpenAI API 可能需要不同的调用方式
 	
@@ -108,7 +108,7 @@ func (e *OpenAIVisionEmbedder) EmbedImage(ctx context.Context, imageData []byte)
 	// 解析响应
 	var result struct {
 		Data []struct {
-			Embedding []float64 `json:"embedding"`
+			Embedding []float32 `json:"embedding"`
 		} `json:"data"`
 	}
 	
@@ -124,8 +124,8 @@ func (e *OpenAIVisionEmbedder) EmbedImage(ctx context.Context, imageData []byte)
 }
 
 // EmbedImageBatch 批量对图像进行向量化
-func (e *OpenAIVisionEmbedder) EmbedImageBatch(ctx context.Context, images [][]byte) ([][]float64, error) {
-	embeddings := make([][]float64, len(images))
+func (e *OpenAIVisionEmbedder) EmbedImageBatch(ctx context.Context, images [][]byte) ([][]float32, error) {
+	embeddings := make([][]float32, len(images))
 	
 	// 逐个处理（OpenAI API 限制）
 	// 生产环境应该实现批处理和并发控制
@@ -158,17 +158,17 @@ func (e *MockImageEmbedder) GetName() string {
 	return "mock-image-embedder"
 }
 
-func (e *MockImageEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float64, error) {
+func (e *MockImageEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([]float32, error) {
 	// 生成确定性的假向量（基于数据大小）
-	embedding := make([]float64, e.dimension)
-	seed := float64(len(imageData))
+	embedding := make([]float32, e.dimension)
+	seed := float32(len(imageData))
 	
 	for i := 0; i < e.dimension; i++ {
-		embedding[i] = (seed + float64(i)) / float64(e.dimension)
+		embedding[i] = (seed + float32(i)) / float32(e.dimension)
 	}
 	
 	// 归一化
-	norm := 0.0
+	norm := float32(0.0)
 	for _, v := range embedding {
 		norm += v * v
 	}
@@ -181,8 +181,8 @@ func (e *MockImageEmbedder) EmbedImage(ctx context.Context, imageData []byte) ([
 	return embedding, nil
 }
 
-func (e *MockImageEmbedder) EmbedImageBatch(ctx context.Context, images [][]byte) ([][]float64, error) {
-	embeddings := make([][]float64, len(images))
+func (e *MockImageEmbedder) EmbedImageBatch(ctx context.Context, images [][]byte) ([][]float32, error) {
+	embeddings := make([][]float32, len(images))
 	for i, image := range images {
 		embedding, err := e.EmbedImage(ctx, image)
 		if err != nil {

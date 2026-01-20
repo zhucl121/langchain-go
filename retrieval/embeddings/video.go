@@ -35,7 +35,7 @@ type VideoKeyFrame struct {
 	ImageData []byte
 	
 	// Embedding 图像向量
-	Embedding []float64
+	Embedding []float32
 }
 
 // VideoEmbedderImpl 视频嵌入器实现
@@ -77,7 +77,7 @@ func (e *VideoEmbedderImpl) ExtractKeyFrames(ctx context.Context, videoData []by
 //   1. 提取关键帧
 //   2. 对每个关键帧进行向量化
 //   3. 聚合关键帧向量
-func (e *VideoEmbedderImpl) EmbedVideo(ctx context.Context, videoData []byte) ([]float64, error) {
+func (e *VideoEmbedderImpl) EmbedVideo(ctx context.Context, videoData []byte) ([]float32, error) {
 	// 1. 提取关键帧
 	keyFrames, err := e.ExtractKeyFrames(ctx, videoData)
 	if err != nil {
@@ -89,7 +89,7 @@ func (e *VideoEmbedderImpl) EmbedVideo(ctx context.Context, videoData []byte) ([
 	}
 	
 	// 2. 对每个关键帧进行向量化
-	frameEmbeddings := make([][]float64, len(keyFrames))
+	frameEmbeddings := make([][]float32, len(keyFrames))
 	for i, frame := range keyFrames {
 		embedding, err := e.imageEmbedder.EmbedImage(ctx, frame.ImageData)
 		if err != nil {
@@ -109,8 +109,8 @@ func (e *VideoEmbedderImpl) EmbedVideo(ctx context.Context, videoData []byte) ([
 }
 
 // EmbedVideoBatch 批量对视频进行向量化
-func (e *VideoEmbedderImpl) EmbedVideoBatch(ctx context.Context, videos [][]byte) ([][]float64, error) {
-	embeddings := make([][]float64, len(videos))
+func (e *VideoEmbedderImpl) EmbedVideoBatch(ctx context.Context, videos [][]byte) ([][]float32, error) {
+	embeddings := make([][]float32, len(videos))
 	
 	for i, video := range videos {
 		embedding, err := e.EmbedVideo(ctx, video)
@@ -124,13 +124,13 @@ func (e *VideoEmbedderImpl) EmbedVideoBatch(ctx context.Context, videos [][]byte
 }
 
 // aggregateEmbeddings 聚合多个向量
-func (e *VideoEmbedderImpl) aggregateEmbeddings(embeddings [][]float64) ([]float64, error) {
+func (e *VideoEmbedderImpl) aggregateEmbeddings(embeddings [][]float32) ([]float32, error) {
 	if len(embeddings) == 0 {
 		return nil, fmt.Errorf("no embeddings to aggregate")
 	}
 	
 	dimension := len(embeddings[0])
-	result := make([]float64, dimension)
+	result := make([]float32, dimension)
 	
 	switch e.config.AggregationMethod {
 	case "mean":
@@ -141,7 +141,7 @@ func (e *VideoEmbedderImpl) aggregateEmbeddings(embeddings [][]float64) ([]float
 			}
 		}
 		for j := range result {
-			result[j] /= float64(len(embeddings))
+			result[j] /= float32(len(embeddings))
 		}
 		
 	case "max":
@@ -159,7 +159,7 @@ func (e *VideoEmbedderImpl) aggregateEmbeddings(embeddings [][]float64) ([]float
 		
 	case "concat":
 		// 拼接（需要调整维度）
-		result = make([]float64, 0, dimension*len(embeddings))
+		result = make([]float32, 0, dimension*len(embeddings))
 		for _, embedding := range embeddings {
 			result = append(result, embedding...)
 		}
@@ -189,17 +189,17 @@ func (e *MockVideoEmbedder) GetName() string {
 	return "mock-video-embedder"
 }
 
-func (e *MockVideoEmbedder) EmbedVideo(ctx context.Context, videoData []byte) ([]float64, error) {
+func (e *MockVideoEmbedder) EmbedVideo(ctx context.Context, videoData []byte) ([]float32, error) {
 	// 生成确定性的假向量
-	embedding := make([]float64, e.dimension)
-	seed := float64(len(videoData))
+	embedding := make([]float32, e.dimension)
+	seed := float32(len(videoData))
 	
 	for i := 0; i < e.dimension; i++ {
-		embedding[i] = (seed + float64(i*2)) / float64(e.dimension*3)
+		embedding[i] = (seed + float32(i*2)) / float32(e.dimension*3)
 	}
 	
 	// 归一化
-	norm := 0.0
+	norm := float32(0.0)
 	for _, v := range embedding {
 		norm += v * v
 	}
@@ -212,8 +212,8 @@ func (e *MockVideoEmbedder) EmbedVideo(ctx context.Context, videoData []byte) ([
 	return embedding, nil
 }
 
-func (e *MockVideoEmbedder) EmbedVideoBatch(ctx context.Context, videos [][]byte) ([][]float64, error) {
-	embeddings := make([][]float64, len(videos))
+func (e *MockVideoEmbedder) EmbedVideoBatch(ctx context.Context, videos [][]byte) ([][]float32, error) {
+	embeddings := make([][]float32, len(videos))
 	for i, video := range videos {
 		embedding, err := e.EmbedVideo(ctx, video)
 		if err != nil {

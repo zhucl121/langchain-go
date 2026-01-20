@@ -2,7 +2,6 @@ package hitl
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 	"time"
