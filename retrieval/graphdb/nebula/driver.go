@@ -314,15 +314,18 @@ func (d *NebulaDriver) Traverse(ctx context.Context, startID string, opts graphd
 		return nil, err
 	}
 
-	// 转换结果
-	traverseResult := &graphdb.TraverseResult{
-		Nodes: []*graphdb.Node{},
-		Edges: []*graphdb.Edge{},
-		Paths: []*graphdb.Path{},
+	// 使用转换器提取结果
+	converter := NewConverter()
+	nodes, edges, paths, err := converter.ExtractFromResultSet(result)
+	if err != nil {
+		return nil, fmt.Errorf("nebula: failed to extract traverse result: %w", err)
 	}
 
-	// TODO: 解析遍历结果
-	_ = result
+	traverseResult := &graphdb.TraverseResult{
+		Nodes: nodes,
+		Edges: edges,
+		Paths: paths,
+	}
 
 	return traverseResult, nil
 }
@@ -344,18 +347,25 @@ func (d *NebulaDriver) ShortestPath(ctx context.Context, fromID, toID string, op
 		return nil, err
 	}
 
-	// 转换结果
-	path := &graphdb.Path{
+	// 使用转换器提取路径
+	converter := NewConverter()
+	_, _, paths, err := converter.ExtractFromResultSet(result)
+	if err != nil {
+		return nil, fmt.Errorf("nebula: failed to extract path result: %w", err)
+	}
+
+	// 返回第一条路径（最短路径）
+	if len(paths) > 0 {
+		return paths[0], nil
+	}
+
+	// 没有找到路径
+	return &graphdb.Path{
 		Nodes:  []*graphdb.Node{},
 		Edges:  []*graphdb.Edge{},
 		Length: 0,
 		Cost:   0,
-	}
-
-	// TODO: 解析路径结果
-	_ = result
-
-	return path, nil
+	}, nil
 }
 
 // ExecuteQuery 执行原生查询

@@ -207,14 +207,18 @@ func (c *Converter) convertValue(valWrapper *nebula.ValueWrapper) (interface{}, 
 
 // ResultSetToNodes 从 ResultSet 提取节点列表
 //
-// 注意：这是一个简化实现，假设结果集的列包含节点数据。
-// 实际使用时可能需要根据查询结果的具体结构调整。
+// 自动遍历结果集的所有列，提取所有节点类型的值。
+// 适用于包含节点数据的任何查询结果。
 func (c *Converter) ResultSetToNodes(result *nebula.ResultSet) ([]*graphdb.Node, error) {
 	if result == nil || !result.IsSucceed() {
 		return nil, fmt.Errorf("invalid result set")
 	}
 
 	nodes := []*graphdb.Node{}
+	nodeMap := make(map[string]*graphdb.Node) // 去重
+
+	// 获取列名
+	colNames := result.GetColNames()
 
 	// 遍历每一行
 	for i := 0; i < result.GetRowSize(); i++ {
@@ -223,13 +227,27 @@ func (c *Converter) ResultSetToNodes(result *nebula.ResultSet) ([]*graphdb.Node,
 			continue
 		}
 
-		// 尝试提取节点（这里假设结果集的第一列是节点）
-		// 实际实现可能需要根据查询的 YIELD 语句调整
-		val, err := row.GetValueByIndex(0)
-		if err == nil {
-			// TODO: 根据实际 NebulaGraph 客户端 API 实现节点提取
-			// 目前 ValueWrapper 的 API 不太清晰，这里返回一个简化实现
-			_ = val
+		// 遍历每一列，查找节点
+		for j := 0; j < len(colNames); j++ {
+			val, err := row.GetValueByIndex(j)
+			if err != nil {
+				continue
+			}
+
+			// 检查是否是节点
+			if val.IsVertex() {
+				node, err := val.AsNode()
+				if err == nil {
+					graphNode, err := c.VertexToNode(node)
+					if err == nil {
+						// 使用 ID 去重
+						if _, exists := nodeMap[graphNode.ID]; !exists {
+							nodeMap[graphNode.ID] = graphNode
+							nodes = append(nodes, graphNode)
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -237,12 +255,19 @@ func (c *Converter) ResultSetToNodes(result *nebula.ResultSet) ([]*graphdb.Node,
 }
 
 // ResultSetToEdges 从 ResultSet 提取边列表
+//
+// 自动遍历结果集的所有列，提取所有边类型的值。
+// 适用于包含边数据的任何查询结果。
 func (c *Converter) ResultSetToEdges(result *nebula.ResultSet) ([]*graphdb.Edge, error) {
 	if result == nil || !result.IsSucceed() {
 		return nil, fmt.Errorf("invalid result set")
 	}
 
 	edges := []*graphdb.Edge{}
+	edgeMap := make(map[string]*graphdb.Edge) // 去重
+
+	// 获取列名
+	colNames := result.GetColNames()
 
 	// 遍历每一行
 	for i := 0; i < result.GetRowSize(); i++ {
@@ -251,14 +276,37 @@ func (c *Converter) ResultSetToEdges(result *nebula.ResultSet) ([]*graphdb.Edge,
 			continue
 		}
 
-		// TODO: 实现边提取
-		_ = row
+		// 遍历每一列，查找边
+		for j := 0; j < len(colNames); j++ {
+			val, err := row.GetValueByIndex(j)
+			if err != nil {
+				continue
+			}
+
+			// 检查是否是边
+			if val.IsEdge() {
+				rel, err := val.AsRelationship()
+				if err == nil {
+					graphEdge, err := c.EdgeToGraphEdge(rel)
+					if err == nil {
+						// 使用 ID 去重
+						if _, exists := edgeMap[graphEdge.ID]; !exists {
+							edgeMap[graphEdge.ID] = graphEdge
+							edges = append(edges, graphEdge)
+						}
+					}
+				}
+			}
+		}
 	}
 
 	return edges, nil
 }
 
 // ResultSetToPaths 从 ResultSet 提取路径列表
+//
+// 自动遍历结果集的所有列，提取所有路径类型的值。
+// 适用于 FIND SHORTEST PATH 等路径查询结果。
 func (c *Converter) ResultSetToPaths(result *nebula.ResultSet) ([]*graphdb.Path, error) {
 	if result == nil || !result.IsSucceed() {
 		return nil, fmt.Errorf("invalid result set")
@@ -266,6 +314,9 @@ func (c *Converter) ResultSetToPaths(result *nebula.ResultSet) ([]*graphdb.Path,
 
 	paths := []*graphdb.Path{}
 
+	// 获取列名
+	colNames := result.GetColNames()
+
 	// 遍历每一行
 	for i := 0; i < result.GetRowSize(); i++ {
 		row, err := result.GetRowValuesByIndex(i)
@@ -273,9 +324,114 @@ func (c *Converter) ResultSetToPaths(result *nebula.ResultSet) ([]*graphdb.Path,
 			continue
 		}
 
-		// TODO: 实现路径提取
-		_ = row
+		// 遍历每一列，查找路径
+		for j := 0; j < len(colNames); j++ {
+			val, err := row.GetValueByIndex(j)
+			if err != nil {
+				continue
+			}
+
+			// 检查是否是路径
+			if val.IsPath() {
+				pathWrapper, err := val.AsPath()
+				if err == nil {
+					path, err := c.PathToGraphPath(pathWrapper)
+					if err == nil {
+						paths = append(paths, path)
+					}
+				}
+			}
+		}
 	}
 
 	return paths, nil
+}
+
+// ExtractFromResultSet 从 ResultSet 提取所有图元素
+//
+// 自动识别并提取节点、边和路径，返回统一的结果。
+// 这是一个通用方法，适用于任何查询结果。
+func (c *Converter) ExtractFromResultSet(result *nebula.ResultSet) (nodes []*graphdb.Node, edges []*graphdb.Edge, paths []*graphdb.Path, err error) {
+	if result == nil || !result.IsSucceed() {
+		return nil, nil, nil, fmt.Errorf("invalid result set")
+	}
+
+	nodeMap := make(map[string]*graphdb.Node)
+	edgeMap := make(map[string]*graphdb.Edge)
+	nodes = []*graphdb.Node{}
+	edges = []*graphdb.Edge{}
+	paths = []*graphdb.Path{}
+
+	// 获取列名
+	colNames := result.GetColNames()
+
+	// 遍历每一行
+	for i := 0; i < result.GetRowSize(); i++ {
+		row, err := result.GetRowValuesByIndex(i)
+		if err != nil {
+			continue
+		}
+
+		// 遍历每一列
+		for j := 0; j < len(colNames); j++ {
+			val, err := row.GetValueByIndex(j)
+			if err != nil {
+				continue
+			}
+
+			// 提取节点
+			if val.IsVertex() {
+				node, err := val.AsNode()
+				if err == nil {
+					graphNode, err := c.VertexToNode(node)
+					if err == nil {
+						if _, exists := nodeMap[graphNode.ID]; !exists {
+							nodeMap[graphNode.ID] = graphNode
+							nodes = append(nodes, graphNode)
+						}
+					}
+				}
+			}
+
+			// 提取边
+			if val.IsEdge() {
+				rel, err := val.AsRelationship()
+				if err == nil {
+					graphEdge, err := c.EdgeToGraphEdge(rel)
+					if err == nil {
+						if _, exists := edgeMap[graphEdge.ID]; !exists {
+							edgeMap[graphEdge.ID] = graphEdge
+							edges = append(edges, graphEdge)
+						}
+					}
+				}
+			}
+
+			// 提取路径
+			if val.IsPath() {
+				pathWrapper, err := val.AsPath()
+				if err == nil {
+					path, err := c.PathToGraphPath(pathWrapper)
+					if err == nil {
+						paths = append(paths, path)
+						// 同时提取路径中的节点和边
+						for _, n := range path.Nodes {
+							if _, exists := nodeMap[n.ID]; !exists {
+								nodeMap[n.ID] = n
+								nodes = append(nodes, n)
+							}
+						}
+						for _, e := range path.Edges {
+							if _, exists := edgeMap[e.ID]; !exists {
+								edgeMap[e.ID] = e
+								edges = append(edges, e)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return nodes, edges, paths, nil
 }
