@@ -15,11 +15,13 @@ LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [Lan
 - 🤝 **Multi-Agent协作** - 完整的多Agent协作系统，支持顺序、并行、层次化执行策略
 - 🛠️ **38个内置工具** - 计算、搜索、文件、数据、HTTP、多模态（图像、音频、视频）
 - 🚀 **3行代码RAG** - 简化的RAG Chain API，从150行代码降至3行
-- 🗄️ **5个向量存储** - Milvus, Chroma, Qdrant, Weaviate, Redis，支持混合搜索 ⭐ NEW!
-- 📚 **8个文档加载器** - 支持 GitHub, Confluence, PostgreSQL 等多种数据源 ⭐ NEW!
-- 🌐 **6个LLM提供商** - OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama ⭐ NEW!
+- 🧠 **学习型检索** - 自动收集反馈、质量评估、参数优化、A/B测试 🔥 v0.4.2 NEW!
+- 📊 **GraphRAG** - 知识图谱增强检索，支持 Neo4j, NebulaGraph
+- 🗄️ **5个向量存储** - Milvus, Chroma, Qdrant, Weaviate, Redis，支持混合搜索
+- 📚 **8个文档加载器** - 支持 GitHub, Confluence, PostgreSQL 等多种数据源
+- 🌐 **6个LLM提供商** - OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama
 - 💾 **生产级特性** - Redis缓存、自动重试、状态持久化、可观测性、Prometheus指标
-- 📦 **完整文档** - 50+文档页面，中英文双语，含11个示例程序
+- 📦 **完整文档** - 50+文档页面，中英文双语，含17个示例程序
 
 ## 🚀 快速开始
 
@@ -205,7 +207,48 @@ func main() {
 }
 ```
 
-#### 5. 多模态处理
+#### 5. 学习型检索系统 🔥 v0.4.2 NEW!
+
+```go
+package main
+
+import (
+    "context"
+    "github.com/zhucl121/langchain-go/retrieval/learning/feedback"
+    "github.com/zhucl121/langchain-go/retrieval/learning/evaluation"
+    "github.com/zhucl121/langchain-go/retrieval/learning/optimization"
+)
+
+func main() {
+    // 1. 收集用户反馈
+    storage := feedback.NewMemoryStorage()
+    collector := feedback.NewCollector(storage)
+    
+    collector.RecordQuery(ctx, query)
+    collector.CollectExplicitFeedback(ctx, &feedback.ExplicitFeedback{
+        Type: feedback.FeedbackTypeRating,
+        Rating: 5,
+    })
+    
+    // 2. 评估检索质量
+    evaluator := evaluation.NewEvaluator(collector)
+    metrics, _ := evaluator.EvaluateQuery(ctx, queryFeedback)
+    fmt.Printf("NDCG: %.3f, MRR: %.3f\n", metrics.NDCG, metrics.MRR)
+    
+    // 3. 自动优化参数
+    optimizer := optimization.NewOptimizer(evaluator, collector, config)
+    result, _ := optimizer.Optimize(ctx, strategyID, paramSpace, opts)
+    fmt.Printf("性能提升: %.2f%%\n", result.Improvement)
+    
+    // 4. A/B 测试验证
+    abtestManager := abtest.NewManager(storage)
+    analysis, _ := abtestManager.AnalyzeExperiment(ctx, experimentID)
+    fmt.Printf("获胜者: %s, p-value: %.3f\n", 
+        analysis.Winner, analysis.PValue)
+}
+```
+
+#### 6. 多模态处理
 
 ```go
 package main
@@ -279,9 +322,11 @@ func main() {
 ### 4. RAG能力
 
 - **3行代码**实现完整RAG
+- **学习型检索**，自动优化检索质量 🔥 v0.4.2 NEW!
+- **GraphRAG**，知识图谱增强检索
 - **多种Retriever**，灵活选择
-- **5个主流向量存储**：Milvus, Chroma, Qdrant, Weaviate, Redis ⭐ NEW!
-- **8个文档加载器**：PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL ⭐ NEW!
+- **5个主流向量存储**：Milvus, Chroma, Qdrant, Weaviate, Redis
+- **8个文档加载器**：PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL
 - **文本分割器**，智能分块
 - **混合搜索**，向量 + BM25
 
@@ -300,16 +345,28 @@ func main() {
 - 📕 [Agent 指南](docs/guides/agents/README.md) - Agent 系统文档
 - 📙 [Multi-Agent 系统](docs/guides/multi-agent-guide.md) - 多Agent协作
 - 📚 [RAG 指南](docs/guides/rag/README.md) - RAG 系统文档
-- 💡 [示例代码](examples/) - 11个完整示例
+- 🧠 [Learning Retrieval 指南](docs/V0.4.2_USER_GUIDE.md) - 学习型检索 🔥 v0.4.2
+- 💡 [示例代码](examples/) - 17个完整示例
 
 ## 🔧 示例程序
 
 查看 [examples/](examples/) 目录：
 
+**Agent & Multi-Agent**:
 - `agent_simple_demo.go` - 简单Agent示例
 - `multi_agent_demo.go` - Multi-Agent协作
-- `multimodal_demo.go` - 多模态处理
 - `plan_execute_agent_demo.go` - 计划执行Agent
+
+**Learning Retrieval (v0.4.2)** 🔥:
+- `learning_complete_demo/` - 完整学习型检索工作流
+- `learning_feedback_demo/` - 用户反馈收集
+- `learning_evaluation_demo/` - 检索质量评估
+- `learning_optimization_demo/` - 参数自动优化
+- `learning_abtest_demo/` - A/B 测试框架
+- `learning_postgres_demo/` - PostgreSQL 存储
+
+**多模态 & 工具**:
+- `multimodal_demo.go` - 多模态处理
 - `redis_cache_demo.go` - Redis缓存使用
 - 更多...
 
@@ -364,16 +421,17 @@ langchain-go/
 
 ## 📈 技术指标
 
-- **代码量**：25,000+ 行（新增 6600+ 行）⭐
+- **代码量**：36,000+ 行（v0.4.2 新增 11,000+ 行）🔥
 - **测试覆盖**：85%+
-- **测试用例**：600+
-- **LLM 提供商**：6个（OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama）⭐
-- **向量存储**：5个（Milvus, Chroma, Qdrant, Weaviate, Redis）⭐
-- **文档加载器**：8个（PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL）⭐
+- **测试用例**：626+（v0.4.2 新增 26 个）
+- **LLM 提供商**：6个（OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama）
+- **向量存储**：5个（Milvus, Chroma, Qdrant, Weaviate, Redis）
+- **文档加载器**：8个（PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL）
 - **内置工具**：38个
 - **Agent类型**：7种 + 6个专用Agent
-- **文档页面**：50+
-- **示例程序**：11个
+- **Learning 模块**：4个（反馈、评估、优化、A/B测试）🔥 v0.4.2
+- **文档页面**：55+
+- **示例程序**：17个（v0.4.2 新增 6 个）
 
 ## 🧪 测试
 
