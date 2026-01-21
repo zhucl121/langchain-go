@@ -98,6 +98,8 @@ require (
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20201229170055-e5319fda7802 // indirect
 	github.com/twpayne/go-geom v1.6.1 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
+	github.com/vesoft-inc/fbthrift v0.0.0-20230214024353-fa2f34755b28 // indirect
+	github.com/vesoft-inc/nebula-go/v3 v3.8.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
