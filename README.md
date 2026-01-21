@@ -15,13 +15,14 @@ LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [Lan
 - 🤝 **Multi-Agent协作** - 完整的多Agent协作系统，支持顺序、并行、层次化执行策略
 - 🛠️ **38个内置工具** - 计算、搜索、文件、数据、HTTP、多模态（图像、音频、视频）
 - 🚀 **3行代码RAG** - 简化的RAG Chain API，从150行代码降至3行
-- 🧠 **学习型检索** - 自动收集反馈、质量评估、参数优化、A/B测试 🔥 v0.4.2 NEW!
+- 🧠 **学习型检索** - 自动收集反馈、质量评估、参数优化、A/B测试
 - 📊 **GraphRAG** - 知识图谱增强检索，支持 Neo4j, NebulaGraph
 - 🗄️ **5个向量存储** - Milvus, Chroma, Qdrant, Weaviate, Redis，支持混合搜索
 - 📚 **8个文档加载器** - 支持 GitHub, Confluence, PostgreSQL 等多种数据源
 - 🌐 **6个LLM提供商** - OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama
+- ⚡ **分布式部署** - 集群管理、负载均衡、分布式缓存、故障转移 🔥 v0.5.0 NEW!
 - 💾 **生产级特性** - Redis缓存、自动重试、状态持久化、可观测性、Prometheus指标
-- 📦 **完整文档** - 50+文档页面，中英文双语，含17个示例程序
+- 📦 **完整文档** - 50+文档页面，中英文双语，含21个示例程序
 
 ## 🚀 快速开始
 

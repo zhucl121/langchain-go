@@ -7,6 +7,70 @@
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-01-22
+
+### 🎉 Added - 分布式部署：集群支持与负载均衡
+
+本版本完整实现了分布式集群管理，包括节点管理、负载均衡、分布式缓存和故障转移，将 LangChain-Go 升级为生产级分布式 AI 框架。
+
+#### 节点管理与服务发现
+- **节点管理** (`pkg/cluster/node/`) - 588 行
+  - 节点注册/注销/更新
+  - 5 种节点状态（Online, Offline, Busy, Draining, Maintenance）
+  - 4 种节点角色（Master, Worker, Router, Monitor）
+  - 容量和负载监控
+  - 节点过滤和查询
+
+- **服务发现** (`pkg/cluster/discovery/`) - 632 行
+  - Consul 完整集成
+  - 自动心跳（TTL check）
+  - 实时节点监听
+  - 标签过滤
+
+- **健康检查** (`pkg/cluster/health/`) - 693 行
+  - HTTP 健康检查
+  - TCP 健康检查
+  - Composite 组合检查器
+  - Periodic 周期性检查器
+  - 3 种聚合策略（All, Any, Majority）
+
+#### 负载均衡
+- **5 种策略** (`pkg/cluster/balancer/`) - 1,113 行
+  - Round Robin（轮询） - 25 ns/op (39.5M ops/s)
+  - Least Connection（最少连接） - 50 ns/op
+  - Weighted（加权） - 支持自动权重
+  - Consistent Hash（一致性哈希） - 150 虚拟节点
+  - Adaptive（自适应） - 实时性能评分
+
+#### 分布式缓存
+- **3 种缓存** (`pkg/cluster/cache/`) - 1,066 行
+  - Memory Cache - 10.5M ops/s
+  - Redis Cache - 分布式共享
+  - Layered Cache - 本地 + 远程
+  - 4 种驱逐策略（LRU, LFU, FIFO, TTL）
+  - 写穿/写回模式
+
+#### 故障转移与高可用
+- **故障转移** (`pkg/cluster/failover/`) - 925 行
+  - Circuit Breaker（熔断器） - 3 状态
+  - Failover Manager（故障转移管理器）
+  - 自动健康监控
+  - 事件监听与告警
+
+### 📊 统计数据
+- **新增代码**: 5,017 行
+- **测试代码**: 2,427 行
+- **单元测试**: 84 个（100% 通过）
+- **基准测试**: 12 个
+- **测试覆盖率**: 85%+
+- **示例程序**: 4 个（cluster_demo, balancer_demo, cache_demo, failover_demo）
+
+### 📚 Documentation
+- V0.5.0 用户指南 (500+ 行)
+- V0.5.0 完成报告 (300+ 行)
+- V0.5.0 发布说明 (详细)
+- 示例 README (950+ 行)
+
 ## [0.4.2] - 2026-01-21
 
 ### 🎉 Added - Learning Retrieval (学习型检索)
