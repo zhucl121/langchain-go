@@ -11,7 +11,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.33
 	github.com/milvus-io/milvus/client/v2 v2.6.2
 	github.com/prometheus/client_golang v1.23.2
-	github.com/redis/go-redis/v9 v9.7.0
+	github.com/redis/go-redis/v9 v9.17.2
 	github.com/stretchr/testify v1.11.1
 	github.com/xuri/excelize/v2 v2.10.0
 	go.opentelemetry.io/otel v1.39.0
