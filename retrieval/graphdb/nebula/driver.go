@@ -21,6 +21,7 @@ type NebulaDriver struct {
 	mu        sync.RWMutex
 	connected bool
 	qb        *QueryBuilder
+	converter *Converter
 }
 
 // NewNebulaDriver 创建 NebulaGraph 驱动器
@@ -47,6 +48,7 @@ func NewNebulaDriver(config Config) (*NebulaDriver, error) {
 		config:    config,
 		spaceName: config.Space,
 		qb:        NewQueryBuilder(config.Space),
+		converter: NewConverter(),
 	}, nil
 }
 
@@ -197,28 +199,30 @@ func (d *NebulaDriver) GetNode(ctx context.Context, id string) (*graphdb.Node, e
 		return nil, fmt.Errorf("nebula: node ID is required")
 	}
 
-	// 需要知道节点类型，先尝试查询所有 tag
-	// 简化实现：假设节点类型存储在 properties 中
+	// 使用 FETCH PROP 查询节点的所有属性
+	// YIELD vertex AS v 返回完整的节点对象
 	query := fmt.Sprintf("FETCH PROP ON * \"%s\" YIELD vertex AS v", id)
 	result, err := d.Execute(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("nebula: failed to fetch node: %w", err)
 	}
 
 	if result.GetRowSize() == 0 {
 		return nil, graphdb.ErrNodeNotFound
 	}
 
-	// 转换结果
-	node := &graphdb.Node{
-		ID:         id,
-		Properties: make(map[string]interface{}),
+	// 使用 converter 提取节点
+	nodes, _, _, err := d.converter.ExtractFromResultSet(result)
+	if err != nil {
+		return nil, fmt.Errorf("nebula: failed to extract node from result: %w", err)
 	}
 
-	// TODO: 从 result 中提取节点属性
-	// 这需要解析 NebulaGraph 的返回结果
+	if len(nodes) == 0 {
+		return nil, graphdb.ErrNodeNotFound
+	}
 
-	return node, nil
+	// 返回第一个节点（应该只有一个）
+	return nodes[0], nil
 }
 
 // UpdateNode 更新节点
@@ -264,8 +268,45 @@ func (d *NebulaDriver) AddEdge(ctx context.Context, edge *graphdb.Edge) error {
 
 // GetEdge 获取边
 func (d *NebulaDriver) GetEdge(ctx context.Context, id string) (*graphdb.Edge, error) {
-	// NebulaGraph 的边没有独立 ID，需要通过 source + target + type 查询
-	return nil, fmt.Errorf("nebula: GetEdge by ID not supported, use source/target instead")
+	if id == "" {
+		return nil, fmt.Errorf("nebula: edge ID is required")
+	}
+
+	// NebulaGraph 的边 ID 格式: source_id-edge_type-target_id
+	// 需要解析 ID
+	parts := strings.Split(id, "-")
+	if len(parts) < 3 {
+		return nil, fmt.Errorf("nebula: invalid edge ID format, expected source-type-target")
+	}
+
+	srcID := parts[0]
+	edgeType := strings.Join(parts[1:len(parts)-1], "-")
+	dstID := parts[len(parts)-1]
+
+	// 使用 FETCH PROP 查询边的所有属性
+	// YIELD edge AS e 返回完整的边对象
+	query := fmt.Sprintf("FETCH PROP ON %s \"%s\" -> \"%s\" YIELD edge AS e", edgeType, srcID, dstID)
+	result, err := d.Execute(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("nebula: failed to fetch edge: %w", err)
+	}
+
+	if result.GetRowSize() == 0 {
+		return nil, graphdb.ErrEdgeNotFound
+	}
+
+	// 使用 converter 提取边
+	_, edges, _, err := d.converter.ExtractFromResultSet(result)
+	if err != nil {
+		return nil, fmt.Errorf("nebula: failed to extract edge from result: %w", err)
+	}
+
+	if len(edges) == 0 {
+		return nil, graphdb.ErrEdgeNotFound
+	}
+
+	// 返回第一条边（应该只有一条）
+	return edges[0], nil
 }
 
 // UpdateEdge 更新边
@@ -315,8 +356,7 @@ func (d *NebulaDriver) Traverse(ctx context.Context, startID string, opts graphd
 	}
 
 	// 使用转换器提取结果
-	converter := NewConverter()
-	nodes, edges, paths, err := converter.ExtractFromResultSet(result)
+	nodes, edges, paths, err := d.converter.ExtractFromResultSet(result)
 	if err != nil {
 		return nil, fmt.Errorf("nebula: failed to extract traverse result: %w", err)
 	}
@@ -348,8 +388,7 @@ func (d *NebulaDriver) ShortestPath(ctx context.Context, fromID, toID string, op
 	}
 
 	// 使用转换器提取路径
-	converter := NewConverter()
-	_, _, paths, err := converter.ExtractFromResultSet(result)
+	_, _, paths, err := d.converter.ExtractFromResultSet(result)
 	if err != nil {
 		return nil, fmt.Errorf("nebula: failed to extract path result: %w", err)
 	}

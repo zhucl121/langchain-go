@@ -176,7 +176,7 @@ func TestNebulaDriver_QueryBuilder(t *testing.T) {
 
 	t.Run("Traverse", func(t *testing.T) {
 		query := qb.Traverse("person-1", 3, "BIDIRECT")
-		expected := `GO 1 TO 3 STEPS FROM "person-1" OVER * BIDIRECT YIELD dst(edge) AS id, properties(edge) AS props`
+		expected := `GO 1 TO 3 STEPS FROM "person-1" OVER * BIDIRECT YIELD $$ AS dst, edge AS e`
 
 		if query != expected {
 			t.Errorf("Expected query:\n%s\nGot:\n%s", expected, query)
@@ -185,7 +185,7 @@ func TestNebulaDriver_QueryBuilder(t *testing.T) {
 
 	t.Run("ShortestPath", func(t *testing.T) {
 		query := qb.ShortestPath("person-1", "org-1", 5)
-		expected := `FIND SHORTEST PATH FROM "person-1" TO "org-1" OVER * UPTO 5 STEPS`
+		expected := `FIND SHORTEST PATH WITH PROP FROM "person-1" TO "org-1" OVER * UPTO 5 STEPS YIELD path AS p`
 
 		if query != expected {
 			t.Errorf("Expected query:\n%s\nGot:\n%s", expected, query)

@@ -158,7 +158,7 @@ func (qb *QueryBuilder) DeleteEdge(source, target, edgeType string) string {
 //
 // nGQL 示例:
 //
-//	GO 1 TO 3 STEPS FROM "person-1" OVER * BIDIRECT YIELD dst(edge) AS id
+//	GO 1 TO 3 STEPS FROM "person-1" OVER * BIDIRECT YIELD $$ AS dst, edge AS e
 //
 func (qb *QueryBuilder) Traverse(startID string, maxDepth int, direction string) string {
 	dir := ""
@@ -166,12 +166,14 @@ func (qb *QueryBuilder) Traverse(startID string, maxDepth int, direction string)
 		dir = "BIDIRECT"
 	}
 
+	// GO 语句返回目标节点（$$）和边
+	// $$ 在 GO 语句中表示目标点，会返回完整的 vertex 对象
 	if maxDepth == 1 {
-		return fmt.Sprintf("GO FROM \"%s\" OVER * %s YIELD dst(edge) AS id, properties(edge) AS props",
+		return fmt.Sprintf("GO FROM \"%s\" OVER * %s YIELD $$ AS dst, edge AS e",
 			startID, dir)
 	}
 
-	return fmt.Sprintf("GO 1 TO %d STEPS FROM \"%s\" OVER * %s YIELD dst(edge) AS id, properties(edge) AS props",
+	return fmt.Sprintf("GO 1 TO %d STEPS FROM \"%s\" OVER * %s YIELD $$ AS dst, edge AS e",
 		maxDepth, startID, dir)
 }
 
@@ -179,10 +181,11 @@ func (qb *QueryBuilder) Traverse(startID string, maxDepth int, direction string)
 //
 // nGQL 示例:
 //
-//	FIND SHORTEST PATH FROM "person-1" TO "org-1" OVER * UPTO 5 STEPS
+//	FIND SHORTEST PATH WITH PROP FROM "person-1" TO "org-1" OVER * UPTO 5 STEPS YIELD path AS p
 //
 func (qb *QueryBuilder) ShortestPath(fromID, toID string, maxDepth int) string {
-	return fmt.Sprintf("FIND SHORTEST PATH FROM \"%s\" TO \"%s\" OVER * UPTO %d STEPS",
+	// 使用 WITH PROP 来获取完整的节点和边属性
+	return fmt.Sprintf("FIND SHORTEST PATH WITH PROP FROM \"%s\" TO \"%s\" OVER * UPTO %d STEPS YIELD path AS p",
 		fromID, toID, maxDepth)
 }
 
