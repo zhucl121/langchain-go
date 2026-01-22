@@ -7,6 +7,92 @@
 
 ## [Unreleased]
 
+### 🎉 Added - 标准化协议集成（计划中）
+
+v0.6.1 将实现 **MCP (Model Context Protocol)** 和 **A2A (Agent-to-Agent)** 协议，使 LangChain-Go 能够与其他 AI 系统标准化互操作。
+
+#### MCP (Model Context Protocol) 协议
+- **完整的 MCP 实现** (`pkg/protocols/mcp/`) - 预计 3,000+ 行
+  - MCP Server 和 Client 实现
+  - 3 种传输层（Stdio, SSE, WebSocket）
+  - 资源管理和订阅
+  - 工具桥接（现有工具 → MCP 工具）
+  - Prompt 管理
+  - 采样支持（LLM 集成）
+  - JSON-RPC 2.0 实现
+  - 4 个资源提供者（FileSystem, Database, VectorStore, GitHub）
+  - 与 Claude Desktop 互操作
+
+#### A2A (Agent-to-Agent) 协议
+- **标准化 Agent 通信** (`pkg/protocols/a2a/`) - 预计 2,400+ 行
+  - A2A 核心协议接口
+  - Agent 注册中心（Consul + Local）
+  - Agent 发现和能力匹配
+  - 智能任务路由器（4 种策略）
+  - 多维度 Agent 评分器
+  - 协作协调器（任务分解和聚合）
+  - 现有 Agent 桥接
+  - gRPC 传输层
+  - 健康检查和监控
+
+#### 协议桥接
+- **MCP ↔ A2A 互操作** (`pkg/protocols/bridge/`) - 预计 600+ 行
+  - MCP → A2A 桥接
+  - A2A → MCP 桥接
+  - 协议转换器
+  - 双向同步
+
+### 📊 统计数据（预计）
+- **新增代码**: 6,000+ 行（核心实现）
+  - MCP: 3,000 行
+  - A2A: 2,400 行
+  - 桥接: 600 行
+- **测试代码**: 2,300+ 行
+- **示例程序**: 7 个
+  - mcp_server_demo - MCP Server 完整示例
+  - mcp_client_demo - MCP Client 使用
+  - mcp_claude_demo - 与 Claude Desktop 集成 ⭐
+  - a2a_basic_demo - A2A 基础功能
+  - a2a_collaboration_demo - 多 Agent 协作
+  - a2a_distributed_demo - 分布式 Agent 系统
+  - protocol_bridge_demo - MCP ↔ A2A 互操作
+- **新增依赖**: 
+  - github.com/gorilla/websocket (WebSocket)
+  - github.com/r3labs/sse/v2 (SSE)
+  - google.golang.org/grpc (gRPC)
+
+### 📝 Documentation（预计）
+- 新增 `docs/V0.6.1_IMPLEMENTATION_PLAN.md` - 实施计划
+- 新增 `docs/V0.6.1_PROGRESS.md` - 开发进度
+- 新增 `docs/V0.6.1_USER_GUIDE.md` - 用户指南（800+ 行）
+- 新增 `docs/V0.6.1_MCP_SPEC.md` - MCP 规范文档（600+ 行）
+- 新增 `docs/V0.6.1_A2A_SPEC.md` - A2A 规范文档（600+ 行）
+- 新增 `docs/V0.6.1_INTEGRATION_GUIDE.md` - 集成指南（500+ 行）
+- 新增 7 个示例程序 README
+
+### ⚡ Performance（预计）
+- MCP 消息处理: < 5ms
+- A2A 任务路由: < 10ms
+- 协议桥接开销: < 2ms
+- 零性能损失（未启用时）
+
+### 🌟 核心优势（预计）
+- Go 生态首个完整的 MCP 实现 ⭐
+- 标准化的 Agent-to-Agent 通信
+- 与 Claude Desktop 等工具互操作
+- 跨系统、跨语言 Agent 协作
+- 企业级安全集成（v0.6.0 RBAC）
+- 分布式部署支持（v0.5.0）
+
+### 🎯 使用场景（预计）
+- 与 Claude Desktop 等 MCP 工具集成
+- 跨平台 AI 应用互操作
+- 分布式 Multi-Agent 系统
+- 企业级 AI 工作流编排
+- AI 服务标准化接入
+
+**预计发布日期**: 2026-01-24
+
 ## [0.6.0] - 2026-01-22
 
 ### 🎉 Added - 企业级安全完整版
