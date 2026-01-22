@@ -18,16 +18,16 @@ langchain-go/
 │   │
 │   ├── releases/               # 发布文档 🆕
 │   │   ├── README.md           # 发布历史索引
-│   │   ├── RELEASE_NOTES_v0.4.2.md
-│   │   ├── RELEASE_NOTES_v0.4.1.md
-│   │   ├── RELEASE_NOTES_v0.4.0.md
-│   │   ├── RELEASE_NOTES_v0.3.0.md
-│   │   ├── RELEASE_NOTES_v0.1.1.md
-│   │   ├── RELEASE_NOTES_v0.1.0.md
-│   │   ├── GITHUB_RELEASE_v0.4.2.md
-│   │   ├── GITHUB_RELEASE_v0.3.0.md
-│   │   ├── RELEASE_CHECKLIST_v0.4.2.md
-│   │   └── RELEASE_GUIDE_v0.3.0.md
+│   │   ├── RELEASE_NOTES_v0.6.0.md        # v0.6.0 完整说明
+│   │   ├── GITHUB_RELEASE_v0.6.0.md       # v0.6.0 GitHub Release
+│   │   ├── RELEASE_CHECKLIST_v0.6.0.md    # v0.6.0 检查清单
+│   │   ├── V0.6.0_RELEASE_COMPLETE.md     # v0.6.0 发布完成 ⭐
+│   │   ├── CI_FIX_SUMMARY_v0.6.0.md       # v0.6.0 CI 修复 ⭐
+│   │   ├── ... (其他版本文档)
+│   │   └── archive/                       # 旧版本归档 🆕
+│   │       ├── README.md
+│   │       ├── V0.4.1_READY_TO_PUBLISH.md
+│   │       └── V0.5.0_发布说明.md
 │   │
 │   ├── guides/                 # 使用指南
 │   │   ├── agents/            # Agent 指南
