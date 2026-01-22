@@ -74,8 +74,49 @@ type AgentConfig struct {
 	// Verbose 是否输出详细日志
 	Verbose bool
 
+	// SkillManager Skill 管理器（可选）
+	// 使用 Skill 系统来动态加载能力模块
+	SkillManager SkillManager
+
+	// EnabledSkills 启用的 Skill ID 列表（可选）
+	// 仅在提供 SkillManager 时有效
+	EnabledSkills []string
+
 	// Extra 额外配置
 	Extra map[string]any
+}
+
+// SkillManager Skill 管理器接口
+//
+// 为了避免循环依赖，这里定义一个简化的接口。
+// 完整实现在 pkg/skills 包中。
+type SkillManager interface {
+	// Get 获取指定 Skill
+	Get(skillID string) (Skill, error)
+
+	// ListLoaded 列出所有已加载的 Skill
+	ListLoaded() []Skill
+
+	// Load 加载 Skill
+	Load(ctx context.Context, skillID string, config any) error
+
+	// IsLoaded 检查 Skill 是否已加载
+	IsLoaded(skillID string) bool
+}
+
+// Skill Skill 接口
+//
+// 为了避免循环依赖，这里定义一个简化的接口。
+// 完整实现在 pkg/skills 包中。
+type Skill interface {
+	// ID 返回 Skill 唯一标识
+	ID() string
+
+	// GetTools 返回 Skill 提供的工具列表
+	GetTools() []tools.Tool
+
+	// GetSystemPrompt 返回 Skill 的系统提示词
+	GetSystemPrompt() string
 }
 
 // AgentAction 是 Agent 行动。

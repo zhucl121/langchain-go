@@ -16,12 +16,15 @@ import (
 //   - 工具调用
 //   - 最大步数控制
 //   - 中间件集成
+//   - Skill 集成
 //
 type Executor struct {
-	agent          Agent
-	maxSteps       int
-	verbose        bool
+	agent           Agent
+	maxSteps        int
+	verbose         bool
 	middlewareChain *middleware.Chain
+	skillManager    SkillManager
+	enabledSkills   []string
 }
 
 // NewExecutor 创建 Agent 执行器。
@@ -39,6 +42,18 @@ func NewExecutor(agent Agent) *Executor {
 		verbose:         false,
 		middlewareChain: middleware.NewChain(),
 	}
+}
+
+// WithSkillManager 设置 Skill 管理器。
+func (e *Executor) WithSkillManager(manager SkillManager) *Executor {
+	e.skillManager = manager
+	return e
+}
+
+// WithEnabledSkills 设置启用的 Skill 列表。
+func (e *Executor) WithEnabledSkills(skills []string) *Executor {
+	e.enabledSkills = skills
+	return e
 }
 
 // WithMaxSteps 设置最大步数。
@@ -70,6 +85,11 @@ func (e *Executor) WithMiddleware(mw middleware.Middleware) *Executor {
 //   - error: 错误
 //
 func (e *Executor) Execute(ctx context.Context, input string) (*AgentResult, error) {
+	// 初始化 Skills
+	if err := e.initializeSkills(ctx); err != nil {
+		return nil, fmt.Errorf("failed to initialize skills: %w", err)
+	}
+
 	result := &AgentResult{
 		Steps:      make([]AgentStep, 0),
 		TotalSteps: 0,
@@ -180,8 +200,9 @@ func (e *Executor) executeToolCall(ctx context.Context, action *AgentAction) (st
 
 // getToolByName 根据名称获取工具。
 func (e *Executor) getToolByName(name string) (tools.Tool, error) {
-	agentTools := e.agent.GetTools()
-	for _, tool := range agentTools {
+	// 获取所有可用工具（Agent 工具 + Skill 工具）
+	allTools := e.getAllTools()
+	for _, tool := range allTools {
 		if tool.GetName() == name {
 			return tool, nil
 		}
@@ -580,4 +601,81 @@ func (ae *AgentExecutor) Stream(ctx context.Context, input string) <-chan AgentS
 	}()
 
 	return eventChan
+}
+
+// getAllTools 获取所有可用工具（Agent 工具 + Skill 工具）
+func (e *Executor) getAllTools() []tools.Tool {
+	// 获取 Agent 的基础工具
+	allTools := e.agent.GetTools()
+
+	// 如果没有 SkillManager，直接返回基础工具
+	if e.skillManager == nil {
+		return allTools
+	}
+
+	// 获取所有已加载的 Skill
+	loadedSkills := e.skillManager.ListLoaded()
+
+	// 聚合 Skill 提供的工具
+	for _, skill := range loadedSkills {
+		skillTools := skill.GetTools()
+		allTools = append(allTools, skillTools...)
+	}
+
+	return allTools
+}
+
+// getSystemPromptWithSkills 获取组合后的系统提示词（基础提示词 + Skill 提示词）
+func (e *Executor) getSystemPromptWithSkills(basePrompt string) string {
+	// 如果没有 SkillManager，返回基础提示词
+	if e.skillManager == nil {
+		return basePrompt
+	}
+
+	// 获取所有已加载的 Skill
+	loadedSkills := e.skillManager.ListLoaded()
+	if len(loadedSkills) == 0 {
+		return basePrompt
+	}
+
+	// 组合提示词
+	prompts := []string{basePrompt}
+
+	for _, skill := range loadedSkills {
+		skillPrompt := skill.GetSystemPrompt()
+		if skillPrompt != "" {
+			prompts = append(prompts, fmt.Sprintf("\n## %s\n%s", skill.ID(), skillPrompt))
+		}
+	}
+
+	return fmt.Sprintf("%s\n", fmt.Sprint(prompts...))
+}
+
+// initializeSkills 初始化 Skills（在执行前调用）
+func (e *Executor) initializeSkills(ctx context.Context) error {
+	if e.skillManager == nil || len(e.enabledSkills) == 0 {
+		return nil
+	}
+
+	// 加载启用的 Skills
+	for _, skillID := range e.enabledSkills {
+		// 检查是否已加载
+		if e.skillManager.IsLoaded(skillID) {
+			continue
+		}
+
+		// 加载 Skill
+		config := map[string]any{
+			"auto_load_dependencies": true,
+		}
+		if err := e.skillManager.Load(ctx, skillID, config); err != nil {
+			return fmt.Errorf("failed to load skill %s: %w", skillID, err)
+		}
+
+		if e.verbose {
+			fmt.Printf("[Skill] Loaded skill: %s\n", skillID)
+		}
+	}
+
+	return nil
 }
