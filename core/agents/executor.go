@@ -648,7 +648,12 @@ func (e *Executor) getSystemPromptWithSkills(basePrompt string) string {
 		}
 	}
 
-	return fmt.Sprintf("%s\n", fmt.Sprint(prompts...))
+	// 将 []string 转换为 []any
+	promptsAny := make([]any, len(prompts))
+	for i, p := range prompts {
+		promptsAny[i] = p
+	}
+	return fmt.Sprintf("%s\n", fmt.Sprint(promptsAny...))
 }
 
 // initializeSkills 初始化 Skills（在执行前调用）

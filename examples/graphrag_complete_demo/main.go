@@ -8,15 +8,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zhucl121/langchain-go/embeddings"
 	"github.com/zhucl121/langchain-go/pkg/types"
-	"github.com/zhucl121/langchain-go/retrieval/builder"
+	"github.com/zhucl121/langchain-go/retrieval/embeddings"
 	"github.com/zhucl121/langchain-go/retrieval/graphdb"
+	"github.com/zhucl121/langchain-go/retrieval/graphdb/builder"
 	"github.com/zhucl121/langchain-go/retrieval/graphdb/mock"
 	"github.com/zhucl121/langchain-go/retrieval/graphdb/nebula"
 	"github.com/zhucl121/langchain-go/retrieval/graphdb/neo4j"
+	"github.com/zhucl121/langchain-go/retrieval/loaders"
 	"github.com/zhucl121/langchain-go/retrieval/retrievers/graphrag"
-	"github.com/zhucl121/langchain-go/vectorstores"
+	"github.com/zhucl121/langchain-go/retrieval/vectorstores"
 )
 
 // GraphRAG 完整示例 - 演示所有功能
@@ -64,10 +65,10 @@ func main() {
 	}
 
 	// 创建 embeddings
-	embeddingsModel := embeddings.NewInMemoryEmbeddings(384)
+	embeddingsModel := embeddings.NewFakeEmbeddings(384)
 
 	// 创建向量存储
-	vectorStore := vectorstores.NewInMemoryVectorStore()
+	vectorStore := vectorstores.NewInMemoryVectorStore(embeddingsModel)
 
 	// 构建知识图谱
 	fmt.Println("📊 Step 1: 构建知识图谱...")
@@ -249,15 +250,23 @@ func buildKnowledgeGraph(ctx context.Context, graphDB graphdb.GraphDB, emb embed
 	extractor := &mockEntityExtractor{}
 	relationExtractor := &mockRelationExtractor{}
 
-	kgBuilder := builder.NewKGBuilder(builder.Config{
+	kgBuilder, err := builder.NewKGBuilder(builder.KGBuilderConfig{
 		GraphDB:           graphDB,
 		EntityExtractor:   extractor,
 		RelationExtractor: relationExtractor,
-		Embeddings:        emb,
 	})
+	if err != nil {
+		return fmt.Errorf("failed to create kg builder: %w", err)
+	}
 
+	// 转换为文本列表
+	texts := make([]string, len(docs))
+	for i, doc := range docs {
+		texts[i] = doc.Content
+	}
+	
 	// 批量构建
-	graphs, err := kgBuilder.BuildBatch(ctx, docs)
+	graphs, err := kgBuilder.BuildBatch(ctx, texts)
 	if err != nil {
 		return fmt.Errorf("failed to build batch: %w", err)
 	}
@@ -272,18 +281,24 @@ func buildKnowledgeGraph(ctx context.Context, graphDB graphdb.GraphDB, emb embed
 
 	fmt.Printf("  ✓ 合并后: %d 实体, %d 关系\n", len(merged.Entities), len(merged.Relations))
 
-	// 存储到图数据库
-	if err := kgBuilder.Store(ctx, merged); err != nil {
-		return fmt.Errorf("failed to store graph: %w", err)
-	}
-
-	fmt.Println("  ✓ 知识图谱已存储")
+	// 知识图谱已构建完成（BuildBatch 内部已存储）
+	fmt.Println("  ✓ 知识图谱已构建和存储")
 
 	return nil
 }
 
 func vectorizeDocuments(ctx context.Context, store vectorstores.VectorStore, emb embeddings.Embeddings, docs []types.Document) error {
-	if err := store.AddDocuments(ctx, docs); err != nil {
+	// 转换为 loaders.Document
+	loaderDocs := make([]*loaders.Document, len(docs))
+	for i, doc := range docs {
+		loaderDocs[i] = &loaders.Document{
+			Content:  doc.Content,
+			Metadata: doc.Metadata,
+		}
+	}
+	
+	_, err := store.AddDocuments(ctx, loaderDocs)
+	if err != nil {
 		return err
 	}
 
@@ -295,14 +310,14 @@ func createGraphRAGRetriever(graphDB graphdb.GraphDB, vectorStore vectorstores.V
 	extractor := &mockEntityExtractor{}
 
 	config := graphrag.Config{
-		GraphDB:         graphDB,
-		VectorStore:     vectorStore,
-		EntityExtractor: extractor,
-		Embeddings:      emb,
-		VectorWeight:    0.6,
-		GraphWeight:     0.4,
-		GraphDepth:      2,
-		TopK:            5,
+		GraphDB:          graphDB,
+		VectorStore:      vectorStore,
+		EntityExtractor:  extractor,
+		Embeddings:       emb,
+		VectorWeight:     0.6,
+		GraphWeight:      0.4,
+		MaxTraverseDepth: 2,
+		TopK:             5,
 	}
 
 	retriever, err := graphrag.NewGraphRAGRetriever(config)
@@ -336,7 +351,11 @@ func demoSearchMode(ctx context.Context, retriever *graphrag.GraphRAGRetriever, 
 		if i >= 3 {
 			break
 		}
-		fmt.Printf("     [%d] Score: %.3f | %s\n", i+1, doc.Score, truncate(doc.Content, 50))
+		score := 0.0
+		if scoreVal, ok := doc.Metadata["score"].(float64); ok {
+			score = scoreVal
+		}
+		fmt.Printf("     [%d] Score: %.3f | %s\n", i+1, score, truncate(doc.Content, 50))
 	}
 }
 
@@ -370,7 +389,11 @@ func demoFusionStrategy(ctx context.Context, retriever *graphrag.GraphRAGRetriev
 		if i >= 3 {
 			break
 		}
-		fmt.Printf("     [%d] Score: %.3f | %s\n", i+1, doc.Score, truncate(doc.Content, 50))
+		score := 0.0
+		if scoreVal, ok := doc.Metadata["score"].(float64); ok {
+			score = scoreVal
+		}
+		fmt.Printf("     [%d] Score: %.3f | %s\n", i+1, score, truncate(doc.Content, 50))
 	}
 }
 
@@ -403,18 +426,23 @@ func demoRerankStrategy(ctx context.Context, retriever *graphrag.GraphRAGRetriev
 		if i >= 3 {
 			break
 		}
-		fmt.Printf("     [%d] Score: %.3f | %s\n", i+1, doc.Score, truncate(doc.Content, 50))
+		score := 0.0
+		if scoreVal, ok := doc.Metadata["score"].(float64); ok {
+			score = scoreVal
+		}
+		fmt.Printf("     [%d] Score: %.3f | %s\n", i+1, score, truncate(doc.Content, 50))
 	}
 }
 
 func displayStatistics(stats graphrag.Statistics) {
-	fmt.Printf("向量检索结果数: %d\n", stats.VectorResults)
-	fmt.Printf("图检索结果数: %d\n", stats.GraphResults)
-	fmt.Printf("融合后结果数: %d\n", stats.FusedResults)
-	fmt.Printf("最终结果数: %d\n", stats.FinalResults)
-	fmt.Printf("处理的实体数: %d\n", stats.EntitiesProcessed)
+	fmt.Printf("向量检索结果数: %d\n", stats.VectorResultsCount)
+	fmt.Printf("图检索结果数: %d\n", stats.GraphResultsCount)
+	fmt.Printf("融合后结果数: %d\n", stats.FusedResultsCount)
+	fmt.Printf("提取的实体数: %d\n", stats.EntitiesExtracted)
 	fmt.Printf("遍历的节点数: %d\n", stats.NodesTraversed)
-	fmt.Printf("平均融合分数: %.3f\n", stats.AverageFusionScore)
+	fmt.Printf("平均图深度: %.3f\n", stats.AverageGraphDepth)
+	fmt.Printf("向量检索耗时: %d ms\n", stats.VectorSearchTime)
+	fmt.Printf("图检索耗时: %d ms\n", stats.GraphSearchTime)
 }
 
 func truncate(s string, maxLen int) string {
@@ -436,15 +464,19 @@ func (m *mockEntityExtractor) Extract(ctx context.Context, text string) ([]build
 	for _, keyword := range keywords {
 		if contains(text, keyword) {
 			entities = append(entities, builder.Entity{
-				ID:    fmt.Sprintf("entity_%s", keyword),
-				Name:  keyword,
-				Type:  "Concept",
-				Label: keyword,
+				ID:   fmt.Sprintf("entity_%s", keyword),
+				Name: keyword,
+				Type: "Concept",
 			})
 		}
 	}
 
 	return entities, nil
+}
+
+func (m *mockEntityExtractor) ExtractWithSchema(ctx context.Context, text string, schema *builder.EntitySchema) ([]builder.Entity, error) {
+	// 简化实现，忽略 schema
+	return m.Extract(ctx, text)
 }
 
 type mockRelationExtractor struct{}
@@ -464,6 +496,11 @@ func (m *mockRelationExtractor) Extract(ctx context.Context, text string, entiti
 	}
 
 	return relations, nil
+}
+
+func (m *mockRelationExtractor) ExtractWithSchema(ctx context.Context, text string, entities []builder.Entity, schema *builder.RelationSchema) ([]builder.Relation, error) {
+	// 简化实现，忽略 schema
+	return m.Extract(ctx, text, entities)
 }
 
 func contains(text, keyword string) bool {

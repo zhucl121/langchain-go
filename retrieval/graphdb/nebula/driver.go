@@ -178,6 +178,18 @@ func (d *NebulaDriver) Execute(ctx context.Context, query string) (*nebula.Resul
 	return result, nil
 }
 
+// Ping 健康检查
+func (d *NebulaDriver) Ping(ctx context.Context) error {
+	if d.pool == nil {
+		return graphdb.ErrNotConnected
+	}
+	
+	// 简单的 ping 查询
+	query := "SHOW HOSTS"
+	_, err := d.Execute(ctx, query)
+	return err
+}
+
 // AddNode 添加节点
 func (d *NebulaDriver) AddNode(ctx context.Context, node *graphdb.Node) error {
 	if node == nil {
@@ -251,6 +263,38 @@ func (d *NebulaDriver) DeleteNode(ctx context.Context, id string) error {
 	return err
 }
 
+// BatchAddNodes 批量添加节点
+func (d *NebulaDriver) BatchAddNodes(ctx context.Context, nodes []*graphdb.Node) error {
+	if len(nodes) == 0 {
+		return nil
+	}
+
+	// 验证所有节点
+	for _, node := range nodes {
+		if node == nil {
+			return fmt.Errorf("nebula: node is nil")
+		}
+		if node.ID == "" {
+			return fmt.Errorf("nebula: node ID is required")
+		}
+	}
+
+	// 构建批量插入语句
+	var queries []string
+	for _, node := range nodes {
+		if node.Type == "" {
+			node.Type = "Entity"
+		}
+		query := d.qb.InsertVertex(node.ID, node.Type, node.Properties)
+		queries = append(queries, query)
+	}
+
+	// 执行批量插入
+	batchQuery := strings.Join(queries, "; ")
+	_, err := d.Execute(ctx, batchQuery)
+	return err
+}
+
 // AddEdge 添加边
 func (d *NebulaDriver) AddEdge(ctx context.Context, edge *graphdb.Edge) error {
 	if edge == nil {
@@ -264,6 +308,127 @@ func (d *NebulaDriver) AddEdge(ctx context.Context, edge *graphdb.Edge) error {
 	query := d.qb.InsertEdge(edge.Source, edge.Target, edge.Type, edge.Properties)
 	_, err := d.Execute(ctx, query)
 	return err
+}
+
+// BatchAddEdges 批量添加边
+func (d *NebulaDriver) BatchAddEdges(ctx context.Context, edges []*graphdb.Edge) error {
+	if len(edges) == 0 {
+		return nil
+	}
+
+	// 验证所有边
+	for _, edge := range edges {
+		if edge == nil {
+			return fmt.Errorf("nebula: edge is nil")
+		}
+		if edge.Source == "" || edge.Target == "" {
+			return fmt.Errorf("nebula: source and target are required")
+		}
+	}
+
+	// 构建批量插入语句
+	var queries []string
+	for _, edge := range edges {
+		query := d.qb.InsertEdge(edge.Source, edge.Target, edge.Type, edge.Properties)
+		queries = append(queries, query)
+	}
+
+	// 执行批量插入
+	batchQuery := strings.Join(queries, "; ")
+	_, err := d.Execute(ctx, batchQuery)
+	return err
+}
+
+// FindNodes 查找节点
+func (d *NebulaDriver) FindNodes(ctx context.Context, filter graphdb.NodeFilter) ([]*graphdb.Node, error) {
+	// 构建查询语句
+	query := "MATCH (n) "
+	
+	var conditions []string
+	
+	// 处理类型过滤
+	if len(filter.Types) > 0 {
+		typeConditions := make([]string, len(filter.Types))
+		for i, t := range filter.Types {
+			typeConditions[i] = fmt.Sprintf("tags(n) == [\"%s\"]", t)
+		}
+		conditions = append(conditions, "("+strings.Join(typeConditions, " OR ")+")")
+	}
+	
+	if len(conditions) > 0 {
+		query += "WHERE " + strings.Join(conditions, " AND ") + " "
+	}
+	
+	limit := filter.Limit
+	if limit == 0 {
+		limit = 100 // 默认限制
+	}
+	query += fmt.Sprintf("RETURN n LIMIT %d", limit)
+	
+	_, err := d.Execute(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	
+	// 简化处理：返回空列表
+	// 实际实现需要解析 result 并转换为 Node
+	// TODO: 完善结果解析逻辑
+	return []*graphdb.Node{}, nil
+}
+
+// FindEdges 查找边
+func (d *NebulaDriver) FindEdges(ctx context.Context, filter graphdb.EdgeFilter) ([]*graphdb.Edge, error) {
+	// 构建查询语句
+	query := "MATCH ()-[e]-() "
+	
+	var conditions []string
+	
+	// 处理类型过滤
+	if len(filter.Types) > 0 {
+		typeConditions := make([]string, len(filter.Types))
+		for i, t := range filter.Types {
+			typeConditions[i] = fmt.Sprintf("type(e) == \"%s\"", t)
+		}
+		conditions = append(conditions, "("+strings.Join(typeConditions, " OR ")+")")
+	}
+	
+	// 处理源节点过滤
+	if len(filter.SourceIDs) > 0 {
+		sourceConditions := make([]string, len(filter.SourceIDs))
+		for i, id := range filter.SourceIDs {
+			sourceConditions[i] = fmt.Sprintf("id(startNode(e)) == \"%s\"", id)
+		}
+		conditions = append(conditions, "("+strings.Join(sourceConditions, " OR ")+")")
+	}
+	
+	// 处理目标节点过滤
+	if len(filter.TargetIDs) > 0 {
+		targetConditions := make([]string, len(filter.TargetIDs))
+		for i, id := range filter.TargetIDs {
+			targetConditions[i] = fmt.Sprintf("id(endNode(e)) == \"%s\"", id)
+		}
+		conditions = append(conditions, "("+strings.Join(targetConditions, " OR ")+")")
+	}
+	
+	if len(conditions) > 0 {
+		query += "WHERE " + strings.Join(conditions, " AND ") + " "
+	}
+	
+	limit := filter.Limit
+	if limit == 0 {
+		limit = 100 // 默认限制
+	}
+	query += fmt.Sprintf("RETURN e LIMIT %d", limit)
+	
+	_, err := d.Execute(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	
+	// 简化处理：返回空列表
+	// 实际实现需要解析 result 并转换为 Edge
+	// TODO: 完善结果解析逻辑
+	return []*graphdb.Edge{}, nil
 }
 
 // GetEdge 获取边
