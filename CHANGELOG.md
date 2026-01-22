@@ -9,9 +9,9 @@
 
 ## [0.6.0] - 2026-01-22
 
-### 🎉 Added - 企业级安全增强
+### 🎉 Added - 企业级安全完整版
 
-本版本实现了完整的 RBAC 权限控制和多租户隔离功能，为 LangChain-Go 带来企业级安全特性。
+本版本实现了完整的企业级安全特性，包括 RBAC 权限控制、多租户隔离、审计日志、数据安全和 API 鉴权，为 LangChain-Go 带来生产级企业安全能力。
 
 #### RBAC 权限控制系统
 - **完整的 RBAC 实现** (`pkg/enterprise/rbac/`) - 1,500+ 行
@@ -35,17 +35,52 @@
   - 租户激活/暂停
   - Context 集成
 
+#### 审计日志系统
+- **审计日志** (`pkg/enterprise/audit/`) - 800+ 行
+  - 审计事件记录（AuditEvent）
+  - 日志查询和过滤（时间、用户、操作、状态）
+  - 日志导出（JSON/CSV）
+  - 审计 Middleware（自动记录）
+  - 内存存储（开发/测试）
+  - PostgreSQL 支持（生产环境）
+
+#### 数据安全
+- **加密和脱敏** (`pkg/enterprise/security/`) - 600+ 行
+  - AES-256-GCM 加密器
+  - 字段级加密（FieldEncryptor）
+  - 6 种数据脱敏器：
+    - 邮箱脱敏（EmailMasker）
+    - 手机号脱敏（PhoneMasker）
+    - 身份证脱敏（IDCardMasker）
+    - 银行卡脱敏（BankCardMasker）
+    - 姓名脱敏（NameMasker）
+    - 地址脱敏（AddressMasker）
+  - 密钥生成和管理
+
+#### API 鉴权
+- **JWT 和 API Key 认证** (`pkg/enterprise/auth/`) - 1,400+ 行
+  - JWT 生成和验证（JWTAuthenticator）
+  - API Key 生成和验证（APIKeyAuthenticator）
+  - Token 刷新机制
+  - Token 撤销（黑名单）
+  - HTTP 认证中间件（AuthMiddleware）
+  - 角色检查中间件（RequireRoles）
+  - Context 集成（AuthContext）
+
 ### 📊 统计数据
-- **新增代码**: 2,700+ 行（核心实现）
-- **测试代码**: 900+ 行
-- **单元测试**: 20 个（100% 通过）
-- **测试覆盖率**: 40%+ 平均
-- **示例程序**: 1 个（rbac_demo）
+- **新增代码**: 5,500+ 行（核心实现）
+  - RBAC: 1,500 行
+  - 多租户: 1,200 行
+  - 审计日志: 800 行
+  - 数据安全: 600 行
+  - API 鉴权: 1,400 行
+- **示例程序**: 1 个（enterprise_demo - 综合演示）
+- **新增依赖**: github.com/golang-jwt/jwt/v5
 
 ### 📝 Documentation
 - 新增 `docs/V0.6.0_PROGRESS.md` - 开发进度
-- 新增 `examples/rbac_demo/` - 完整演示程序
-- 新增 `examples/rbac_demo/README.md` - 使用说明
+- 新增 `examples/enterprise_demo/` - 企业级功能综合演示
+- 新增 `examples/enterprise_demo/README.md` - 完整使用说明
 
 ### ⚡ Performance
 - 权限检查: < 100 ns/op（缓存命中）
