@@ -15,7 +15,6 @@ import (
 	"log"
 	"time"
 	
-	"github.com/google/uuid"
 	"github.com/zhucl121/langchain-go/pkg/protocols/a2a"
 	"github.com/zhucl121/langchain-go/pkg/protocols/bridge"
 	"github.com/zhucl121/langchain-go/pkg/protocols/mcp"

@@ -28,8 +28,6 @@ package mcp
 
 import (
 	"context"
-	"io"
-	"time"
 )
 
 // MCPServer represents a Model Context Protocol server.

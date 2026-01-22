@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	
+	"github.com/zhucl121/langchain-go/pkg/protocols/mcp"
 )
 
 // FileSystemProvider provides access to filesystem resources.
@@ -24,7 +26,7 @@ func NewFileSystemProvider(root string) *FileSystemProvider {
 }
 
 // Read reads a file from the filesystem.
-func (p *FileSystemProvider) Read(ctx context.Context, uri string) (*ResourceContent, error) {
+func (p *FileSystemProvider) Read(ctx context.Context, uri string) (*mcp.ResourceContent, error) {
 	// Parse URI: file:///path/to/file
 	path := p.uriToPath(uri)
 	
@@ -58,7 +60,7 @@ func (p *FileSystemProvider) Read(ctx context.Context, uri string) (*ResourceCon
 	// Detect MIME type
 	mimeType := p.detectMimeType(absPath)
 	
-	return &ResourceContent{
+	return &mcp.ResourceContent{
 		URI:      uri,
 		MimeType: mimeType,
 		Text:     string(data),
@@ -66,7 +68,7 @@ func (p *FileSystemProvider) Read(ctx context.Context, uri string) (*ResourceCon
 }
 
 // Subscribe is not implemented for filesystem provider.
-func (p *FileSystemProvider) Subscribe(ctx context.Context, uri string) (<-chan *ResourceContent, error) {
+func (p *FileSystemProvider) Subscribe(ctx context.Context, uri string) (<-chan *mcp.ResourceContent, error) {
 	return nil, fmt.Errorf("subscribe not supported for filesystem provider")
 }
 
@@ -120,12 +122,4 @@ func (p *FileSystemProvider) detectMimeType(path string) string {
 	default:
 		return "text/plain"
 	}
-}
-
-// ResourceContent represents the content of a resource (re-exported for convenience).
-type ResourceContent struct {
-	URI      string `json:"uri"`
-	MimeType string `json:"mimeType"`
-	Text     string `json:"text,omitempty"`
-	Blob     []byte `json:"blob,omitempty"`
 }

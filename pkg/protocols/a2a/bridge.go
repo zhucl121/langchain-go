@@ -3,6 +3,7 @@ package a2a
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 	
 	"github.com/google/uuid"
@@ -229,6 +230,3 @@ func (b *A2AAgentBridge) taskToAgentInput(task *Task) string {
 		return task.Input.Content
 	}
 }
-
-// Import sync package
-import "sync"

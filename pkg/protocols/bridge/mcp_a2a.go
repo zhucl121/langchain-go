@@ -125,11 +125,11 @@ func (b *MCPToA2ABridge) ExecuteToolViaA2A(ctx context.Context, name string, arg
 //	resources := bridge.ExposeAgentsAsResources()
 type A2AToMCPBridge struct {
 	registry  a2a.AgentRegistry
-	mcpServer mcp.MCPServer
+	mcpServer *mcp.DefaultMCPServer
 }
 
 // NewA2AToMCPBridge creates a new A2A to MCP bridge.
-func NewA2AToMCPBridge(registry a2a.AgentRegistry, mcpServer mcp.MCPServer) *A2AToMCPBridge {
+func NewA2AToMCPBridge(registry a2a.AgentRegistry, mcpServer *mcp.DefaultMCPServer) *A2AToMCPBridge {
 	return &A2AToMCPBridge{
 		registry:  registry,
 		mcpServer: mcpServer,
@@ -228,19 +228,21 @@ func (p *AgentResourceProvider) Unsubscribe(ctx context.Context, uri string) err
 
 // BidirectionalBridge provides bidirectional bridging between MCP and A2A.
 type BidirectionalBridge struct {
-	mcpToA2A *MCPToA2ABridge
-	a2aToMCP *A2AToMCPBridge
+	mcpToA2A  *MCPToA2ABridge
+	a2aToMCP  *A2AToMCPBridge
+	mcpServer *mcp.DefaultMCPServer // Use concrete type to access RegisterResource
 }
 
 // NewBidirectionalBridge creates a new bidirectional bridge.
 func NewBidirectionalBridge(
-	mcpServer mcp.MCPServer,
+	mcpServer *mcp.DefaultMCPServer,
 	router a2a.TaskRouter,
 	registry a2a.AgentRegistry,
 ) *BidirectionalBridge {
 	return &BidirectionalBridge{
-		mcpToA2A: NewMCPToA2ABridge(mcpServer, router, registry),
-		a2aToMCP: NewA2AToMCPBridge(registry, mcpServer),
+		mcpToA2A:  NewMCPToA2ABridge(mcpServer, router, registry),
+		a2aToMCP:  NewA2AToMCPBridge(registry, mcpServer),
+		mcpServer: mcpServer,
 	}
 }
 
@@ -262,7 +264,7 @@ func (b *BidirectionalBridge) Setup(ctx context.Context) error {
 		}
 		
 		provider := b.a2aToMCP.CreateAgentResourceProvider(agent)
-		if err := b.a2aToMCP.mcpServer.RegisterResource(resource, provider); err != nil {
+		if err := b.mcpServer.RegisterResource(resource, provider); err != nil {
 			return fmt.Errorf("register resource: %w", err)
 		}
 	}
