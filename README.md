@@ -12,6 +12,9 @@ LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [Lan
 ## ✨ 核心特性
 
 - 🤖 **7种Agent类型** - ReAct、ToolCalling、Conversational、PlanExecute、OpenAI Functions、SelfAsk、StructuredChat
+- 🔗 **MCP协议** - 与 Claude Desktop 互操作，Go 生态首个实现 🔥 v0.6.1 NEW!
+- 🤝 **A2A协议** - 跨语言、跨系统 Agent 标准化协作 🔥 v0.6.1 NEW!
+- 🌐 **协议桥接** - MCP ↔ A2A 无缝互操作 🔥 v0.6.1 NEW!
 - 🤝 **Multi-Agent协作** - 完整的多Agent协作系统，支持顺序、并行、层次化执行策略
 - 🛠️ **38个内置工具** - 计算、搜索、文件、数据、HTTP、多模态（图像、音频、视频）
 - 🚀 **3行代码RAG** - 简化的RAG Chain API，从150行代码降至3行
@@ -20,9 +23,10 @@ LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [Lan
 - 🗄️ **5个向量存储** - Milvus, Chroma, Qdrant, Weaviate, Redis，支持混合搜索
 - 📚 **8个文档加载器** - 支持 GitHub, Confluence, PostgreSQL 等多种数据源
 - 🌐 **6个LLM提供商** - OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama
-- ⚡ **分布式部署** - 集群管理、负载均衡、分布式缓存、故障转移 🔥 v0.5.0 NEW!
+- ⚡ **分布式部署** - 集群管理、负载均衡、分布式缓存、故障转移
+- 🏢 **企业级安全** - RBAC、多租户、审计日志、数据安全 v0.6.0
 - 💾 **生产级特性** - Redis缓存、自动重试、状态持久化、可观测性、Prometheus指标
-- 📦 **完整文档** - 50+文档页面，中英文双语，含21个示例程序
+- 📦 **完整文档** - 65+文档页面，中英文双语，含25个示例程序
 
 ## 🚀 快速开始
 
@@ -249,38 +253,73 @@ func main() {
 }
 ```
 
-#### 6. 多模态处理
+#### 6. MCP协议 - 与Claude Desktop互操作 🔥 v0.6.1 NEW!
 
 ```go
 package main
 
 import (
     "context"
-    "github.com/zhucl121/langchain-go/core/tools"
-    "os"
+    "github.com/zhucl121/langchain-go/pkg/protocols/mcp"
+    "github.com/zhucl121/langchain-go/pkg/protocols/mcp/providers"
+    "github.com/zhucl121/langchain-go/pkg/protocols/mcp/transport"
 )
 
 func main() {
-    apiKey := os.Getenv("OPENAI_API_KEY")
-    
-    // 图像分析
-    imageConfig := tools.DefaultImageAnalysisConfig()
-    imageConfig.APIKey = apiKey
-    imageTool := tools.NewImageAnalysisTool(imageConfig)
-    
-    result, _ := imageTool.Execute(context.Background(), map[string]any{
-        "image":  "photo.jpg",
-        "prompt": "Describe this image in detail",
+    // 创建 MCP Server
+    server := mcp.NewServer(mcp.ServerConfig{
+        Name:    "my-server",
+        Version: "1.0.0",
     })
     
-    // 语音转文本
-    sttTool := tools.NewSpeechToTextTool(&tools.SpeechToTextConfig{
-        APIKey: apiKey,
+    // 注册资源
+    fsProvider := providers.NewFileSystemProvider("/data/documents")
+    server.RegisterResource(&mcp.Resource{
+        URI:  "file:///documents",
+        Name: "Company Documents",
+    }, fsProvider)
+    
+    // 注册工具
+    server.RegisterTool(calculatorTool, calculatorHandler)
+    
+    // 启动（Claude Desktop 可连接）
+    server.Serve(context.Background(), transport.NewStdioTransport())
+}
+```
+
+#### 7. A2A协议 - Agent间标准化协作 🔥 v0.6.1 NEW!
+
+```go
+package main
+
+import (
+    "context"
+    "github.com/zhucl121/langchain-go/pkg/protocols/a2a"
+)
+
+func main() {
+    // 桥接现有 Agent
+    a2aAgent := a2a.NewA2AAgentBridge(myAgent, &a2a.BridgeConfig{
+        Info: &a2a.AgentInfo{
+            ID:   "agent-1",
+            Name: "Research Agent",
+        },
+        Capabilities: &a2a.AgentCapabilities{
+            Capabilities: []string{"research", "search"},
+        },
     })
     
-    text, _ := sttTool.Execute(context.Background(), map[string]any{
-        "audio_file": "recording.mp3",
+    // 注册到注册中心
+    registry := a2a.NewLocalRegistry()
+    registry.Register(context.Background(), a2aAgent)
+    
+    // 智能路由和协作
+    router := a2a.NewSmartTaskRouter(registry, a2a.RouterConfig{
+        Strategy: a2a.StrategyHybrid,
     })
+    
+    agent, _ := router.Route(context.Background(), task)
+    response, _ := agent.SendTask(context.Background(), task)
 }
 ```
 
@@ -343,11 +382,13 @@ func main() {
 
 - 📘 [快速开始](QUICK_START.md) - 5分钟快速上手
 - 📗 [完整文档](docs/README.md) - 详细使用指南
+- 🔗 [MCP & A2A 指南](docs/V0.6.1_USER_GUIDE.md) - 标准化协议 🔥 v0.6.1
 - 📕 [Agent 指南](docs/guides/agents/README.md) - Agent 系统文档
 - 📙 [Multi-Agent 系统](docs/guides/multi-agent-guide.md) - 多Agent协作
 - 📚 [RAG 指南](docs/guides/rag/README.md) - RAG 系统文档
-- 🧠 [Learning Retrieval 指南](docs/V0.4.2_USER_GUIDE.md) - 学习型检索 🔥 v0.4.2
-- 💡 [示例代码](examples/) - 17个完整示例
+- 🧠 [Learning Retrieval 指南](docs/V0.4.2_USER_GUIDE.md) - 学习型检索
+- 🏢 [企业安全指南](docs/V0.6.0_PROGRESS.md) - RBAC 和多租户 v0.6.0
+- 💡 [示例代码](examples/) - 25个完整示例
 
 ## 🔧 示例程序
 
@@ -422,17 +463,19 @@ langchain-go/
 
 ## 📈 技术指标
 
-- **代码量**：36,000+ 行（v0.4.2 新增 11,000+ 行）🔥
+- **代码量**：40,000+ 行（v0.6.1 新增 3,300+ 行）🔥
 - **测试覆盖**：85%+
-- **测试用例**：626+（v0.4.2 新增 26 个）
+- **测试用例**：626+
+- **协议支持**：2个（MCP, A2A）🔥 v0.6.1 NEW!
 - **LLM 提供商**：6个（OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama）
 - **向量存储**：5个（Milvus, Chroma, Qdrant, Weaviate, Redis）
 - **文档加载器**：8个（PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL）
 - **内置工具**：38个
 - **Agent类型**：7种 + 6个专用Agent
-- **Learning 模块**：4个（反馈、评估、优化、A/B测试）🔥 v0.4.2
-- **文档页面**：55+
-- **示例程序**：17个（v0.4.2 新增 6 个）
+- **Learning 模块**：4个（反馈、评估、优化、A/B测试）
+- **企业特性**：5个（RBAC、多租户、审计、安全、鉴权）v0.6.0
+- **文档页面**：65+
+- **示例程序**：25个（v0.6.1 新增 4 个）🔥
 
 ## 🧪 测试
 
