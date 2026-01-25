@@ -457,6 +457,158 @@ docs/
 ## 相关文档
 ```
 
+### 6. 文档国际化规范 ⭐
+
+**核心原则**：
+- 所有用户面向文档必须提供中英文双语版本
+- 保持中英文内容对等和一致性
+- 便于国际开发者社区访问和贡献
+
+#### 文件命名规范
+
+```
+基础文档.md          - 主要语言版本（中文）
+基础文档_EN.md       - 英文版本
+基础文档_ZH.md       - 中文版本（当原文为英文时）
+```
+
+**示例**：
+```
+README.md            - 中文主页
+README_EN.md         - 英文主页
+CONTRIBUTING.md      - 英文贡献指南（原版）
+CONTRIBUTING_ZH.md   - 中文贡献指南
+QUICK_START.md       - 中文快速开始
+QUICK_START_EN.md    - 英文快速开始
+```
+
+#### 语言切换标识
+
+**每个文档顶部必须添加统一格式的语言切换链接**：
+
+```markdown
+# 文档标题
+
+🌍 **Language**: 中文 | [English](文档名_EN.md)
+
+内容开始...
+```
+
+或
+
+```markdown
+# Document Title
+
+🌍 **Language**: [中文](文档名.md) | English
+
+Content starts...
+```
+
+**实现示例**：
+```markdown
+# LangChain-Go
+
+🌍 **Language**: 中文 | [English](README_EN.md)
+
+🎯 **生产就绪的 Go AI 开发框架**
+```
+
+#### 必需双语文档清单
+
+**根目录核心文档**（必须提供双语版本）：
+- [ ] README.md + README_EN.md
+- [ ] QUICK_START.md + QUICK_START_EN.md
+- [ ] CONTRIBUTING.md + CONTRIBUTING_ZH.md
+- [ ] TESTING.md + TESTING_EN.md
+- [ ] SECURITY.md + SECURITY_EN.md
+
+**可选双语文档**：
+- CHANGELOG.md（中文为主，重大版本提供英文摘要）
+- 技术文档（根据受众决定）
+
+#### 文档链接双语化
+
+在 README 等文档中引用其他文档时，提供双语链接：
+
+```markdown
+## 📖 文档
+
+- 📘 [快速开始](QUICK_START.md) | [Quick Start (EN)](QUICK_START_EN.md)
+- 📗 [贡献指南 (中文)](CONTRIBUTING_ZH.md) | [Contributing (EN)](CONTRIBUTING.md)
+- 📙 [测试指南](TESTING.md) | [Testing Guide (EN)](TESTING_EN.md)
+```
+
+#### 内容组织要求
+
+1. **结构一致性**：
+   - 中英文文档保持相同的章节结构
+   - 标题层级和编号对应
+   - 代码示例位置一致
+
+2. **技术术语处理**：
+   - API 名称、函数名保持原文
+   - 专有名词首次出现时可标注英文
+   - 代码注释优先使用英文
+
+3. **代码示例**：
+   - 代码保持完全一致
+   - 注释可以本地化
+   - 输出结果可以本地化
+
+**示例**：
+```go
+// 中文版
+// 创建 OpenAI 客户端
+model := openai.New(openai.Config{
+    APIKey: "your-api-key",
+})
+
+// 英文版
+// Create OpenAI client
+model := openai.New(openai.Config{
+    APIKey: "your-api-key",
+})
+```
+
+#### 维护规范
+
+1. **同步更新原则**：
+   - 更新任一语言版本时，必须同步更新对应版本
+   - 在 PR 中明确标注文档更新范围
+   - 提交信息中说明文档变更
+
+2. **质量保证**：
+   - 定期检查链接有效性
+   - 确保术语翻译一致性
+   - 代码示例保持可运行
+
+3. **社区贡献**：
+   - 欢迎改进翻译质量的 PR
+   - 可以添加更多语言版本
+   - 建立翻译审核流程
+
+#### 国际化检查清单
+
+**新增文档时**：
+- [ ] 确定是否需要国际化
+- [ ] 创建对应语言版本
+- [ ] 添加语言切换标识
+- [ ] 更新引用该文档的其他文档链接
+- [ ] 验证所有链接有效
+
+**更新文档时**：
+- [ ] 同步更新所有语言版本
+- [ ] 检查术语翻译一致性
+- [ ] 验证代码示例可运行
+- [ ] 更新修改日期/版本号
+
+**发布前检查**：
+- [ ] 所有核心文档有双语版本
+- [ ] 语言切换链接正确
+- [ ] 内容结构对等一致
+- [ ] 链接全部有效
+- [ ] 无遗漏的国际化标识
+
 ---
 
 ## 性能优化指南
@@ -968,6 +1120,7 @@ PATCH: 向后兼容的问题修正
 - Keep a Changelog: https://keepachangelog.com/
 - Semantic Versioning: https://semver.org/
 - Markdown Guide: https://www.markdownguide.org/
+- 文档国际化: docs/archive/development/DOCUMENTATION_I18N_COMPLETE.md
 
 ---
 

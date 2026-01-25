@@ -5,6 +5,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/zhucl121/langchain-go)](https://goreportcard.com/report/github.com/zhucl121/langchain-go)
 [![GoDoc](https://pkg.go.dev/badge/github.com/zhucl121/langchain-go)](https://pkg.go.dev/github.com/zhucl121/langchain-go)
 
+🌍 **Language**: 中文 | [English](README_EN.md)
+
 🎯 **生产就绪的 Go AI 开发框架**
 
 LangChain-Go 是 [LangChain](https://github.com/langchain-ai/langchain) 和 [LangGraph](https://github.com/langchain-ai/langgraph) 的完整 Go 语言实现，针对 Go 生态优化，提供高性能、类型安全的 AI 应用开发体验。
@@ -380,7 +382,7 @@ func main() {
 
 ## 📖 文档
 
-- 📘 [快速开始](QUICK_START.md) - 5分钟快速上手
+- 📘 [快速开始](QUICK_START.md) | [Quick Start (EN)](QUICK_START_EN.md) - 5分钟快速上手
 - 📗 [完整文档](docs/README.md) - 详细使用指南
 - 🔗 [MCP & A2A 指南](docs/V0.6.1_USER_GUIDE.md) - 标准化协议 🔥 v0.6.1
 - 📕 [Agent 指南](docs/guides/agents/README.md) - Agent 系统文档
@@ -490,13 +492,13 @@ make -f Makefile.test test
 make -f Makefile.test test-env-down
 ```
 
-详见 [测试指南](TESTING.md)
+详见 [测试指南](TESTING.md) | [Testing Guide (EN)](TESTING_EN.md)
 
 ---
 
 ## 🤝 贡献
 
-欢迎贡献！请查看 [CONTRIBUTING.md](CONTRIBUTING.md) 了解详情。
+欢迎贡献！请查看 [贡献指南 (中文)](CONTRIBUTING_ZH.md) | [Contributing Guide (EN)](CONTRIBUTING.md) 了解详情。
 
 ### 贡献方式
 
