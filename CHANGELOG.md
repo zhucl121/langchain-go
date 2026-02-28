@@ -7,6 +7,92 @@
 
 ## [Unreleased]
 
+### 🎉 Added - v0.7.0 认知增强 + 生产就绪（开发中）
+
+#### A. LangGraph 1.0 对标特性
+- **节点级缓存** (`graph/node/cache.go`) - 对标 LangGraph Node-Level Caching
+  - `CachedFunctionNode`：可配置 TTL、自定义 KeyFunc、支持 Redis/内存存储
+  - `InMemoryNodeCache`：LRU 淘汰、并发安全、自动过期清理
+  - `Invalidate()` 手动失效 API
+  - 22 个测试用例
+
+- **延迟节点** (`graph/node/deferred.go`) - 对标 LangGraph Deferred Nodes
+  - `DeferredFunctionNode`：等所有上游并行分支完成后执行
+  - 支持 Timeout、FailFast、MinBranches 配置
+  - `MapReduceRunner`：便捷的 Map-Reduce 模式封装
+  - `GetBranchResultsFromContext()`：在聚合函数中获取各分支结果
+  - 重置 API 支持多轮复用
+
+- **Pre/Post Model Hooks** (`core/middleware/hooks.go`) - 对标 LangGraph Pre/Post Model Hooks
+  - `ModelHook` 接口 + `HookChain` 链式执行
+  - `SummaryHook`：历史摘要（防止 context 膨胀）
+  - `PIIRedactHook`：PII 自动脱敏（邮箱、手机、身份证、银行卡）
+  - `GuardrailHook`：输入/输出护栏（Block/Warn/Replace 三种动作）
+  - `RateLimitHook`：模型调用速率限制
+  - `ContentFilterHook`：关键词内容过滤
+
+- **可恢复流** (`graph/streaming/resumable.go`) - 对标 LangGraph Resumable Streams
+  - `ResumableStream`：网络中断后自动续传，不丢失任何 token
+  - `InMemoryStreamStorage`：带 TTL 的内存流状态存储
+  - `StreamStorage` 接口：支持扩展 Redis 等后端
+  - 事件类型：token/state/node_done/error/done
+
+#### B. 三层认知记忆系统 - 对标 LangMem SDK
+- **语义记忆**（Semantic Memory）：事实和知识（知识三元组、用户偏好）
+- **情节记忆**（Episodic Memory）：经历和经验（对话历史、Few-Shot 示例）
+- **程序性记忆**（Procedural Memory）：行为和技能（System Prompt 优化、工具使用模式）
+- **统一检索** `Recall()`：并行检索三层，生成 `AugmentedContext` 字符串
+- **自动整合** `AutoConsolidate()`：从对话自动提取并存储记忆
+- **内存存储**：开发/测试环境零配置使用
+- 可扩展存储接口：SemanticStorage / EpisodicStorage / ProceduralStorage
+- 可扩展提取器：`MemoryExtractor`（内置 `RuleBasedExtractor`）
+
+#### D. 生产级 Agent 容错模式
+- **CircuitBreaker** (`core/agents/circuit_breaker.go`) - 电路断路器
+  - 三态（Closed/Open/HalfOpen）状态机
+  - 可配置失败阈值、恢复成功次数、熔断超时
+  - 半开探测机制，平滑恢复
+  - 状态变化回调 `OnStateChange`
+
+- **Bulkhead** (`core/agents/circuit_breaker.go`) - 舱壁隔离
+  - 信号量并发控制，防止资源耗尽
+  - 可配置最大并发数和等待超时
+  - 统计拒绝/活跃请求数
+
+- **ResilienceWrapper** - 弹性执行包装器（Bulkhead + CircuitBreaker 组合）
+
+#### F. LangGraph Store - 跨会话长期记忆存储层
+- `Store` 接口：命名空间 + 键值存储（对标 LangGraph Store）
+- `InMemoryStore`：开发/测试环境内存实现
+- 支持 Put/Get/Delete/Search/List/BatchPut/BatchGet
+- `ListNamespaces()`：命名空间发现
+- `WithStore()` / `GetStore()`：context 集成（在 StateGraph 节点中访问）
+
+#### C. 可靠结构化输出（Trustcall）
+- **ReliableExtractor** (`core/output/trustcall.go`) - 对标 Python Trustcall
+  - JSON Patch 修复模式：失败时只传差异，而非完整 JSON，节省 Token
+  - 自动从 Markdown 代码块、混合文本中提取 JSON
+  - 可配置最大重试次数、自定义验证函数
+  - 泛型接口 `NewReliableExtractor[T]`，类型安全
+- **ReasoningTracer** - 推理轨迹记录器
+  - 结构化记录思考步骤、工具调用、Token 使用
+  - 与 `types.ContentBlock` 互操作（`ToContentBlock()`）
+  - 对标 LangChain 1.0 Standard Content Blocks 推理轨迹
+
+#### G. 统一 Agent 创建接口（对标 LangChain 1.0 create_agent）
+- **CreateUnifiedAgent** (`core/agents/create_agent.go`) - 统一配置入口
+  - 一个 API 入口，支持 react/tool_calling/plan_execute/self_ask/conversational 所有预设
+  - 函数式选项 API：`NewReActAgentV2` / `NewToolCallingAgentV2` / `NewMemoryAgentV2`
+  - `ManagedAgent`：封装 Agent + Executor，提供 `Run` / `RunWithMemory` 便捷方法
+  - ModelHooks 集成：将 Pre/Post Model Hooks 注入到 Agent 执行上下文
+  - 弹性配置一体化：Circuit Breaker + Bulkhead 开箱即用
+  - **InMemoryConversationMemory**：多轮对话记忆，自动截断历史（最多 20 条）
+- 示例程序
+  - `examples/cognitive_memory_demo/` - 三层认知记忆完整演示
+  - `examples/create_agent_v2_demo/` - 统一 Agent 创建接口演示
+
+---
+
 ### 🎉 Added - 标准化协议集成（计划中）
 
 v0.6.1 将实现 **MCP (Model Context Protocol)** 和 **A2A (Agent-to-Agent)** 协议，使 LangChain-Go 能够与其他 AI 系统标准化互操作。
