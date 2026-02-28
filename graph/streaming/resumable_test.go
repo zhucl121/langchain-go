@@ -150,6 +150,7 @@ func TestResumableStream_ContextCancel(t *testing.T) {
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	producer := func(ctx context.Context, emit func(*StreamEvent) error) error {
 		for i := 1; ; i++ {

@@ -59,7 +59,7 @@ func (t *TCPChecker) Check(ctx context.Context, n *node.Node) (*CheckResult, err
 		return nil, fmt.Errorf("node is nil")
 	}
 
-	address := fmt.Sprintf("%s:%d", n.Address, n.Port)
+	address := net.JoinHostPort(n.Address, fmt.Sprintf("%d", n.Port))
 	var lastErr error
 	startTime := time.Now()
 

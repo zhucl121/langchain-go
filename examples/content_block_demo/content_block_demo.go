@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go 标准内容块示例 ===\n")
+	fmt.Println("=== LangChain-Go 标准内容块示例 ===")
 
 	// 示例 1: 基础文本内容块
 	basicExample()

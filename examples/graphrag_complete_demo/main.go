@@ -32,7 +32,7 @@ import (
 func main() {
 	fmt.Println("========================================")
 	fmt.Println("  GraphRAG 完整功能演示")
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 
 	// 检查运行模式
 	mode := os.Getenv("GRAPH_MODE")
@@ -99,7 +99,7 @@ func main() {
 	// 演示不同的检索模式
 	fmt.Println("\n========================================")
 	fmt.Println("  检索模式对比")
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 
 	for _, query := range queries {
 		fmt.Printf("\n🔍 查询: %s\n", query)
@@ -118,7 +118,7 @@ func main() {
 	// 演示融合策略
 	fmt.Println("\n========================================")
 	fmt.Println("  融合策略对比")
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 
 	query := queries[0]
 	strategies := []graphrag.FusionStrategy{
@@ -135,7 +135,7 @@ func main() {
 	// 演示重排序策略
 	fmt.Println("\n========================================")
 	fmt.Println("  重排序策略对比")
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 
 	rerankStrategies := []graphrag.RerankStrategy{
 		graphrag.RerankStrategyScore,
@@ -150,7 +150,7 @@ func main() {
 	// 显示统计信息
 	fmt.Println("\n========================================")
 	fmt.Println("  统计信息")
-	fmt.Println("========================================\n")
+	fmt.Println("========================================")
 
 	stats := retriever.GetStatistics()
 	displayStatistics(stats)

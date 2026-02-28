@@ -23,7 +23,7 @@ import (
 func main() {
 	ctx := context.Background()
 	
-	fmt.Println("=== A2A Collaboration Demo ===\n")
+	fmt.Println("=== A2A Collaboration Demo ===")
 	
 	// Step 1: Setup registry and router
 	fmt.Println("Step 1: Setting up agent registry and router...")
@@ -33,7 +33,7 @@ func main() {
 		Strategy: a2a.StrategyHybrid,
 	})
 	
-	fmt.Println("✓ Registry and router created\n")
+	fmt.Println("✓ Registry and router created")
 	
 	// Step 2: Register specialized agents
 	fmt.Println("Step 2: Registering specialized agents...")
@@ -108,7 +108,7 @@ func main() {
 		},
 	})
 	registry.Register(ctx, writer)
-	fmt.Println("✓ Registered: Writer Agent\n")
+	fmt.Println("✓ Registered: Writer Agent")
 	
 	// Step 3: Simple task routing
 	fmt.Println("Step 3: Testing simple task routing...")

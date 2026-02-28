@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Learning Retrieval - 反馈收集示例 ===\n")
+	fmt.Println("=== LangChain-Go Learning Retrieval - 反馈收集示例 ===")
 
 	// 创建内存存储
 	storage := feedback.NewMemoryStorage()
@@ -120,7 +120,7 @@ func main() {
 	if err := collector.CollectImplicitFeedback(ctx, readFB); err != nil {
 		panic(err)
 	}
-	fmt.Println("✓ 用户阅读文档 120 秒\n")
+	fmt.Println("✓ 用户阅读文档 120 秒")
 
 	// 示例 4: 获取查询反馈
 	fmt.Println("4. 获取查询反馈汇总")
@@ -159,7 +159,7 @@ func main() {
 		}
 		collector.CollectExplicitFeedback(ctx, fb)
 	}
-	fmt.Println("✓ 已添加 5 个测试查询\n")
+	fmt.Println("✓ 已添加 5 个测试查询")
 
 	// 示例 6: 聚合统计
 	fmt.Println("6. 聚合统计")

@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Learning Retrieval - 质量评估示例 ===\n")
+	fmt.Println("=== LangChain-Go Learning Retrieval - 质量评估示例 ===")
 
 	// 创建反馈收集器
 	storage := feedback.NewMemoryStorage()

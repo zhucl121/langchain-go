@@ -23,14 +23,14 @@ import (
 func main() {
 	ctx := context.Background()
 	
-	fmt.Println("=== A2A Basic Demo ===\n")
+	fmt.Println("=== A2A Basic Demo ===")
 	
 	// Step 1: Create local registry
 	fmt.Println("Step 1: Creating local agent registry...")
 	registry := a2a.NewLocalRegistry()
 	
 	// Step 2: Create and register agents
-	fmt.Println("Step 2: Creating and registering agents...\n")
+	fmt.Println("Step 2: Creating and registering agents...")
 	
 	// Research Agent
 	researchAgent := &SimpleAgent{

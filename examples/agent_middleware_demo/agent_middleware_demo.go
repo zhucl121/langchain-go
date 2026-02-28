@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Agent Middleware 系统示例 ===\n")
+	fmt.Println("=== Agent Middleware 系统示例 ===")
 
 	// 示例 1: 基础 Middleware
 	basicMiddlewareExample()

@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go v0.7.0: 统一 Agent 创建接口演示 ===\n")
+	fmt.Println("=== LangChain-Go v0.7.0: 统一 Agent 创建接口演示 ===")
 
 	ctx := context.Background()
 	// 使用 agents 包内建的 MockChatModel（实现完整的 ChatModel 接口）
@@ -27,7 +27,7 @@ func main() {
 
 	// ─── 1. 基础使用：CreateUnifiedAgent ─────────────────────────
 	fmt.Println("【1】CreateUnifiedAgent - 统一配置 API")
-	fmt.Println("  对标 LangChain 1.0 create_agent，统一所有 Agent 类型的配置入口\n")
+	fmt.Println("  对标 LangChain 1.0 create_agent，统一所有 Agent 类型的配置入口")
 
 	ca1, err := agents.CreateUnifiedAgent(agents.UnifiedAgentConfig{
 		Preset:       agents.PresetReAct,
@@ -54,7 +54,7 @@ func main() {
 
 	// ─── 2. 选项函数 API ──────────────────────────────────────────
 	fmt.Println("【2】选项函数 API - 函数式配置风格")
-	fmt.Println("  使用 functional options 模式，更灵活地配置 Agent\n")
+	fmt.Println("  使用 functional options 模式，更灵活地配置 Agent")
 
 	ca2, err := agents.NewReActAgentV2(llm, nil,
 		agents.WithUnifiedSystemPrompt("你是一个 Go 专家"),
@@ -72,7 +72,7 @@ func main() {
 
 	// ─── 3. 带记忆的对话 Agent ────────────────────────────────────
 	fmt.Println("【3】带记忆的对话 Agent - 多轮对话上下文管理")
-	fmt.Println("  自动保存和加载对话历史，支持跨轮次的上下文理解\n")
+	fmt.Println("  自动保存和加载对话历史，支持跨轮次的上下文理解")
 
 	memory := agents.NewInMemoryConversationMemory()
 	ca3, err := agents.NewMemoryAgentV2(llm, nil,
@@ -105,7 +105,7 @@ func main() {
 
 	// ─── 4. 带 ModelHooks 的 Agent ───────────────────────────────
 	fmt.Println("【4】ModelHooks - Pre/Post 模型调用钩子")
-	fmt.Println("  对标 LangGraph 1.0 Pre/Post Model Hooks，精细控制模型调用\n")
+	fmt.Println("  对标 LangGraph 1.0 Pre/Post Model Hooks，精细控制模型调用")
 
 	loggingHook := &loggingModelHook{name: "logging-hook"}
 	hookChain := middleware.NewHookChain(loggingHook)
@@ -127,7 +127,7 @@ func main() {
 
 	// ─── 5. 弹性配置（Circuit Breaker + Bulkhead）────────────────
 	fmt.Println("【5】弹性配置 - Circuit Breaker + Bulkhead")
-	fmt.Println("  v0.7.0 新增生产级容错机制，防止级联故障\n")
+	fmt.Println("  v0.7.0 新增生产级容错机制，防止级联故障")
 
 	resilience := agents.ResilienceConfig{
 		CircuitBreaker: agents.CircuitBreakerConfig{
@@ -161,7 +161,7 @@ func main() {
 
 	// ─── 6. 不同预设类型对比 ─────────────────────────────────────
 	fmt.Println("【6】预设类型快速切换对比")
-	fmt.Println("  通过修改 Preset 字段，轻松切换不同 Agent 策略\n")
+	fmt.Println("  通过修改 Preset 字段，轻松切换不同 Agent 策略")
 
 	presets := []struct {
 		name   string

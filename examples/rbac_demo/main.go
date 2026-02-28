@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go v0.6.0 - RBAC & 多租户演示 ===\n")
+	fmt.Println("=== LangChain-Go v0.6.0 - RBAC & 多租户演示 ===")
 
 	// 1. 创建 RBAC 管理器
 	rbacStore := rbac.NewMemoryStore()

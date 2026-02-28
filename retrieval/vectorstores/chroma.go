@@ -3,6 +3,8 @@ package vectorstores
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -606,5 +608,10 @@ type ChromaQueryResult struct {
 
 // generateChromaID 生成唯一 ID
 func generateChromaID() string {
-	return fmt.Sprintf("doc_%d", time.Now().UnixNano())
+	b := make([]byte, 8)
+	if _, err := rand.Read(b); err != nil {
+		// fallback: 时间戳 + 自增（在极端情况下仍可能碰撞，但概率极低）
+		return fmt.Sprintf("doc_%d", time.Now().UnixNano())
+	}
+	return "doc_" + hex.EncodeToString(b)
 }

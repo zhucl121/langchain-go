@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Agent 流式执行示例 ===\n")
+	fmt.Println("=== LangChain-Go Agent 流式执行示例 ===")
 
 	// 示例 1: 基础 Agent 流式执行
 	example1BasicAgentStream()

@@ -206,7 +206,7 @@ func TestContentModerationMiddleware(t *testing.T) {
 // TestCachingMiddleware 测试缓存中间件
 func TestCachingMiddleware(t *testing.T) {
 	cache := NewCachingMiddleware().
-		WithTTL(1 * time.Second).
+		WithTTL(200 * time.Millisecond).
 		WithMaxSize(10)
 
 	ctx := context.Background()
@@ -251,7 +251,7 @@ func TestCachingMiddleware(t *testing.T) {
 	t.Logf("Cache stats: hits=%d, misses=%d, hitRate=%.2f%%", hits, misses, hitRate)
 
 	// 测试 TTL
-	time.Sleep(1200 * time.Millisecond) // 增加等待时间确保缓存过期
+	time.Sleep(400 * time.Millisecond) // 等待缓存过期（TTL=200ms）
 
 	// 缓存应该过期
 	newState3, err := cache.BeforeModel(ctx, state)

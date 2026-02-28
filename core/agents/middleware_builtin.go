@@ -355,6 +355,16 @@ func (c *CachingMiddleware) BeforeModel(ctx context.Context, state *AgentState) 
 	entry, exists := c.cache[key]
 	c.mu.RUnlock()
 
+	// 构造副本，避免修改调用方的原始 state
+	newState := *state
+	newState.Extra = make(map[string]any)
+	for k, v := range state.Extra {
+		newState.Extra[k] = v
+	}
+	// 清除上一轮可能遗留的缓存标记
+	delete(newState.Extra, "cache_hit")
+	delete(newState.Extra, "cached_response")
+
 	if exists {
 		// 检查是否过期
 		if time.Since(entry.timestamp) < c.ttl {
@@ -362,27 +372,22 @@ func (c *CachingMiddleware) BeforeModel(ctx context.Context, state *AgentState) 
 			c.hits++
 			c.mu.Unlock()
 
-			// 缓存命中，直接返回缓存的响应
-			// 注意：这里我们需要一种机制来跳过实际的 LLM 调用
-			// 我们将缓存的响应存储在 state.Extra 中
-			if state.Extra == nil {
-				state.Extra = make(map[string]any)
-			}
-			state.Extra["cached_response"] = entry.response
-			state.Extra["cache_hit"] = true
-		} else {
-			// 过期，删除
-			c.mu.Lock()
-			delete(c.cache, key)
-			c.mu.Unlock()
+			// 缓存命中，将缓存响应写入副本
+			newState.Extra["cached_response"] = entry.response
+			newState.Extra["cache_hit"] = true
+			return &newState, nil
 		}
+		// 过期，删除
+		c.mu.Lock()
+		delete(c.cache, key)
+		c.mu.Unlock()
 	}
 
 	c.mu.Lock()
 	c.misses++
 	c.mu.Unlock()
 
-	return state, nil
+	return &newState, nil
 }
 
 // AfterModel 实现 AgentMiddleware 接口。

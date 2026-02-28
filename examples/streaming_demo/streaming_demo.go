@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Streaming 示例 ===\n")
+	fmt.Println("=== LangChain-Go Streaming 示例 ===")
 
 	// 示例 1: 基础 Token 流式处理
 	example1BasicStreaming()

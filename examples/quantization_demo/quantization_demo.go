@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== 向量量化示例 ===\n")
+	fmt.Println("=== 向量量化示例 ===")
 	
 	// 生成测试向量
 	dimension := 768
@@ -104,7 +104,7 @@ func testScalarQuantization(vectors [][]float32, dimension int) {
 
 // testBinaryQuantization 测试二值量化
 func testBinaryQuantization(vectors [][]float32, dimension int) {
-	fmt.Println("━━━ 2. Binary Quantization ━━━\n")
+	fmt.Println("━━━ 2. Binary Quantization ━━━")
 	
 	config := quantization.Config{
 		Type: quantization.QuantizationBinary,
@@ -160,7 +160,7 @@ func testBinaryQuantization(vectors [][]float32, dimension int) {
 
 // testProductQuantization 测试乘积量化
 func testProductQuantization(vectors [][]float32, dimension int) {
-	fmt.Println("━━━ 3. Product Quantization ━━━\n")
+	fmt.Println("━━━ 3. Product Quantization ━━━")
 	
 	// 使用较小的参数以加快演示速度
 	m := 8
@@ -243,7 +243,7 @@ func testProductQuantization(vectors [][]float32, dimension int) {
 
 // printComparison 打印比较总结
 func printComparison() {
-	fmt.Println("━━━ 比较总结 ━━━\n")
+	fmt.Println("━━━ 比较总结 ━━━")
 	
 	fmt.Println("┌─────────────────────┬──────────┬──────────┬────────────┬──────────┐")
 	fmt.Println("│ 方法                │ 压缩比   │ 精度损失 │ 训练成本   │ 查询速度 │")

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Provider Streaming 示例 ===\n")
+	fmt.Println("=== LangChain-Go Provider Streaming 示例 ===")
 
 	// 示例 1: 模拟 Provider Streaming
 	example1ProviderStreaming()

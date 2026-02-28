@@ -13,7 +13,7 @@ import (
 
 func main() {
 	fmt.Println("LangChain-Go v0.4.0 Observability Demo")
-	fmt.Println("======================================\n")
+	fmt.Println("======================================")
 	
 	// 初始化可观测性
 	obs, cleanup := initObservability()

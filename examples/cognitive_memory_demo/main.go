@@ -20,7 +20,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	fmt.Println("=== LangChain-Go v0.7.0: 三层认知记忆系统演示 ===\n")
+	fmt.Println("=== LangChain-Go v0.7.0: 三层认知记忆系统演示 ===")
 
 	// ─── 1. 创建记忆管理器 ───────────────────────────────────
 	fmt.Println("【1】初始化认知记忆管理器...")

@@ -12,7 +12,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	fmt.Println("=== LangChain-Go Skill 系统基础示例 ===\n")
+	fmt.Println("=== LangChain-Go Skill 系统基础示例 ===")
 
 	// 1. 创建 Skill 管理器
 	fmt.Println("1. 创建 Skill 管理器")

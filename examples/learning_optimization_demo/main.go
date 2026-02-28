@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Learning Retrieval - 参数优化示例 ===\n")
+	fmt.Println("=== LangChain-Go Learning Retrieval - 参数优化示例 ===")
 
 	// 创建反馈收集器和评估器
 	storage := feedback.NewMemoryStorage()
@@ -46,7 +46,7 @@ func main() {
 	// 创建优化器
 	fmt.Println("3. 创建参数优化器...")
 	optimizer := optimization.NewOptimizer(evaluator, collector, optimization.DefaultConfig())
-	fmt.Println("✓ 优化器已创建\n")
+	fmt.Println("✓ 优化器已创建")
 
 	// 定义参数空间
 	fmt.Println("4. 定义参数空间...")
@@ -101,7 +101,7 @@ func main() {
 		panic(err)
 	}
 	
-	fmt.Println("✓ 优化完成！\n")
+	fmt.Println("✓ 优化完成！")
 
 	// 显示优化结果
 	fmt.Println("6. 优化结果:")

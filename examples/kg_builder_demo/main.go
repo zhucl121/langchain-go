@@ -126,7 +126,7 @@ func main() {
 		"TechCorp acquired DataFlow in 2023 for $500 million.",
 	}
 
-	fmt.Println("\n=== Processing Texts ===\n")
+	fmt.Println("\n=== Processing Texts ===")
 
 	// 5. 批量构建知识图谱
 	graphs, err := kgBuilder.BuildBatch(ctx, texts)
@@ -157,7 +157,7 @@ func main() {
 	}
 
 	// 7. 合并所有图谱
-	fmt.Println("=== Merging All Graphs ===\n")
+	fmt.Println("=== Merging All Graphs ===")
 	mergedKG, err := kgBuilder.Merge(ctx, graphs)
 	if err != nil {
 		log.Fatalf("Merge failed: %v", err)
@@ -169,7 +169,7 @@ func main() {
 	fmt.Println()
 
 	// 8. 存储到图数据库
-	fmt.Println("=== Storing to Graph Database ===\n")
+	fmt.Println("=== Storing to Graph Database ===")
 
 	// 为每个实体和关系存储
 	nodes := make([]*graphdb.Node, len(mergedKG.Entities))
@@ -196,7 +196,7 @@ func main() {
 
 	// 9. 查询验证
 	if mode == "neo4j" || mode == "mock" {
-		fmt.Println("\n=== Verification ===\n")
+		fmt.Println("\n=== Verification ===")
 
 		// 查询一个实体
 		if len(mergedKG.Entities) > 0 {

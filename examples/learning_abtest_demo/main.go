@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Learning Retrieval - A/B 测试示例 ===\n")
+	fmt.Println("=== LangChain-Go Learning Retrieval - A/B 测试示例 ===")
 
 	// 创建 A/B 测试管理器
 	storage := abtest.NewMemoryStorage()
@@ -66,7 +66,7 @@ func main() {
 	if err := manager.StartExperiment(ctx, experiment.ID); err != nil {
 		panic(err)
 	}
-	fmt.Println("✓ 实验已开始运行\n")
+	fmt.Println("✓ 实验已开始运行")
 
 	// 3. 用户分流演示
 	fmt.Println("3. 用户分流演示")
@@ -143,7 +143,7 @@ func main() {
 			Timestamp: time.Now(),
 		})
 	}
-	fmt.Println("✓ 数据收集完成 (每组 100 个样本)\n")
+	fmt.Println("✓ 数据收集完成 (每组 100 个样本)")
 
 	// 5. 分析实验结果
 	fmt.Println("5. 分析实验结果")

@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== Hybrid Search 混合检索示例 ===\n")
+	fmt.Println("=== Hybrid Search 混合检索示例 ===")
 
 	// 准备测试文档
 	documents := []types.Document{
@@ -159,7 +159,7 @@ func main() {
 	fmt.Println("📖 示例 4: 通用 HybridRetriever")
 	fmt.Println("----------------------------------------")
 	fmt.Println("注意: 通用 HybridRetriever 需要真实的 VectorStore")
-	fmt.Println("在生产环境中，你可以这样使用:\n")
+	fmt.Println("在生产环境中，你可以这样使用:")
 
 	exampleCode := `
 	// 创建向量存储（例如 Milvus、Chroma 等）
@@ -191,7 +191,7 @@ func main() {
 	// ========================================
 	fmt.Println("📖 示例 5: Milvus 原生 Hybrid Search")
 	fmt.Println("----------------------------------------")
-	fmt.Println("Milvus 2.4+ 支持原生混合检索，性能提升 98 倍！\n")
+	fmt.Println("Milvus 2.4+ 支持原生混合检索，性能提升 98 倍！")
 
 	milvusExample := `
 	// 创建 Milvus 向量存储

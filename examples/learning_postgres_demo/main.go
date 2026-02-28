@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go Learning Retrieval - PostgreSQL 存储示例 ===\n")
+	fmt.Println("=== LangChain-Go Learning Retrieval - PostgreSQL 存储示例 ===")
 
 	// 从环境变量获取数据库连接字符串
 	// 格式: postgres://user:password@localhost:5432/dbname?sslmode=disable
@@ -32,7 +32,7 @@ func main() {
 		fmt.Println("     postgres:15")
 		fmt.Println()
 		fmt.Println("📝 本示例将展示如何连接，实际运行需要数据库")
-		fmt.Println("   如果使用内存存储，请运行 learning_feedback_demo\n")
+		fmt.Println("   如果使用内存存储，请运行 learning_feedback_demo")
 		fmt.Println("=" + string(make([]byte, 60)) + "\n")
 	}
 
@@ -42,7 +42,7 @@ func main() {
 		fmt.Printf("❌ 数据库连接失败: %v\n", err)
 		fmt.Println("\n💡 如果没有 PostgreSQL，可以:")
 		fmt.Println("   1. 运行上述 docker 命令启动数据库")
-		fmt.Println("   2. 或使用内存存储运行其他示例\n")
+		fmt.Println("   2. 或使用内存存储运行其他示例")
 		demonstrateUsage()
 		return
 	}
@@ -52,7 +52,7 @@ func main() {
 	ctx := context.Background()
 	if err := db.PingContext(ctx); err != nil {
 		fmt.Printf("❌ 数据库连接测试失败: %v\n", err)
-		fmt.Println("\n💡 请检查 PostgreSQL 是否正在运行\n")
+		fmt.Println("\n💡 请检查 PostgreSQL 是否正在运行")
 		demonstrateUsage()
 		return
 	}
@@ -74,7 +74,7 @@ func main() {
 	fmt.Println("      - learning_queries")
 	fmt.Println("      - learning_results")
 	fmt.Println("      - learning_explicit_feedback")
-	fmt.Println("      - learning_implicit_feedback\n")
+	fmt.Println("      - learning_implicit_feedback")
 
 	// 创建收集器
 	collector := feedback.NewCollector(storage)
@@ -140,7 +140,7 @@ func main() {
 		fmt.Printf("❌ 保存行为失败: %v\n", err)
 		return
 	}
-	fmt.Println("✅ 用户行为已保存 (阅读 90 秒)\n")
+	fmt.Println("✅ 用户行为已保存 (阅读 90 秒)")
 
 	// 从数据库读取反馈
 	fmt.Println("📖 从 PostgreSQL 读取数据...")
@@ -184,7 +184,7 @@ func main() {
 }
 
 func demonstrateUsage() {
-	fmt.Println("\n📖 PostgreSQL 存储使用示例:\n")
+	fmt.Println("\n📖 PostgreSQL 存储使用示例:")
 	
 	fmt.Println("```go")
 	fmt.Println("// 1. 连接 PostgreSQL")

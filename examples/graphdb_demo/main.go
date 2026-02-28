@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("=== LangChain-Go GraphDB Demo ===\n")
+	fmt.Println("=== LangChain-Go GraphDB Demo ===")
 
 	// 使用 Mock 实现演示
 	// 生产环境可以替换为 Neo4j 或 NebulaGraph
@@ -29,14 +29,14 @@ func main() {
 	if err := db.Ping(ctx); err != nil {
 		log.Fatalf("健康检查失败: %v", err)
 	}
-	fmt.Println("✓ 连接成功\n")
+	fmt.Println("✓ 连接成功")
 
 	// 2. 创建知识图谱
 	fmt.Println("2. 创建知识图谱...")
 	if err := createKnowledgeGraph(ctx, db); err != nil {
 		log.Fatalf("创建知识图谱失败: %v", err)
 	}
-	fmt.Println("✓ 知识图谱创建成功\n")
+	fmt.Println("✓ 知识图谱创建成功")
 
 	// 3. 查询节点
 	fmt.Println("3. 查询节点...")

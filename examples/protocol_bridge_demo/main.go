@@ -23,7 +23,7 @@ import (
 func main() {
 	ctx := context.Background()
 	
-	fmt.Println("=== Protocol Bridge Demo ===\n")
+	fmt.Println("=== Protocol Bridge Demo ===")
 	
 	// Step 1: Setup A2A system
 	fmt.Println("Step 1: Setting up A2A agent system...")
@@ -64,7 +64,7 @@ func main() {
 	})
 	registry.Register(ctx, analyst)
 	
-	fmt.Println("✓ A2A agents registered\n")
+	fmt.Println("✓ A2A agents registered")
 	
 	// Step 2: Setup MCP server
 	fmt.Println("Step 2: Setting up MCP server...")
@@ -75,7 +75,7 @@ func main() {
 		Debug:   true,
 	})
 	
-	fmt.Println("✓ MCP server created\n")
+	fmt.Println("✓ MCP server created")
 	
 	// Step 3: Create bidirectional bridge
 	fmt.Println("Step 3: Creating bidirectional bridge...")
@@ -87,7 +87,7 @@ func main() {
 		log.Fatal(err)
 	}
 	
-	fmt.Println("✓ Bridge setup completed\n")
+	fmt.Println("✓ Bridge setup completed")
 	
 	// Step 4: Test MCP → A2A bridging
 	fmt.Println("Step 4: Testing MCP → A2A bridging...")

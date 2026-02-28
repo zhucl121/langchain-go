@@ -12,12 +12,12 @@ import (
 func main() {
 	ctx := context.Background()
 
-	fmt.Println("=== LangChain-Go Skill 渐进式加载与元工具示例 ===\n")
+	fmt.Println("=== LangChain-Go Skill 渐进式加载与元工具示例 ===")
 
 	// 1. 创建 Skill 管理器
 	fmt.Println("【1】创建 Skill 管理器")
 	skillManager := skills.NewSkillManager()
-	fmt.Println("   ✓ Skill 管理器已创建\n")
+	fmt.Println("   ✓ Skill 管理器已创建")
 
 	// 2. 注册多个 Skills
 	fmt.Println("【2】注册 10 个 Skills（模拟大规模场景）")
