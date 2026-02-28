@@ -53,7 +53,46 @@ releases/
 
 ## 📦 版本历史
 
-### v0.6.0 - 2026-01-22 🔥 最新
+### v0.7.0 - 2026-02-28 🔥 最新
+
+**认知增强 + 生产就绪**
+
+核心功能：
+- ✅ 三层认知记忆系统（语义/情节/程序）
+- ✅ 统一 Agent 创建接口（`CreateUnifiedAgent`）
+- ✅ LangGraph 节点级缓存
+- ✅ 延迟节点 / Map-Reduce
+- ✅ Pre/Post Model Hooks
+- ✅ 可恢复流（Resumable Streams）
+- ✅ 可靠结构化输出（Trustcall + JSON Patch）
+- ✅ Circuit Breaker + Bulkhead 生产容错
+- ✅ LangGraph Store（跨会话存储）
+
+代码统计：10,000+ 行新增（10 个核心模块）
+
+文档：
+- [发布说明](RELEASE_NOTES_v0.7.0.md)
+- [用户指南](../V0.7.0_USER_GUIDE.md)
+- [设计方案](../V0.7.0_DESIGN_PROPOSAL.md)
+
+---
+
+### v0.6.1 - 2026-02-xx
+
+**标准化协议（MCP & A2A）**
+
+核心功能：
+- ✅ MCP 协议（与 Claude Desktop 互操作）
+- ✅ A2A 协议（跨语言 Agent 协作）
+- ✅ 协议桥接（MCP ↔ A2A）
+
+文档：
+- [GitHub Release](GITHUB_RELEASE_v0.6.1.md)
+- [发布检查清单](RELEASE_CHECKLIST_v0.6.1.md)
+
+---
+
+### v0.6.0 - 2026-01-22
 
 **企业级安全完整版**
 

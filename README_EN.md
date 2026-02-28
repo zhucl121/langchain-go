@@ -13,10 +13,14 @@ LangChain-Go is a complete Go implementation of [LangChain](https://github.com/l
 
 ## ✨ Core Features
 
+- 🧠 **3-Layer Cognitive Memory** - Semantic/Episodic/Procedural memory with auto-extraction & cross-layer Recall 🔥 v0.7.0 NEW!
+- 🔄 **Unified Agent API** - `CreateUnifiedAgent` switches between 5 agent strategies with one field change 🔥 v0.7.0 NEW!
+- ⚡ **Node-Level Caching** - LangGraph node cache to avoid redundant LLM calls 🔥 v0.7.0 NEW!
+- 🛡️ **Production Resilience** - Circuit Breaker + Bulkhead to prevent agent cascading failures 🔥 v0.7.0 NEW!
 - 🤖 **7 Agent Types** - ReAct, ToolCalling, Conversational, PlanExecute, OpenAI Functions, SelfAsk, StructuredChat
-- 🔗 **MCP Protocol** - First Go implementation! Interoperability with Claude Desktop 🔥 v0.6.1 NEW!
-- 🤝 **A2A Protocol** - Cross-language, cross-system standardized agent collaboration 🔥 v0.6.1 NEW!
-- 🌐 **Protocol Bridge** - Seamless MCP ↔ A2A interoperability 🔥 v0.6.1 NEW!
+- 🔗 **MCP Protocol** - First Go implementation! Interoperability with Claude Desktop v0.6.1
+- 🤝 **A2A Protocol** - Cross-language, cross-system standardized agent collaboration v0.6.1
+- 🌐 **Protocol Bridge** - Seamless MCP ↔ A2A interoperability v0.6.1
 - 🤝 **Multi-Agent System** - Complete multi-agent collaboration with sequential, parallel, hierarchical strategies
 - 🛠️ **38 Built-in Tools** - Calculator, search, file, data, HTTP, multimodal (image, audio, video)
 - 🚀 **3-Line RAG** - Simplified RAG Chain API, reduced from 150 lines to 3 lines
@@ -28,7 +32,7 @@ LangChain-Go is a complete Go implementation of [LangChain](https://github.com/l
 - ⚡ **Distributed Deployment** - Cluster management, load balancing, distributed cache, failover
 - 🏢 **Enterprise Security** - RBAC, multi-tenancy, audit logs, data security v0.6.0
 - 💾 **Production Features** - Redis cache, auto-retry, state persistence, observability, Prometheus metrics
-- 📦 **Complete Docs** - 65+ pages, bilingual (EN/CN), 25 examples
+- 📦 **Complete Docs** - 70+ pages, bilingual (EN/CN), 27 examples
 
 ## 🚀 Quick Start
 
@@ -255,7 +259,77 @@ func main() {
 }
 ```
 
-#### 6. MCP Protocol - Claude Desktop Interop 🔥 v0.6.1 NEW!
+#### 6. Cognitive Memory System 🔥 v0.7.0 NEW!
+
+```go
+package main
+
+import (
+    "context"
+    cogmem "github.com/zhucl121/langchain-go/core/memory/cognitive"
+)
+
+func main() {
+    ctx := context.Background()
+
+    // Create 3-layer cognitive memory manager
+    manager := cogmem.NewMemoryManager(cogmem.ManagerConfig{
+        UserID:            "user-alice",
+        SemanticStorage:   cogmem.NewInMemorySemanticStorage(),
+        EpisodicStorage:   cogmem.NewInMemoryEpisodicStorage(),
+        ProceduralStorage: cogmem.NewInMemoryProceduralStorage(),
+    })
+
+    // Store semantic memory (factual knowledge)
+    manager.StoreSemanticMemory(ctx, &cogmem.SemanticMemory{
+        Content:    "Alice is a Go developer with 5 years of experience",
+        Category:   "user-profile",
+        Confidence: 1.0,
+    })
+
+    // Auto-extract memories from conversation
+    manager.AutoConsolidate(ctx, messages)
+
+    // Cross-layer parallel retrieval → augmented context for RAG
+    recalled, _ := manager.Recall(ctx, "Alice's coding preferences", cogmem.DefaultRecallOptions())
+    fmt.Println(recalled.AugmentedContext) // inject directly into System Prompt
+}
+```
+
+#### 7. Unified Agent API 🔥 v0.7.0 NEW!
+
+```go
+package main
+
+import (
+    "context"
+    "github.com/zhucl121/langchain-go/core/agents"
+)
+
+func main() {
+    ctx := context.Background()
+
+    // Single API entry point — change Preset to switch agent strategy
+    ca, _ := agents.CreateUnifiedAgent(agents.UnifiedAgentConfig{
+        Preset:       agents.PresetToolCalling, // swap to PresetReAct / PresetPlanExecute
+        Model:        llm,
+        Tools:        myTools,
+        SystemPrompt: "You are a professional assistant",
+        MaxSteps:     15,
+        // Multi-turn memory management
+        Memory: agents.NewInMemoryConversationMemory(),
+        // Production resilience
+        Resilience: &agents.ResilienceConfig{
+            CircuitBreaker: agents.DefaultCircuitBreakerConfig("llm-api"),
+        },
+    })
+
+    result, _ := ca.RunWithMemory(ctx, "Analyze this code for me")
+    fmt.Println(result.Output)
+}
+```
+
+#### 8. MCP Protocol - Claude Desktop Interop v0.6.1
 
 ```go
 package main
@@ -384,13 +458,14 @@ func main() {
 
 - 📘 [Quick Start](QUICK_START_EN.md) - Get started in 5 minutes
 - 📗 [Complete Docs](docs/README.md) - Detailed usage guide
-- 🔗 [MCP & A2A Guide](docs/V0.6.1_USER_GUIDE.md) - Protocol integration 🔥 v0.6.1
+- 🧠 [Cognitive Memory & Unified Agent Guide](docs/V0.7.0_USER_GUIDE.md) - v0.7.0 Features 🔥 NEW!
+- 🔗 [MCP & A2A Guide](docs/V0.6.1_USER_GUIDE.md) - Protocol integration v0.6.1
 - 📕 [Agent Guide](docs/guides/agents/README.md) - Agent system docs
 - 📙 [Multi-Agent System](docs/guides/multi-agent-guide.md) - Multi-agent collaboration
 - 📚 [RAG Guide](docs/guides/rag/README.md) - RAG system docs
 - 🧠 [Learning Retrieval Guide](docs/V0.4.2_USER_GUIDE.md) - Learning retrieval
 - 🏢 [Enterprise Security Guide](docs/V0.6.0_PROGRESS.md) - RBAC & multi-tenancy v0.6.0
-- 💡 [Examples](examples/) - 25 complete examples
+- 💡 [Examples](examples/) - 27 complete examples
 
 ## 🔧 Example Programs
 
@@ -465,19 +540,21 @@ langchain-go/
 
 ## 📈 Technical Metrics
 
-- **Code Lines**: 40,000+ (v0.6.1 added 3,300+) 🔥
+- **Code Lines**: 52,000+ (v0.7.0 added 10,000+) 🔥
 - **Test Coverage**: 85%+
-- **Test Cases**: 626+
-- **Protocol Support**: 2 (MCP, A2A) 🔥 v0.6.1 NEW!
+- **Test Cases**: 830+ (v0.7.0 added 200+) 🔥
+- **Protocol Support**: 2 (MCP, A2A) v0.6.1
 - **LLM Providers**: 6 (OpenAI, Anthropic, Gemini, Bedrock, Azure, Ollama)
 - **Vector Stores**: 5 (Milvus, Chroma, Qdrant, Weaviate, Redis)
 - **Document Loaders**: 8 (PDF, Word, Excel, HTML, Text, GitHub, Confluence, PostgreSQL)
 - **Built-in Tools**: 38
-- **Agent Types**: 7 + 6 specialized agents
+- **Agent Types**: 7 + 6 specialized agents + Unified Agent API 🔥 v0.7.0
+- **Memory System**: 3-layer cognitive (Semantic/Episodic/Procedural) 🔥 v0.7.0 NEW!
+- **Graph Features**: Node cache, deferred nodes, resumable streams, cross-session store 🔥 v0.7.0 NEW!
 - **Learning Modules**: 4 (Feedback, Evaluation, Optimization, A/B Test)
 - **Enterprise Features**: 5 (RBAC, Multi-tenancy, Audit, Security, Auth) v0.6.0
-- **Doc Pages**: 65+
-- **Examples**: 25 (v0.6.1 added 4) 🔥
+- **Doc Pages**: 70+
+- **Examples**: 27 (v0.7.0 added 2) 🔥
 
 ## 🧪 Testing
 
